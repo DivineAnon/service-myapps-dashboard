@@ -1,0 +1,21 @@
+{
+  "name": "service-myapps-dashboard",
+  "version": "1.0.0",
+  "description": "Service myapps dashboard",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Andrianus",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.24.0",
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.1",
+    "generate-password": "^1.7.0",
+    "jsonwebtoken": "^8.5.1",
+    "mssql": "^7.2.1",
+    "swagger-ui-express": "^4.2.0"
+  }
+}

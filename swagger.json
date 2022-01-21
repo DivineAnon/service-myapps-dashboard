@@ -1,0 +1,416 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "version": "1.0.0",
+        "title": "Documentation API MYAPPS PABRIK",
+        "description": "Ini Dokumentasi API untuk semua respon yang didapatkan dari API",
+        "license": {
+            "name": "MIT",
+            "url": "https://opensource.org/licenses/MIT"
+        }
+    },
+    "host": "103.247.217.10:8091",
+    "basePath": "/api/",
+    "tags": [{
+        "name": "API MYAPPS PABRIK",
+        "description": "Get ALL Data API MYAPPS PABRIK"
+    }],
+    "schemes": [
+        "http",
+        "https"
+    ],
+    "consumes": [
+        "application/json"
+    ],
+    "produces": [
+        "application/json"
+    ],
+    "paths": {
+        "/ranking-cluster-10": {
+            "get": {
+                "tags": [
+                    "Ranking Cluster 1.0"
+                ],
+                "summary": "Get All Data for Ranking Cluster 1.0",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api/ranking-cluster-10"
+                        }
+                    }
+                }
+            }
+        },        
+        "/ranking-cluster-21": {
+            "get": {
+                "tags": [
+                    "Ranking Cluster 2.1"
+                ],
+                "summary": "Get All Data for Ranking Cluster 2.1",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api/ranking-cluster-21"
+                        }
+                    }
+                }
+            }
+        },        
+        "/ranking-cluster-22": {
+            "get": {
+                "tags": [
+                    "Ranking Cluster 2.2"
+                ],
+                "summary": "Get All Data for Ranking Cluster 2.2",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api/ranking-cluster-22"
+                        }
+                    }
+                }
+            }
+        },        
+        "/ranking-cluster-23": {
+            "get": {
+                "tags": [
+                    "Ranking Cluster 2.3"
+                ],
+                "summary": "Get All Data for Ranking Cluster 2.3",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api/ranking-cluster-23"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking-cluster-24": {
+            "get": {
+                "tags": [
+                    "Ranking Cluster 2.4"
+                ],
+                "summary": "Get All Data for Ranking Cluster 2.4",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api/ranking-cluster-24"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking-cluster-25": {
+            "get": {
+                "tags": [
+                    "Ranking Cluster 2.5"
+                ],
+                "summary": "Get All Data for Ranking Cluster 2.5",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api/ranking-cluster-25"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking-cluster-26": {
+            "get": {
+                "tags": [
+                    "Ranking Cluster 2.6"
+                ],
+                "summary": "Get All Data for Ranking Cluster 2.6",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api/ranking-cluster-26"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking-cluster-27": {
+            "get": {
+                "tags": [
+                    "Ranking Cluster 2.7"
+                ],
+                "summary": "Get All Data for Ranking Cluster 2.7",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api/ranking-cluster-27"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking-cluster-31": {
+            "get": {
+                "tags": [
+                    "Ranking Cluster 3.1"
+                ],
+                "summary": "Get All Data for Ranking Cluster 3.1",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api/ranking-cluster-31"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking-cluster-32": {
+            "get": {
+                "tags": [
+                    "Ranking Cluster 3.2"
+                ],
+                "summary": "Get All Data for Ranking Cluster 3.2",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api/ranking-cluster-32"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking-cluster-33": {
+            "get": {
+                "tags": [
+                    "Ranking Cluster 3.3"
+                ],
+                "summary": "Get All Data for Ranking Cluster 3.3",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api/ranking-cluster-33"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking-cluster-34": {
+            "get": {
+                "tags": [
+                    "Ranking Cluster 3.4"
+                ],
+                "summary": "Get All Data for Ranking Cluster 3.4",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api/ranking-cluster-34"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking-cluster-35": {
+            "get": {
+                "tags": [
+                    "Ranking Cluster 3.5"
+                ],
+                "summary": "Get All Data for Ranking Cluster 3.5",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api/ranking-cluster-35"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking-cluster-41": {
+            "get": {
+                "tags": [
+                    "Ranking Cluster 4.1"
+                ],
+                "summary": "Get All Data for Ranking Cluster 4.1",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api/ranking-cluster-41"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking-cluster-42": {
+            "get": {
+                "tags": [
+                    "Ranking Cluster 4.2"
+                ],
+                "summary": "Get All Data for Ranking Cluster 4.2",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api/ranking-cluster-42"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking-cluster-43": {
+            "get": {
+                "tags": [
+                    "Ranking Cluster 4.3"
+                ],
+                "summary": "Get All Data for Ranking Cluster 4.3",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api/ranking-cluster-43"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking-cluster-44": {
+            "get": {
+                "tags": [
+                    "Ranking Cluster 4.4"
+                ],
+                "summary": "Get All Data for Ranking Cluster 4.4",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api/ranking-cluster-44"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking-cluster-45": {
+            "get": {
+                "tags": [
+                    "Ranking Cluster 4.5"
+                ],
+                "summary": "Get All Data for Ranking Cluster 4.5",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api/ranking-cluster-45"
+                        }
+                    }
+                }
+            }
+        },
+        "/ranking-cluster-46": {
+            "get": {
+                "tags": [
+                    "Ranking Cluster 4.6"
+                ],
+                "summary": "Get All Data for Ranking Cluster 4.6",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/api/ranking-cluster-46"
+                        }
+                    }
+                }
+            }
+        }
+        
+
+
+    },
+    "definitions": {
+        "User": {
+            "required": [
+                "name",
+                "_id",
+                "companies"
+            ],
+            "properties": {
+                "_id": {
+                    "type": "integer",
+                    "uniqueItems": true
+                },
+                "isPublic": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "books": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "amount": {
+                                "type": "number"
+                            }
+                        }
+                    }
+                },
+                "companies": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "updateUser": {
+            "required": [
+                "name",
+                "companies"
+            ],
+            "properties": {
+                "isPublic": {
+                    "type": "boolean"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "books": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "amount": {
+                                "type": "number"
+                            }
+                        }
+                    }
+                },
+                "companies": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "Users": {
+            "type": "array",
+            "$ref": "#/definitions/User"
+        }
+    }
+}
