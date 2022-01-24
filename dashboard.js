@@ -4,7 +4,7 @@ var configCMK = require('./dbcmk');
 var configHRD = require('./dbhrd');
 const  sql = require('mssql');
 const { json } = require('body-parser');
-
+var  moment = require('moment');
 async function getDataHelloGoodBye() {
     try{
         let pool = await sql.connect(configCMK);
@@ -16,14 +16,18 @@ async function getDataHelloGoodBye() {
 }
 
 async function getDataAbsensi(userlogin) {
-    const date = new Date();
-    const tgl1 = date.setMonth(-1);
+    const dates = new Date();
+    // const tgl1 = date.setMonth(-1);
+    const date = moment(new Date()).format('YYYY-MM-DD');
+    const tgl1 = moment(dates.setMonth(-1)).format('YYYY-MM-DD');
+    //  return {date,tgl1}
     try{
         let pool = await sql.connect(configHRD);
-        let login = await pool.request().input('userlogin', sql.VarChar, userlogin).input('date1', sql.DateTime, tgl1).input('date2', sql.DateTime, date).query("exec sp_absensi @userlogin @date1 @date2");
+        //2021-02-13
+        let login = await pool.request().input('userlogin', sql.VarChar, userlogin).input('date1', sql.Date, tgl1).input('date2', sql.Date, date).query("exec sp_absensi @userlogin, @date1, @date2");
         return  login.recordsets;
     }catch(error){
-        console.log(error);
+        return {error,date,tgl1}
     }
 }
 
@@ -46,10 +50,23 @@ async function getDataStoreOpen(userlogin) {
         console.log(error);
     }
 }
+async function getDataToDoList(userlogin) {
+    try{
+        let pool = await sql.connect(configTICKET);
+        let login = await pool.request().query(` select t.m_nomor as nomor,t.m_task as 'task',t.m_tanggal as 'tgl', t.m_kode as toko,t.m_duedate as duedate,t.m_status  from t_task as t where t.m_user=${userlogin} order by t.m_nomor asc`);
+        return  login.recordsets;
+    }catch(error){
+        console.log(error);
+    }
+}
+//todoliost db db_tiketing table t_task where user id
+//monitoring db db_tiketing table t_task join t_task_pic where user id detail
+//DINAS pending
 
 module.exports = {
     getDataHelloGoodBye,
     getDataHBD,
+    getDataToDoList,
     getDataAbsensi,
     getDataStoreOpen
 }

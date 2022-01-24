@@ -1,4 +1,4 @@
-var  Db = require('./dboperations');
+require('dotenv').config()
 var dashboard = require('./dashboard');
 var  express = require('express');
 var  bodyParser = require('body-parser');
@@ -7,7 +7,7 @@ var  app = express();
 var  router = express.Router();
 const swaggerUi = require('swagger-ui-express'),
 swaggerDocument = require('./swagger.json');
-
+var jwt = require('jsonwebtoken');
 app.use(bodyParser.urlencoded({ extended:  true }));
 app.use(bodyParser.json());
 app.use(cors());
@@ -17,31 +17,125 @@ app.use(
   swaggerUi.serve, 
   swaggerUi.setup(swaggerDocument)
 );
+router.use((request, response, next) => {
+  console.log('middleware');
+  response.header('Access-Control-Allow-Origin', '*');
+  response.header('Authorization');
+  next();
+});
 
 router.route('/hello-goodbye').get((request, response) => {
-  dashboard.getDataHelloGoodBye().then((data) => {
-    response.json(data[0]);
-  })
+  let token = request.headers.authorization 
+   
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+      dashboard.getDataHelloGoodBye().then((data) => {
+        response.json({status:'Succsess',message:'Succsess fetch data',data:data[0]});
+      })
+    // response.json({decoded,token});
+  } catch(err) {
+   
+   
+    if(err?.name==='TokenExpiredError'){
+       
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+       
+    }
+
+  }
+
 })
 
-// router.route('/absensi/:userlogin').get((request, response) => {
-//   dashboard.getDataAbsensi(request.params.userlogin).then((data) => {
-//     response.json(data[0]);
-//   })
-// })
+router.route('/absensi').get((request, response) => {
+  let token = request.headers.authorization 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+  dashboard.getDataAbsensi(decoded?.data[0]?.userlogin).then((data) => {
+    response.json({status:'Succsess',message:'Succsess fetch data',data});
+  })
+} catch(err) {
+   
+   
+  if(err?.name==='TokenExpiredError'){
+     
+    response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+  }else{
+    
+    response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+     
+  }
 
-// router.route('/hbd/:userlogin').get((request, response) => {
-//   dashboard.getDataHBD(request.params.userlogin).then((data) => {
-//     response.json(data[0]);
-//   })
-// })
+}
+})
+
+router.route('/hbd').get((request, response) => {
+  let token = request.headers.authorization 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.getDataHBD(decoded?.data[0]?.userlogin).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    
+    
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
 
 router.route('/openstore').get((request, response) => {
+  let token = request.headers.authorization 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
   dashboard.getDataStoreOpen().then((data) => {
-    response.json(data[0]);
+    response.json({status:'Succsess',message:'Succsess fetch data',data:data[0]});
+    
   })
-})
+} catch(err) {
+    
+    
+  if(err?.name==='TokenExpiredError'){
+    
+    response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+  }else{
+    
+    response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+    
+  }
 
+}
+})
+router.route('/todo-list').get((request, response) => {
+  let token = request.headers.authorization 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.getDataToDoList(decoded?.data[0]?.userlogin).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    
+    
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
 var  port = process.env.PORT || 8090;
 app.listen(port);
 console.log('Order API is runnning at ' + port);
