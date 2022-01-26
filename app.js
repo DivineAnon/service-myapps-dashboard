@@ -136,6 +136,27 @@ router.route('/todo-list').get((request, response) => {
 
   }
 })
+router.route('/todo-list-monitoring').get((request, response) => {
+  let token = request.headers.authorization 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.getMonitoring(decoded?.data[0]?.userlogin).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    
+    
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
 var  port = process.env.PORT || 8090;
 app.listen(port);
 console.log('Order API is runnning at ' + port);
