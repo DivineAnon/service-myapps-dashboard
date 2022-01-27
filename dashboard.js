@@ -68,6 +68,19 @@ async function getMonitoring(userlogin) {
         console.log(error);
     }
 }
+
+async function getDataAbsensiReport(nik,tglFrm,tglTo) {
+    try{
+        let pool = await sql.connect(configHRD);
+        let dataAbsen = await pool.request().query(`exec sp_reportabsensi_all '${tglFrm}', '${tglTo}', 
+        'ALL', 'ALL', 'ALL', 'nik', 'ALL', 'ALL', 'ALL',
+         'ALL', '${nik}','', 'nik', ''`);
+        let dataCuti = await pool.request().query(`select dbo.f_sisacuti(m_nik,year('${tglFrm}'),'${tglTo}') as co_sisacuti from mskaryawan where m_nik = '${nik}'`);
+        return  {dataCuti:dataCuti.recordsets,dataAbsen:dataAbsen.recordset}
+    }catch(error){
+        console.log(error);
+    }
+}
 //todoliost db db_tiketing table t_task where user id
 //monitoring db db_tiketing table t_task join t_task_pic where user id detail
 //DINAS pending
@@ -78,5 +91,6 @@ module.exports = {
     getMonitoring,
     getDataToDoList,
     getDataAbsensi,
-    getDataStoreOpen
+    getDataStoreOpen,
+    getDataAbsensiReport
 }

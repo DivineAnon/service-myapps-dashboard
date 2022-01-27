@@ -53,7 +53,7 @@ router.route('/absensi').get((request, response) => {
   let token = request.headers.authorization 
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-  dashboard.getDataAbsensi(decoded?.data[0]?.userlogin).then((data) => {
+  dashboard.getDataAbsensi(decoded?.data[0]?.loginid).then((data) => {
     response.json({status:'Succsess',message:'Succsess fetch data',data});
   })
 } catch(err) {
@@ -75,7 +75,7 @@ router.route('/hbd').get((request, response) => {
   let token = request.headers.authorization 
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.getDataHBD(decoded?.data[0]?.userlogin).then((data) => {
+    dashboard.getDataHBD(decoded?.data[0]?.loginid).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
@@ -119,7 +119,7 @@ router.route('/todo-list').get((request, response) => {
   let token = request.headers.authorization 
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.getDataToDoList(decoded?.data[0]?.userlogin).then((data) => {
+    dashboard.getDataToDoList(decoded?.data[0]?.loginid).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
@@ -140,9 +140,34 @@ router.route('/todo-list-monitoring').get((request, response) => {
   let token = request.headers.authorization 
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.getMonitoring(decoded?.data[0]?.userlogin).then((data) => {
+    dashboard.getMonitoring(decoded?.data[0]?.loginid).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
+  } catch(err) {
+    
+    
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
+router.route('/reportAbsen/:tglFrm/:tglTo').get((request, response) => {
+  
+ 
+  let token = request.headers.authorization 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+ 
+  dashboard.getDataAbsensiReport(decoded?.data[0]?.loginid,request.params.tglFrm,request.params.tglTo).then((data) => {
+        response.json({status:'Succsess',message:'Succsess fetch data',data});
+      })
   } catch(err) {
     
     
