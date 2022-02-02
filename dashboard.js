@@ -81,10 +81,18 @@ async function getDataAbsensiReport(nik,tglFrm,tglTo) {
         console.log(error);
     }
 }
-//todoliost db db_tiketing table t_task where user id
-//monitoring db db_tiketing table t_task join t_task_pic where user id detail
-//DINAS pending
-
+async function getNews(tglFrm,tglTo) {
+    
+    try{
+      
+        let pool = await sql.connect(configINFO);
+        // 2022-01-25T00:00:00.000Z
+        let data = await pool.request().query(`select * FROM t_news where m_aktif='A' and m_tanggal1 >=  '${moment(tglFrm).format('YYYY-MM-DD')+"T00:00:00.000Z"}'  and m_tanggal1<='${moment(tglTo).format('YYYY-MM-DD')+"T00:00:00.000Z"}' order by m_tanggal1 desc`);
+        return  data.recordsets
+    }catch(error){
+        console.log(error);
+    }
+} 
 module.exports = {
     getDataHelloGoodBye,
     getDataHBD,
@@ -92,5 +100,6 @@ module.exports = {
     getDataToDoList,
     getDataAbsensi,
     getDataStoreOpen,
+    getNews,
     getDataAbsensiReport
 }

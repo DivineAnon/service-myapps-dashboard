@@ -182,6 +182,35 @@ router.route('/reportAbsen/:tglFrm/:tglTo').get((request, response) => {
 
   }
 })
+
+router.route('/news/:tglFrm/:tglTo').get((request, response) => {
+  dashboard.getNews(request.params.tglFrm,request.params.tglTo).then((data) => {
+    response.json({status:'Succsess',message:'Succsess fetch data',data});
+  })
+  // dashboard.getDataHelloGoodBye().then((data) => {
+  //   response.json({status:'Succsess',message:'Succsess fetch data',data:data[0]});
+  // })
+  // let token = request.headers.authorization 
+  // try {
+  //   var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+ 
+  // dashboard.getDataAbsensiReport(decoded?.data[0]?.loginid,request.params.tglFrm,request.params.tglTo).then((data) => {
+  //       response.json({status:'Succsess',message:'Succsess fetch data',data});
+  //     })
+  // } catch(err) {
+    
+    
+  //   if(err?.name==='TokenExpiredError'){
+      
+  //     response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+  //   }else{
+      
+  //     response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+  //   }
+
+  // }
+})
 var  port = process.env.PORT || 8090;
 app.listen(port);
 console.log('Order API is runnning at ' + port);
