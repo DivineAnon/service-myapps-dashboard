@@ -75,12 +75,12 @@ router.route('/hbd').get((request, response) => {
   let token = request.headers.authorization 
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.getDataHBD(decoded?.data[0]?.loginid).then((data) => {
+    dashboard.getDataHBD().then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
     
-    
+    response.json({err});
     if(err?.name==='TokenExpiredError'){
       
       response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
@@ -93,28 +93,31 @@ router.route('/hbd').get((request, response) => {
   }
 })
 
-router.route('/openstore').get((request, response) => {
-  let token = request.headers.authorization 
-  try {
-    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-  dashboard.getDataStoreOpen().then((data) => {
-    response.json({status:'Succsess',message:'Succsess fetch data',data:data[0]});
-    
+ 
+  
+  router.route('/openstore').get((request, response) => {
+   
+    let token = request.headers.authorization 
+    try {
+      var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+       dashboard.getDataStoreOpen(decoded?.data[0]?.loginid).then((data) => {
+          response.json({status:'Succsess',message:'Succsess fetch data',data:data[0]});
+          
+        })
+    } catch(err) {
+      
+      
+      if(err?.name==='TokenExpiredError'){
+        
+        response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+      }else{
+        
+        response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+        
+      }
+  
+    }
   })
-} catch(err) {
-    
-    
-  if(err?.name==='TokenExpiredError'){
-    
-    response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
-  }else{
-    
-    response.status(500).json({ error: 'Server Error',message:'Invalid token' });
-    
-  }
-
-}
-})
 router.route('/todo-list').get((request, response) => {
   let token = request.headers.authorization 
   try {
