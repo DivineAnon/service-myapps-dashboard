@@ -75,7 +75,7 @@ router.route('/hbd').get((request, response) => {
   let token = request.headers.authorization 
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.getDataHBD().then((data) => {
+    dashboard.getDataHBD(decoded?.data[0]?.loginid).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
@@ -187,19 +187,45 @@ router.route('/reportAbsen/:tglFrm/:tglTo').get((request, response) => {
 })
 
 router.route('/news/:tglFrm/:tglTo').get((request, response) => {
-  dashboard.getNews(request.params.tglFrm,request.params.tglTo).then((data) => {
+ 
+  let token = request.headers.authorization 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+ 
+   dashboard.getNews(request.params.tglFrm,request.params.tglTo).then((data) => {
     response.json({status:'Succsess',message:'Succsess fetch data',data});
   })
-  // dashboard.getDataHelloGoodBye().then((data) => {
-  //   response.json({status:'Succsess',message:'Succsess fetch data',data:data[0]});
-  // })
+  } catch(err) {
+    
+    
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
+router.route('/entry-master-store/:limit/:page').post((request, response) => {
+  let brand = request?.body?.brand
+  let city = request?.body?.city
+  let mall = request?.body?.mall
+  let status = request?.body?.status
+  
+  dashboard.getEntryStore(request.params.limit,request.params.page,brand,city,mall,status).then((data) => {
+    response.json({status:'Succsess',message:'Succsess fetch data',data});
+  })
   // let token = request.headers.authorization 
   // try {
   //   var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
  
-  // dashboard.getDataAbsensiReport(decoded?.data[0]?.loginid,request.params.tglFrm,request.params.tglTo).then((data) => {
-  //       response.json({status:'Succsess',message:'Succsess fetch data',data});
-  //     })
+  //  dashboard.getEntryStore().then((data) => {
+  //   response.json({status:'Succsess',message:'Succsess fetch data',data});
+  // })
   // } catch(err) {
     
     
