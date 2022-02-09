@@ -72,10 +72,11 @@ router.route('/absensi').get((request, response) => {
 })
 
 router.route('/hbd').get((request, response) => {
+  
   let token = request.headers.authorization 
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.getDataHBD(decoded?.data[0]?.loginid).then((data) => {
+    dashboard.getDataHBD(decoded).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
