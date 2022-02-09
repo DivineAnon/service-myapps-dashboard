@@ -29,7 +29,7 @@ router.route('/hello-goodbye').get((request, response) => {
    
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-      dashboard.getDataHelloGoodBye().then((data) => {
+      dashboard.getDataHelloGoodBye(decoded).then((data) => {
         response.json({status:'Succsess',message:'Succsess fetch data',data:data[0]});
       })
     // response.json({decoded,token});

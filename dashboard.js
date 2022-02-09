@@ -5,7 +5,7 @@ var configHRD = require('./dbhrd');
 const  sql = require('mssql');
 const { json } = require('body-parser');
 var  moment = require('moment');
-async function getDataHelloGoodBye() {
+async function getDataHelloGoodBye(decoded) {
     try{
         let pool = await sql.connect(configCMK);
         let login = await pool.request().query("exec api_hellogoodbye");
