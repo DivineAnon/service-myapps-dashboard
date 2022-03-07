@@ -17,12 +17,14 @@ app.use(
   swaggerUi.serve, 
   swaggerUi.setup(swaggerDocument)
 );
+
 router.use((request, response, next) => {
   console.log('middleware');
   response.header('Access-Control-Allow-Origin', '*');
   response.header('Authorization');
   next();
 });
+
 router.route('/todo-list').get((request, response) => {
   let token = request.headers.authorization 
   try {
@@ -31,8 +33,6 @@ router.route('/todo-list').get((request, response) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
-    
-    
     if(err?.name==='TokenExpiredError'){
       
       response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
