@@ -44,6 +44,7 @@ router.route('/todo-list').get((request, response) => {
 
   }
 })
+
 router.route('/todo-list-monitoring').get((request, response) => {
   let token = request.headers.authorization 
   try {
@@ -65,7 +66,55 @@ router.route('/todo-list-monitoring').get((request, response) => {
 
   }
 })
+router.route('/follow-up').post((request, response) => {
+  let token = request.headers.authorization 
+  let st = request.body?.st
+  let start = request.body?.start
+  let end = request.body?.end
+  
+ 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.getFollow( st,start,end).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
 
+  }
+})
+router.route('/entry-request').post((request, response) => {
+  let token = request.headers.authorization 
+  let st = request.body?.st
+  let start = request.body?.start
+  let end = request.body?.end
+  let div = request.body?.div
+  let dep = request.body?.dep
+  let sub = request.body?.sub
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.getDataEntry(decoded?.data[0],start,end,dep,div,sub,st ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data,decoded:decoded?.data[0]});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
 var  port = process.env.PORT || 8090;
 app.listen(port);
 console.log('Order API is runnning at ' + port);
