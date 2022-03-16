@@ -71,11 +71,57 @@ router.route('/follow-up').post((request, response) => {
   let st = request.body?.st
   let start = request.body?.start
   let end = request.body?.end
-  
- 
+  let lokasi = request.body?.lokasi
+  let city = request.body?.city
+  let unit = request.body?.unit
+  let search =  request.body?.search
+  let limit = request.body?.limit
+  let page = request.body?.page
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.getFollow( st,start,end).then((data) => {
+    dashboard.getFollow( st,start,end,lokasi,city,unit,search,limit,page).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/finish-follow-up').post((request, response) => {
+  let token = request.headers.authorization 
+  let m_number = request.body?.m_number
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.getSelesaiFollowUp( m_number).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/get-unit-filter').post((request, response) => {
+  let token = request.headers.authorization 
+ 
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.getListUnit().then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
@@ -98,9 +144,12 @@ router.route('/entry-request').post((request, response) => {
   let div = request.body?.div
   let dep = request.body?.dep
   let sub = request.body?.sub
+  let unit = request.body?.unit
+  let limit = request.body?.limit
+  let page = request.body?.page
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.getDataEntry(decoded?.data[0],start,end,dep,div,sub,st ).then((data) => {
+    dashboard.getDataEntry(decoded?.data[0],start,end,dep,div,sub,st,unit,limit,page ).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data,decoded:decoded?.data[0]});
     })
   } catch(err) {
