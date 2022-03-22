@@ -482,6 +482,32 @@ async function getDataEntry(user,start,end,dep,div,sub,st,unit,limit,page) {
       console.log({error})
   }
 }
+
+
+async function getKategoriSupport(unit) {
+  let query = `
+  select * from mskategorisupport where m_unit = '${unit}' order by m_kodekategori asc   
+   ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      return  {data:login.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function getSubKategoriSupport(kategori) {
+  let query = `
+  select * from mssubkategorisupport where m_kodekategori = '${kategori}' order by m_kodesub asc
+   ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      return  {data:login.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
 async function getListUnit() {
   let query = `  select * from msunitsupport order by m_unit asc
             
@@ -494,7 +520,433 @@ async function getListUnit() {
       console.log({error})
   }
 }
+async function getExportFollowUp(start,end,unit,dep,m_nomor,store,area) {
+  let query = ``
+  if(unit === '04' || unit === '01'|| 
+  unit === '03' || unit === '05'|| 
+  unit === '06'|| unit === '07'|| unit === '08') {
+    query =`select 
+		a.m_nomor as nomor_ticket,
+		convert(varchar(10),a.m_tanggal,103) as tanggal_ticket,
+		c.m_departemen as divisi,
+		d.m_divisi as departemen,
+		b.m_nama as nama,
+		e.m_unit as unit_support,
+		a.m_kode2 as lokasi,
+		a.m_kode as kode_toko,
+		g.m_topic as kategori,
+		'' as subkategori,
+		f.m_qty as quantity,
+		f.m_nofpp as no_fpp,
+		convert(
+		varchar(10), 
+			f.m_doing_time, 
+		103
+		) as tanggal_response, 
+		convert(
+		varchar(10), 
+			f.m_doing_time, 
+		108
+		) as jam_response, 
+		convert(
+		varchar(10), 
+			f.m_done_time, 
+		103
+		) as tanggal_selesai,
+		convert(
+		varchar(10), 
+			f.m_done_time, 
+		108
+		) as jam_selesai,
+		convert(
+		varchar(10), 
+			f.m_approve_time, 
+		103
+		) as tanggal_approve,
+		convert(
+		varchar(10), 
+			f.m_approve_time, 
+		108
+		) as jam_approve,
+		convert(
+		varchar(10), 
+			f.m_start_pic, 
+		103
+		) as tanggal_set_pic,
+		convert(
+		varchar(10), 
+			f.m_start_pic, 
+		108
+		) as jam_set_pic,
+		f.m_kode as kode,
+		f.m_status_pic
+		from t_task_new a
+		join dbhrd.dbo.mskaryawan b on a.m_requestby = b.m_nik
+		join dbhrd.dbo.msdepartemen c on b.m_departemen = c.m_iddept
+		join dbhrd.dbo.msdivisi d on b.m_divisi = d.m_iddivisi 
+		join msunitsupport e on a.m_kodeunit = e.m_kodeunit 
+		join t_task_pic_new f on a.m_nomor = f.m_nomor
+		join mskategorisupport g on f.m_kodekategori = g.m_kodekategori 
+		where (a.m_tanggal between '${start}' and '${end}' ) and a.m_kodeunit = '${unit}'`
+  }else if(unit === '02'){
+    query =`select 
+    a.m_nomor as nomor_ticket,
+    convert(varchar(10),a.m_tanggal,103) as tanggal_ticket,
+    c.m_departemen as divisi,
+    d.m_divisi as departemen,
+    b.m_nama as nama,
+    e.m_unit as unit_support,
+    a.m_kode2 as lokasi,
+    a.m_kode as kode_toko,
+    g.m_topic as kategori,
+    h.m_topic as subkategori,
+    f.m_qty as quantity,
+    f.m_nofpp as no_fpp,
+    convert(
+    varchar(10), 
+      f.m_doing_time, 
+    103
+    ) as tanggal_response, 
+    convert(
+    varchar(10), 
+      f.m_doing_time, 
+    108
+    ) as jam_response, 
+    convert(
+    varchar(10), 
+      f.m_done_time, 
+    103
+    ) as tanggal_selesai,
+    convert(
+    varchar(10), 
+      f.m_done_time, 
+    108
+    ) as jam_selesai,
+    convert(
+    varchar(10), 
+      f.m_approve_time, 
+    103
+    ) as tanggal_approve,
+    convert(
+    varchar(10), 
+      f.m_approve_time, 
+    108
+    ) as jam_approve,
+    convert(
+    varchar(10), 
+      f.m_start_pic, 
+    103
+    ) as tanggal_set_pic,
+    convert(
+    varchar(10), 
+      f.m_start_pic, 
+    108
+    ) as jam_set_pic,
+    f.m_kode as kode,
+    f.m_status_pic
+    from t_task_new a
+    join dbhrd.dbo.mskaryawan b on a.m_requestby = b.m_nik
+    join dbhrd.dbo.msdepartemen c on b.m_departemen = c.m_iddept
+    join dbhrd.dbo.msdivisi d on b.m_divisi = d.m_iddivisi 
+    join msunitsupport e on a.m_kodeunit = e.m_kodeunit 
+    join t_task_pic_new f on a.m_nomor = f.m_nomor
+    join mskategorisupport g on f.m_kodekategori = g.m_kodekategori 
+    join mssubkategorisupport h on f.m_kodesub = h.m_kodesub 	
+    where (a.m_tanggal between '${start}' and '${end}' ) and a.m_kodeunit = '02'`
+  }else{
+    query =`select 
+		a.m_nomor as nomor_ticket,
+		convert(varchar(10),a.m_tanggal,103) as tanggal_ticket,
+		c.m_departemen as divisi,
+		d.m_divisi as departemen,
+		b.m_nama as nama,
+		e.m_unit as unit_support,
+		a.m_kode2 as lokasi,
+		a.m_kode as kode_toko,
+		g.m_topic as kategori,
+		h.m_topic as subkategori,
+		f.m_qty as quantity,
+		f.m_nofpp as no_fpp,
+		convert(
+		varchar(10), 
+			f.m_doing_time, 
+		103
+		) as tanggal_response,  
+		convert(
+		varchar(10), 
+			f.m_done_time, 
+		103
+		) as tanggal_selesai,
+		convert(
+		varchar(10), 
+			f.m_approve_time, 
+		103
+		) as tanggal_approve,
+		convert(
+		varchar(10), 
+			f.m_start_pic, 
+		103
+		) as tanggal_set_pic,
+		f.m_kode as kode,
+		f.m_status_pic
+		from t_task_new a
+		join dbhrd.dbo.mskaryawan b on a.m_requestby = b.m_nik
+		join dbhrd.dbo.msdepartemen c on b.m_departemen = c.m_iddept
+		join dbhrd.dbo.msdivisi d on b.m_divisi = d.m_iddivisi 
+		join msunitsupport e on a.m_kodeunit = e.m_kodeunit 
+		join t_task_pic_new f on a.m_nomor = f.m_nomor
+		join mskategorisupport g on f.m_kodekategori = g.m_kodekategori 
+		join mssubkategorisupport h on f.m_kodesub = h.m_kodesub 	
+		where (a.m_tanggal between '${start}' and '${end}' )`
+  }
+  if (dep !== '' )
+	{ 	query = query+` and case when 
+  (a.m_divisi IS NOT NULL or a.m_divisi <> '' ) 
+  then a.m_divisi 
+   else f.m_departemen end = '${dep}' `;
+
+  }
+
+	if (m_nomor !== '')
+	{	
+    query = query+` and a.m_nomor = '${m_nomor}' `;
+  
+  }
+  
+	if (store !== '')
+	{	
+    query = query+` and a.m_kode2 like '%${store}%'`;
+  }
+  
+	if (area != '')
+	{	
+    query = query+` and a.m_kota like '${area}'`;
+  }
+  
+	query = query+` order by a.m_tanggal, a.m_nomor asc ` ;
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      return  {data:data.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function getExportFollowUpPIC(start,end,unit,dep,m_nomor,store,area) {
+  let query = ` `
+  if(unit === '04' || unit === '01'|| 
+  unit === '03' || 
+  unit === '05'|| 
+  unit === '06'|| unit === '07'|| unit === '08'){
+		query = `select 
+		a.m_nomor as nomor_ticket,
+		convert(varchar(10),a.m_tanggal,103) as tanggal_ticket,
+		c.m_departemen as divisi,
+		d.m_divisi as departemen,
+		b.m_nama as nama,
+		e.m_unit as unit_support,
+		a.m_kode2 as lokasi,
+		a.m_kode as kode_toko,
+		g.m_topic as kategori,
+		'' as subkategori,
+		f.m_qty as quantity,
+		f.m_nofpp as no_fpp,
+		convert(
+		varchar(10), 
+			f.m_doing_time, 
+		103
+		) as tanggal_response, 
+		convert(
+		varchar(10), 
+			f.m_doing_time, 
+		108
+		) as jam_response, 
+		convert(
+		varchar(10), 
+			f.m_done_time, 
+		103
+		) as tanggal_selesai,
+		convert(
+		varchar(10), 
+			f.m_done_time, 
+		108
+		) as jam_selesai,
+		convert(
+		varchar(10), 
+			f.m_approve_time, 
+		103
+		) as tanggal_approve,
+		convert(
+		varchar(10), 
+			f.m_approve_time, 
+		108
+		) as jam_approve,
+		convert(
+		varchar(10), 
+			f.m_start_pic, 
+		103
+		) as tanggal_set_pic,
+		convert(
+		varchar(10), 
+			f.m_start_pic, 
+		108
+		) as jam_set_pic,
+		f.m_kode as kode,
+		f.m_status_pic
+		from t_task_new a
+		join dbhrd.dbo.mskaryawan b on a.m_requestby = b.m_nik
+		join dbhrd.dbo.msdepartemen c on b.m_departemen = c.m_iddept
+		join dbhrd.dbo.msdivisi d on b.m_divisi = d.m_iddivisi 
+		join msunitsupport e on a.m_kodeunit = e.m_kodeunit 
+		join t_task_pic_new f on a.m_nomor = f.m_nomor
+		join mskategorisupport g on f.m_kodekategori = g.m_kodekategori 
+		where (a.m_tanggal between '${start}' and '${end}' ) 
+    and a.m_kodeunit = '${unit}'`;
+	} 
+  else if(unit === '02'){
+		query = `select 
+			a.m_nomor as nomor_ticket,
+			convert(varchar(10),a.m_tanggal,103) as tanggal_ticket,
+			c.m_departemen as divisi,
+			d.m_divisi as departemen,
+			b.m_nama as nama,
+			e.m_unit as unit_support,
+			a.m_kode2 as lokasi,
+			a.m_kode as kode_toko,
+			g.m_topic as kategori,
+			h.m_topic as subkategori,
+			f.m_kode as nomor_task,
+			f.m_qty as quantity,
+			f.m_nofpp as no_fpp,
+			convert(
+			varchar(10), 
+				f.m_doing_time, 
+			103
+			) as tanggal_response, 
+			convert(
+			varchar(10), 
+				f.m_doing_time, 
+			108
+			) as jam_response, 
+			convert(
+			varchar(10), 
+				f.m_done_time, 
+			103
+			) as tanggal_selesai,
+			convert(
+			varchar(10), 
+				f.m_done_time, 
+			108
+			) as jam_selesai,
+			convert(
+			varchar(10), 
+				f.m_approve_time, 
+			103
+			) as tanggal_approve,
+			convert(
+			varchar(10), 
+				f.m_approve_time, 
+			108
+			) as jam_approve,
+			convert(
+			varchar(10), 
+				f.m_start_pic, 
+			103
+			) as tanggal_set_pic,
+			convert(
+			varchar(10), 
+				f.m_start_pic, 
+			108
+			) as jam_set_pic,
+			f.m_kode as kode,
+			f.m_status_pic,
+			j.m_nama as pic
+			from t_task_new a
+			join dbhrd.dbo.mskaryawan b on a.m_requestby = b.m_nik
+			join dbhrd.dbo.msdepartemen c on b.m_departemen = c.m_iddept
+			join dbhrd.dbo.msdivisi d on b.m_divisi = d.m_iddivisi 
+			join msunitsupport e on a.m_kodeunit = e.m_kodeunit 
+			join t_task_pic_new f on a.m_nomor = f.m_nomor
+			join mskategorisupport g on f.m_kodekategori = g.m_kodekategori 
+			join mssubkategorisupport h on f.m_kodesub = h.m_kodesub 
+			join t_task_pic_detail i on f.m_kode = i.m_nomor 
+			join dbhrd.dbo.mskaryawan j on i.m_pic = j.m_nik	
+			where (a.m_tanggal between '${start}' and '${end}' ) and a.m_kodeunit = '02'`
+      }
+      else{
+        query = `select 
+		a.m_nomor as nomor_ticket,
+		convert(varchar(10),a.m_tanggal,103) as tanggal_ticket,
+		c.m_departemen as divisi,
+		d.m_divisi as departemen,
+		b.m_nama as nama,
+		e.m_unit as unit_support,
+		a.m_kode2 as lokasi,
+		a.m_kode as kode_toko,
+		g.m_topic as kategori,
+		h.m_topic as subkategori,
+		f.m_qty as quantity,
+		f.m_nofpp as no_fpp,
+		convert(
+		varchar(10), 
+			f.m_doing_time, 
+		103
+		) as tanggal_response,  
+		convert(
+		varchar(10), 
+			f.m_done_time, 
+		103
+		) as tanggal_selesai,
+		convert(
+		varchar(10), 
+			f.m_approve_time, 
+		103
+		) as tanggal_approve,
+		convert(
+		varchar(10), 
+			f.m_start_pic, 
+		103
+		) as tanggal_set_pic,
+		f.m_kode as kode,
+		f.m_status_pic 
+		from t_task_new a  
+		join dbhrd.dbo.mskaryawan b on a.m_requestby = b.m_nik
+		join dbhrd.dbo.msdepartemen c on b.m_departemen = c.m_iddept
+		join dbhrd.dbo.msdivisi d on b.m_divisi = d.m_iddivisi 
+		join msunitsupport e on a.m_kodeunit = e.m_kodeunit 
+		join t_task_pic_new f on a.m_nomor = f.m_nomor
+		join mskategorisupport g on f.m_kodekategori = g.m_kodekategori
+    join mssubkategorisupport h on f.m_kodesub = h.m_kodesub 
+		where (a.m_tanggal between '${start}' and '${end}' )`
+      }
+      if (( dep !== '' ) )
+	{ 	query= query+` and case when (a.m_divisi IS 
+        NOT NULL or a.m_divisi <> '' ) then 
+      a.m_divisi  else f.m_departemen end = '${dep}' `;}
+
+	if (m_nomor !== '')
+	{	query= query+` and a.m_nomor = '${m_nomor}' `;}
+
+	if (store !== '')
+	{	query= query+` and a.m_kode2 like '%${store}%'`;}
+
+	if (area !== '')
+	{	query= query+` and a.m_kota like '%${area}%'`;}
+
+	query= query+` order by a.m_tanggal, a.m_nomor asc ` ;
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      return  {data:data?.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
 module.exports = {
+    getExportFollowUpPIC,
+    getExportFollowUp,
+    getSubKategoriSupport,
+    getKategoriSupport,
     getFollow,
     getListUnit,
     getMonitoring,
