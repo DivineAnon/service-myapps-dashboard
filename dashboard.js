@@ -1,6 +1,7 @@
  
 var configTICKET = require('./dbticket');
- 
+var axs = require('./axios'); 
+const fs = require('fs')
 const  sql = require('mssql');
 const { json } = require('body-parser');
 var  moment = require('moment');
@@ -182,7 +183,7 @@ async function getFollow(st,start,end,lokasi,city,unit,search,limit,page) {
     let isWhere = false
     if(start?.length>0&&end.length>0){
       
-    query = query+` where (  m_tanggal >= '${start}' and  m_tanggal <= '${end}' )`
+    query = query+` where (  m_tanggal >= '${start} 00:00:01' and  m_tanggal <= '${end} 23:59:59' )`
     queryTotal = queryTotal+` where (  m_tanggal >= '${start}' and  m_tanggal <= '${end}' )`
     isWhere = true
     }
@@ -367,8 +368,7 @@ async function getDataEntry(user,start,end,dep,div,sub,st,unit,limit,page) {
       left join msunitsupport i on i.m_kodeunit = a.m_kodeunit 
       left join dbhrd.dbo.mssubdivisi j on c.m_subdivisi = j.m_idsubdiv 
       ) d
-      ) awek
-			where m_tanggal between '${start}' and '${end}'
+      where m_tanggal between '${start}' and '${end}'
             
    `
    let queryTotal = `select count(*) as row from (
@@ -427,23 +427,28 @@ async function getDataEntry(user,start,end,dep,div,sub,st,unit,limit,page) {
       left join msunitsupport i on i.m_kodeunit = a.m_kodeunit 
       left join dbhrd.dbo.mssubdivisi j on c.m_subdivisi = j.m_idsubdiv 
       ) d
-      ) awek
-			where m_tanggal between '${start}' and '${end}'
+      where m_tanggal between '${start}' and '${end}'
+      
+			
             
    `
    if( unit!==''){
     query= query+` and  m_kodeunit = '${unit}'`
+    queryTotal = queryTotal+` and  m_kodeunit = '${unit}'`
   }
  
   if( st!==''){
     query= query+` and  status = '${st}'`
+    queryTotal = queryTotal+` and  status = '${st}'`
   }
   if( dep!==''){
     // query= query+` and  e.m_idsubdiv = '${dep}'`
     query  =query+ ` and m_iddept = '${dep}'`;
+    queryTotal = queryTotal+` and m_iddept = '${dep}'`;
   }
   if( div!==''){
     query = query+` and m_iddivisi = '${div}'`;
+    queryTotal = queryTotal+` and m_iddivisi = '${div}'`;
     // query= query+` and  d.m_iddept = '${div}'`
   }
   if( sub!==''){
@@ -461,21 +466,99 @@ async function getDataEntry(user,start,end,dep,div,sub,st,unit,limit,page) {
         subNew = sub;
       }
     query = query+` and m_kode2 = '${subNew}'`;
+    queryTotal = queryTotal+` and m_kode2 = '${subNew}'`;
   }
-  if(user?.groupuser  == 'IT' ||user?.groupuser == 'DIR' || user?.groupuser == 'BUSDEV' || user?.groupuser == 'AM' || user?.groupuser == 'SM'  ){
+  if(user?.groupuser  == 'IT'
+   ||user?.groupuser == 'DIR' 
+   || user?.groupuser == 'BUSDEV' 
+   || user?.groupuser == 'AM' 
+   || user?.groupuser == 'SM'
+   || user?.groupuser == 'GM'  ){
 		query = query;
+    queryTotal = queryTotal
 	}else{
 		query = query+` and m_requestby = '${user?.nik}'`;
+    queryTotal = queryTotal+` and m_requestby = '${user?.nik}'`;
 	}
-        
-	query = query+`and row BETWEEN '${first}' AND '${last}'`;
+  queryTotal = queryTotal+`
+  ) awek
+  `      
+	query = query+`
+  ) awek
+  
+  where row BETWEEN '${first}' AND '${last}'`;
   try{
       let pool = await sql.connect(configTICKET);
       let data = await pool.request().query(query);
       let tot = await pool.request().query(queryTotal);
+      let dataz = data?.recordsets[0]
+      
+        let array = []
+        let color = ''
+       
+        
+        dataz?.map((d,i)=>{
+           
+          
+          
+          if (d?.status === 'REQUEST'){
+           
+            color = '#eb2b10'; 
+          }else if (d?.status === 'DOING'){ 
+          
+            color = '#10c6eb'; 
+          }else if (d?.status === 'DONE'){ 
+            
+            color = '#31eb10';
+          }else if (d?.status === 'APPROVE'){ 
+        
+            color = '#dedede';
+          }else if (d?.status === ''){ 
+            
+            color = '#eb2b10';
+          }else{
+            
+            color = '#d4e0d2';
+          }
+    
+          array.push(
+            {
+              color,
+              status:d?.status,
+              nomor_ticket:d?.nomor_ticket,
+              row:d?.row,
+              m_kode2:d?.m_kode2,
+              m_tanggal:d?.m_tanggal,
+              m_requestby:d?.m_requestby,
+              m_iddivisi:d?.m_iddivisi,
+              m_iddept:d?.m_iddept,
+              m_kodeunit:d?.m_kodeunit,
+              tanggal_ticket:d?.tanggal_ticket,
+              divisi:d?.divisi,
+              departemen:d?.departemen,
+              m_idsubdiv:d?.m_idsubdiv,
+              requestby:d?.requestby,
+              unit_support:d?.unit_support,
+              lokasi:d?.lokasi,
+              kode_toko:d?.kode_toko,
+              tanggal_response:d?.tanggal_response,
+              tanggal_selesai:d?.tanggal_selesai,
+              tanggal_approve:d?.tanggal_approve,
+              nmsubdiv_new:d?.nmsubdiv_new,
+              nmdiv_new:d?.nmdiv_new,
+              nmdiv:d?.nmdiv,
+              nmsubdiv:d?.nmsubdiv
+              
+              
+            }
+          )
+               
+              color = ''
+        })
       return  {
-        data:data?.recordsets[0],
-        // query
+        // datas:data?.recordsets[0],
+        data:array,
+        // query,
         row:tot?.recordsets[0][0]['row'] 
       };
   }catch(error){
@@ -520,6 +603,103 @@ async function getListUnit() {
       console.log({error})
   }
 }
+async function getHistoryTiket(no) {
+  let query = `  
+  select 
+     
+    convert(
+      varchar(10), 
+      a.m_tglpekerjaan ,
+      105
+    ) as tanggal_job,
+    convert(
+      varchar(10), 
+      a.m_tglpekerjaan ,
+      108
+    ) as jam_job,
+  convert(
+    varchar(10), 
+    b.m_start_pic, 
+    105
+  ) as tanggal_pic,
+  convert(
+    varchar(10), 
+    b.m_start_pic, 
+    108
+  ) as jam_pic,
+  b.m_status_pic as status_pic,
+  b.m_doing_by as doing_by,
+  b.m_done_by as done_by,
+  b.m_approve_by as approve_by,
+  c.m_kode as store,
+  c.m_requestby as requestor,
+  a.m_statustask as status_task,
+  
+  CAST(e.m_store_location AS VARCHAR(MAX)) as stored,
+  a.m_nomortask
+  from  t_task_history a
+left join t_task_pic_new b on a.m_nomortask = b.m_kode
+left join t_task_new c on b.m_nomor = c.m_nomor 
+left join t_task_new d on b.m_nomor = c.m_nomor 
+left join dbcmk.dbo.msstore_new e on e.m_kode COLLATE DATABASE_DEFAULT = c.m_kode COLLATE DATABASE_DEFAULT
+where a.m_nomortask = '${no}'
+group by 
+ b.m_status_pic ,
+  b.m_doing_by  ,
+  b.m_done_by  ,
+  b.m_approve_by ,
+  c.m_kode ,
+  c.m_requestby ,
+  a.m_statustask ,
+  CAST(e.m_store_location AS VARCHAR(MAX)),
+a.m_tglpekerjaan,
+b.m_start_pic ,
+a.m_nomortask
+   `
+let querypic = `
+select a.m_nomor,a.m_pic,b.m_nama from t_task_pic_detail a
+left join dbhrd.dbo.mskaryawan b on a.m_pic = b.m_nik
+
+`
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let data2 = await pool.request().query(querypic);
+      let d1 = data?.recordsets[0]
+      let d2 = data2?.recordsets[0]
+      let array =[]
+      let array2 = []
+      d1.map((d)=>{
+        d2.map((e)=>{
+          if(d?.m_nomortask===e?.m_nomor){
+            array2.push(e.m_nama)
+          }
+        })
+        array.push({
+          nama:array2,
+          status:d.status_pic,
+          doing:d.doing_by,
+          done:d.done_by,
+          approve:d.approve_by,
+          m_kode:d.store,
+          request:d.requestor,
+          statustask:d.status_task,
+          stored:d?.stored,
+          tgl_job:d?.tanggal_job,     
+          jam_job:d.jam_job,
+          startjam_pic:d.jam_pic,
+          tgl_pic:d?.tanggal_pic,
+          nomortask:d.m_nomortask
+        })
+        array2 = []
+      })
+      return  {data:array};
+  }catch(error){
+      console.log({error})
+  }
+}
+
+
 async function getExportFollowUp(start,end,unit,dep,m_nomor,store,area) {
   let query = ``
   if(unit === '04' || unit === '01'|| 
@@ -942,7 +1122,322 @@ async function getExportFollowUpPIC(start,end,unit,dep,m_nomor,store,area) {
       console.log({error})
   }
 }
+async function getGenerateEntryRequest(unit) {
+  let query = `
+  select max(right(m_nomor,4)) as max from t_task_new where left(m_nomor,3) = '${unit}'
+  ` 
+  let day = moment(new Date()).format('YYYYMMDD')
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let max = data?.recordsets[0][0]['max']
+      let no = ''
+      let inc = 0
+      let temp = ''
+      if (max === ''||max===null){
+        no = '0000' ;
+      }else{
+        inc = parseInt(max)+1
+        temp = '0000'+ inc.toString()
+        no = temp.substring(temp.length-4)
+      }
+      let code = unit+day+no
+      return  {code};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function insertEntryRequest(userlogin,no,unit,div,dep,store,city,lokasi) {
+  let query = `
+      insert into t_task_new (m_nomor, m_tanggal, 
+      m_duedate, m_status, m_requestby, m_closedate, 
+      m_kodeunit, m_startdate, m_enddate, m_confirmdate, 
+      m_donedate, m_canceldate, m_divisi, m_departemen, 
+      m_kode, m_kota, m_approvedate, m_kode2) 
+			values ('${no}', '${moment(new Date()).format('YYYY-MM-DD H:m:s')}',
+      '${moment(new Date()).format('YYYY-MM-DD H:m:s')}', 
+      'REQUEST', '${userlogin}', '', '${unit}', '${moment(new Date()).format('YYYY-MM-DD H:m:s')}', 
+       '', '', '', '', 
+       '${div}', '${dep}', '${store}', '${city}', '', '${lokasi}')
+
+  ` 
+    
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      return  {data:data?.recordsets[0],userlogin,no,unit,div,dep,store,city,lokasi};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function updateEntryRequest(no,unit,m_kode,m_kode2,m_kota) {
+  let query = `
+    update 	t_task_new 
+		set  m_kodeunit = '${unit}', 
+    m_kode = '${m_kode}', 
+    m_kota = '${m_kota}', 
+    m_kode2 = '${m_kode2}'
+    where 	m_nomor = '${no}'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      return  {data:login.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function insertEntryRequestList(id,
+  kategori,subkategori,ket,foto_name,no,m_nomor,
+  qty,fpp
+  ) {
+  let query = `
+  insert into t_task_pic_new ( m_kode, m_kodekategori, 
+  m_kodesub, m_tgl_pekerjaan, m_tgl_selesai, m_keterangan, 
+  m_status_pic, m_foto1, m_foto2, m_urut, m_nomor, m_isdoing, 
+  m_doing_time, m_doing_by, m_done_by, m_qty, m_approve_time, 
+  m_approve_by, m_done_time, m_nofpp)
+  values ('${id}', '${kategori}', '${subkategori}',
+  '${moment(new Date()).format('YYYY-MM-DD H:m:s')}', '', 
+  '${ket}', 'REQUEST', '${foto_name}', '', '${no}', '${m_nomor}',
+  '0', '', '', '', '${qty}', '', '', '', '${fpp}')
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      return  {data:login.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function insertEntryRequesHistory(id 
+  ) {
+  let query = `
+  insert into t_task_history ( m_nomortask, m_tglpekerjaan, 
+  m_statustask)
+  values ('${id}', '${moment(new Date()).format('YYYY-MM-DD H:m:s')}',
+    'REQUEST')
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      return  {data:login.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function updateEntryRequestList(id,kategori,subkategori,
+  ket,foto_name,qty,fpp,img ) {
+  let query = `
+  update 	t_task_pic_new 
+  set  m_kodekategori = '${kategori}', 
+  m_kodesub = '${subkategori}', 
+  m_keterangan = '${ket}', 
+  m_qty = '${qty}',
+  m_nofpp = '${fpp}'`
+  if(img){
+    query = query+` , m_foto1 = '${foto_name}' ` 
+   
+  }
+  query = query+` 
+    where 	m_kode = '${id}'
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+     
+      return  {data:login.recordsets[0],img};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function detailEntryRequest(nomor) {
+  let query = `
+    select a.*,b.m_unit as unit,  c.m_mall as mall,  c.m_store_location as location  from t_task_new  a
+    LEFT join msunitsupport b on a.m_kodeunit = b.m_kodeunit
+    LEFT join dbcmk.dbo.msstore_new c on a.m_kode COLLATE DATABASE_DEFAULT = c.m_kode COLLATE DATABASE_DEFAULT 
+    where a.m_nomor = '${nomor}'
+   ` 
+  let query2 = `
+  select a.*,b.m_topic as kategori,c.m_topic as sub from t_task_pic_new a
+  LEFT join mskategorisupport b on a.m_kodekategori = b.m_kodekategori
+  LEFT join mssubkategorisupport c on a.m_kodesub = c.m_kodesub
+  where a.m_nomor = '${nomor}' order by a.m_kode asc
+   ` 
+   let query3=`select m_kodesub as value, m_topic as label from mssubkategorisupport`
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let data2 = await pool.request().query(query2);
+      let data3 = await pool.request().query(query3);
+      let text = ''
+   
+      let dx = data.recordsets[0][0]
+      switch(dx?.m_kode2) {
+        case "FC":
+          text = "FRANK & CO";
+        break;
+        case "TP":
+        text = "THE PALACE";
+        break;
+        case "MD":
+        text = "MONDIAL";
+        break; 
+        case "MM":
+        text = "MISS MONDIAL";
+        break;
+        case "GT":
+        text = "GTS";
+        break;
+        default:
+        text = "";
+      }
+      let arrax = {
+        unit:{value:dx?.m_kodeunit,label:dx?.unit},
+        lokasi:{value:dx?.m_kode2,label:text},
+        city:{value:dx?.m_kota,label:dx?.m_kota},
+        store:{value:dx?.m_kode,label:dx?.mall+'-'+dx?.location},
+        m_nomor:dx?.m_nomor
+      }
+      
+      let dats = data2.recordsets[0]
+      let array = [] 
+      dats?.map((d)=>{
+        array.push({
+          
+          id:d?.m_kode,
+          kategori:d?.m_kodekategori,
+          subkategori:d?.m_kodesub,
+          ket:d?.m_keterangan,
+          imageAddress:axs.PATH_TICKET+'/uploads/entry-request/'+d?.m_foto1,
+          imageName:d?.m_foto1,
+          qty:d?.m_qty,
+          fpp:d?.m_nofpp,
+          subKategoriOption:[],
+          status:d?.m_status_pic,
+          subname:d?.sub,
+          setPic:d?.m_start_pic,
+          kategoriname:d?.kategori
+        })
+      })
+      return  {task:arrax,taskPic:array};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function checkEntryRequestList(nomor) {
+ 
+  let query = `
+  select count(*) as row from t_task_pic_new  
+ 
+  where m_kode = '${nomor}'
+   ` 
+    
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      
+      return  {data:data.recordsets[0][0]?.row};
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function deleteEntryRequestList(id) {
+  let query = `
+  delete from	t_task_pic_new 
+ 
+  where 	m_kode = '${id}'
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+     
+      return  {data:login.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function getGenerateEntryRequestList(unit) {
+  let query = `
+  select max(right(m_kode,4)) as max from t_task_pic_new where m_nomor = '${unit}'
+  ` 
+  
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let max = data?.recordsets[0][0]['max']
+      let no = ''
+      let inc = 0
+      let temp = ''
+      if (max === ''||max===null){
+        no = '1' ;
+        inc = 1
+      }else{
+        no = max?.split('-')[1]
+        inc = parseInt(no)+1
+        temp = inc.toString()
+        no = temp
+      }
+      let code = unit+'-'+no
+      return  {code,inc };
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function detailFollowUp(id) {
+  let query = `
+  select a.*,b.m_topic as kategori,c.m_topic as sub from t_task_pic_new a
+  LEFT join mskategorisupport b on a.m_kodekategori = b.m_kodekategori
+  LEFT join mssubkategorisupport c on a.m_kodesub = c.m_kodesub 
+  WHERE m_nomor = '${id}'`
+   
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let dats = data.recordsets[0]
+      let array = [] 
+      dats?.map((d)=>{
+        array.push({
+          
+          id:d?.m_kode,
+          kategori:d?.m_kodekategori,
+          subkategori:d?.m_kodesub,
+          ket:d?.m_keterangan,
+          imageAddress:axs.PATH_TICKET+'/uploads/entry-request/'+d?.m_foto1,
+          imageAddress2:axs.PATH_TICKET+'/uploads/entry-request/'+d?.m_foto2,
+          imageName:d?.m_foto1,
+          imageName2:d?.m_foto2,
+          qty:d?.m_qty,
+          fpp:d?.m_nofpp,
+          subKategoriOption:[],
+          status:d?.m_status_pic,
+          subname:d?.sub,
+          kategoriname:d?.kategori
+        })
+      })
+      return  {data:array};
+  }catch(error){
+      console.log({error})
+  }
+}
 module.exports = {
+    getHistoryTiket,
+    detailFollowUp,
+    checkEntryRequestList,
+    deleteEntryRequestList,
+    detailEntryRequest,
+    insertEntryRequest,
+    updateEntryRequest,
+    insertEntryRequestList,
+    updateEntryRequestList,
+    getGenerateEntryRequest,
+    getGenerateEntryRequestList,
     getExportFollowUpPIC,
     getExportFollowUp,
     getSubKategoriSupport,
@@ -952,5 +1447,6 @@ module.exports = {
     getMonitoring,
     getDataToDoList,
     getDataEntry ,
-    getSelesaiFollowUp
+    getSelesaiFollowUp,
+    insertEntryRequesHistory
 }

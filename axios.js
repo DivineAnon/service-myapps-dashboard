@@ -5,7 +5,8 @@ const  axios = require('axios');
 const BASE_INFO = "http://localhost:8093/api"
 const BASE_HRD = "http://localhost:8092/api"
 const BASE_CMK = "http://localhost:8091/api"
-const BASE_TICKET = "http://localhost:8090/api" //dashboard
+const BASE_TICKET = "http://localhost:9010/api" //dashboard
+const PATH_TICKET = "http://localhost:9010"
 const BASE_LOGIN = "http://localhost:8089/api" //login
 //production
 // export const BASE_LOGIN = 'http://103.247.217.10:8091/api';
@@ -63,5 +64,6 @@ module.exports = {
   BASE_HRD,
   BASE_CMK,
   BASE_TICKET,
+  PATH_TICKET,
   BASE_LOGIN
 }
