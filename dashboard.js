@@ -1388,6 +1388,38 @@ async function getGenerateEntryRequestList(unit) {
       console.log({error})
   }
 }
+async function approveTicketing(unit) {
+  let query = `
+  update 	t_task_pic_new 
+  set  m_kodekategori = '${kategori}', 
+  m_kodesub = '${subkategori}', 
+  m_keterangan = '${ket}', 
+  m_qty = '${qty}',
+  m_nofpp = '${fpp}'
+  ` 
+  
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let max = data?.recordsets[0][0]['max']
+      let no = ''
+      let inc = 0
+      let temp = ''
+      if (max === ''||max===null){
+        no = '1' ;
+        inc = 1
+      }else{
+        no = max?.split('-')[1]
+        inc = parseInt(no)+1
+        temp = inc.toString()
+        no = temp
+      }
+      let code = unit+'-'+no
+      return  {code,inc };
+  }catch(error){
+      console.log({error})
+  }
+}
 
 async function detailFollowUp(id) {
   let query = `
@@ -1448,5 +1480,6 @@ module.exports = {
     getDataToDoList,
     getDataEntry ,
     getSelesaiFollowUp,
-    insertEntryRequesHistory
+    insertEntryRequesHistory,
+    approveTicketing
 }
