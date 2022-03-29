@@ -1306,7 +1306,7 @@ async function detailEntryRequest(nomor) {
       let array = [] 
       dats?.map((d)=>{
         array.push({
-          
+           
           id:d?.m_kode,
           kategori:d?.m_kodekategori,
           subkategori:d?.m_kodesub,
