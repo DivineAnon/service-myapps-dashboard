@@ -1423,13 +1423,33 @@ async function detailFollowUp(id) {
   LEFT join mssubkategorisupport c on a.m_kodesub = c.m_kodesub 
   WHERE m_nomor = '${id}'`
    
- 
+  let query2 = `
+  select a.m_nomor,a.m_pic,a.m_shift,b.m_namapic from t_task_pic_detail a
+  LEFT join mspicsupport b on a.m_pic   = b.m_nik 
+  group by a.m_nomor,a.m_pic,a.m_shift,b.m_namapic 
+
+  `
   try{
       let pool = await sql.connect(configTICKET);
       let data = await pool.request().query(query);
+      let data2 = await pool.request().query(query2);
       let dats = data.recordsets[0]
+      let dats2 = data2.recordsets[0]
       let array = [] 
+      let array2 = [] 
+      // let isData = null
+      let a = ''
+      let txt = ''
+      let v
       dats?.map((d)=>{
+        dats2?.map((s)=>{
+          a = s
+          txt = a?.m_nomor
+          if (txt?.indexOf(d?.m_kode) > -1) {
+              array2.push(a)
+          }  
+          // array2.push({txt,s:d?.m_kode})
+          })
         array.push({
           
           id:d?.m_kode,
@@ -1445,10 +1465,26 @@ async function detailFollowUp(id) {
           subKategoriOption:[],
           status:d?.m_status_pic,
           subname:d?.sub,
-          kategoriname:d?.kategori
+          kategoriname:d?.kategori,
+          pic:array2,
+           
         })
+         array2=[]
+       
+          
+        // for (i = 0; i < menu?.userrole.length; i++) {
+        //   a = menu?.userrole[i];
+        //   txtValue = a?.name ;
+        //   if (txtValue?.toUpperCase().indexOf(filter) > -1) {
+        //       array.push(a)
+        //   }  
+        // }
+       
       })
-      return  {data:array};
+      
+      return  {data:array
+       
+      };
   }catch(error){
       console.log({error})
   }
@@ -1489,7 +1525,7 @@ async function checkStockTaskPIC(id,st
   )
   values ('${id}',
   '${moment(new Date()).format('YYYY-MM-DD H:m:s')}', 
-  '${st}'  )
+  'SETPIC'  )
   ` 
   try{
       let pool = await sql.connect(configTICKET);
