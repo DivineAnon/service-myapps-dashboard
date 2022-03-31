@@ -1261,9 +1261,10 @@ async function detailEntryRequest(nomor) {
     where a.m_nomor = '${nomor}'
    ` 
   let query2 = `
-  select a.*,b.m_topic as kategori,c.m_topic as sub from t_task_pic_new a
+  select a.*,b.m_topic as kategori,c.m_topic as sub,d.m_rating from t_task_pic_new a
   LEFT join mskategorisupport b on a.m_kodekategori = b.m_kodekategori
   LEFT join mssubkategorisupport c on a.m_kodesub = c.m_kodesub
+  Left join t_task_review d on a.m_kode = d.m_kode_task
   where a.m_nomor = '${nomor}' order by a.m_kode asc
    ` 
    let query3=`select m_kodesub as value, m_topic as label from mssubkategorisupport`
@@ -1318,6 +1319,8 @@ async function detailEntryRequest(nomor) {
           subKategoriOption:[],
           status:d?.m_status_pic,
           subname:d?.sub,
+          score:d?.m_rating?d?.m_rating:'',
+          ketScore:'',
           setPic:d?.m_start_pic,
           kategoriname:d?.kategori
         })
@@ -1450,7 +1453,56 @@ async function detailFollowUp(id) {
       console.log({error})
   }
 }
+async function insertScoring(user,kode,nomor,m_rating,review 
+  ) {
+  let query = `
+  insert into t_task_review (
+    m_kode_review,m_kode_task,m_nomor,
+    m_rating,m_review,m_review_user,m_review_date
+  )
+  values ('R-${kode}','${kode}', '${nomor}',
+  '${m_rating}','${review}','${user}',
+  '${moment(new Date()).format('YYYY-MM-DD H:m:s')}')
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      return  {user,kode,nomor,m_rating,review };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function checkStockTaskPIC(id,st 
+  ) {
+  let query = `
+  update 	t_task_pic_new 
+  set  
+  m_status_pic = '${st}',
+  m_tgl_item = '${moment(new Date()).format('YYYY-MM-DD H:m:s')}'
+  
+  where 	m_kode = '${id}'
+  ` 
+  let query2 = `
+  insert into t_task_history (
+    m_nomortask,m_tglpekerjaan,
+    m_statustask
+  )
+  values ('${id}',
+  '${moment(new Date()).format('YYYY-MM-DD H:m:s')}', 
+  '${st}'  )
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let data2 = await pool.request().query(query2);
+      return  {id,st,query};
+  }catch(error){
+      console.log({error})
+  }
+}
 module.exports = {
+    insertScoring,
+    checkStockTaskPIC,
     getHistoryTiket,
     detailFollowUp,
     checkEntryRequestList,

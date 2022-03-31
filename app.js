@@ -215,6 +215,53 @@ router.route('/get-unit-filter').post((request, response) => {
 
   }
 })
+router.route('/check-stock-pic').post((request, response) => {
+  let token = request.headers.authorization 
+  let st = request.body?.st
+  let id = request.body?.id 
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.checkStockTaskPIC(id,st).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/insert-scoring').post((request, response) => {
+  let token = request.headers.authorization 
+  let kode = request.body?.kode
+  let nomor = request.body?.nomor
+  let m_rating = request.body?.m_rating
+  let review = request.body?.review
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.insertScoring(decoded?.data[0]?.loginid,kode,nomor,m_rating,review).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
 router.route('/progress-ticketing/:no').get((request, response) => {
   let token = request.headers.authorization 
   let no = request.params.no
