@@ -1508,6 +1508,8 @@ async function insertScoring(user,kode,nomor,m_rating,review
       console.log({error})
   }
 }
+
+
 async function checkStockTaskPIC(id,st 
   ) {
   let query = `
@@ -1525,18 +1527,330 @@ async function checkStockTaskPIC(id,st
   )
   values ('${id}',
   '${moment(new Date()).format('YYYY-MM-DD H:m:s')}', 
+  '${st}'  )
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let data2 = await pool.request().query(query2);
+      return  {id,st};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function setPIC(id
+  ) {
+  let query = `
+  update 	t_task_pic_new 
+  set  
+  m_status_pic = 'SETPIC ',
+  m_start_pic = '${moment(new Date()).format('YYYY-MM-DD H:m:s')}'
+  
+  where 	m_kode = '${id}'
+  ` 
+  let query2 = `
+  insert into t_task_history (
+    m_nomortask,m_tglpekerjaan,
+    m_statustask
+  )
+  values ('${id}',
+  '${moment(new Date()).format('YYYY-MM-DD H:m:s')}', 
   'SETPIC'  )
   ` 
   try{
       let pool = await sql.connect(configTICKET);
       let data = await pool.request().query(query);
       let data2 = await pool.request().query(query2);
-      return  {id,st,query};
+      return  {id};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function setDetailPic(id,m_pic,shift 
+  ) {
+   
+  let query = `
+  insert into t_task_pic_detail (
+    m_nomor,m_pic,
+    m_shift
+  )
+  values ('${id}',
+  '${m_pic}', 
+  '${shift}'  )
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query); 
+      return  {id,m_pic,shift };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function searchPicName( 
+  ) {
+  let query = `
+  select m_namapic as label, m_nik as value from mspicsupport order by m_namapic asc
+
+  ` 
+  
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+ 
+      return  {data:data?.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function listAddQuestionsSq( 
+  page,limit,search1,search2,type
+  ) {
+    let last = limit*page
+    let first = last - (limit-1)
+    let src =false
+  let query = `
+  select*from(
+    select ROW_NUMBER() OVER 
+          (ORDER BY id asc) as row
+        ,* from t_kuesioner_visit  
+    `
+    if(search1 !==''){
+      query = query + ` where m_pernyataan like '%${search1}%' `
+      src = true
+    }
+    if(search2 !==''){
+      query = query + ` ${src?'and':'where'} m_feedback like '%${search2}%' `
+      src = true
+    }
+    if(type !==''){
+      query = query + ` ${src?'and':'where'} id_type = ${type} `
+    
+    }
+    query = query+`  
+    ) awek
+    
+    where row BETWEEN '${first}' AND '${last}'
+  ` 
+  let query1 = `
+  select count(*) as tot from(
+    select ROW_NUMBER() OVER 
+          (ORDER BY id asc) as row
+        ,* from t_kuesioner_visit  
+    `
+    if(search1 !==''){
+      query = query + ` where m_pernyataan like '%${search1}%' `
+      src = true
+    }
+    if(search2 !==''){
+      query = query + ` ${src?'and':'where'} m_feedback like '%${search2}%' `
+      src = true
+    }
+    if(type !==''){
+      query = query + ` ${src?'and':'where'} id_type = ${type} `
+    
+    }
+    query = query+`  
+    ) awek`
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let tot = await pool.request().query(query1);
+      
+      return  {data:data?.recordsets[0],
+        tot:tot.recordsets[0][0]['tot']};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function AddQuestionSq( 
+  id_type,pernyataan,feedback
+  ) {
+    
+  let query = `
+  insert into t_kuesioner_visit
+  (
+      id_type,m_pernyataan,
+      m_feedback,created_at,
+      updated_at
+    )
+    values ('${id_type}',
+    '${pernyataan}',
+    '${feedback}',
+    '${moment(new Date()).format('YYYY-MM-DD H:m:s')}', 
+    '${moment(new Date()).format('YYYY-MM-DD H:m:s')}' )
+  ` 
+  
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+ 
+      return  {data:data?.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function updateQuestionSq( 
+  id,id_type,pernyataan,feedback
+  ) {
+    
+  let query = `
+  update 	t_kuesioner_visit 
+  set  
+  id_type = '${id_type}',
+  m_pernyataan = '${pernyataan}',
+  m_feedback = '${feedback}', 
+  updated_at = '${moment(new Date()).format('YYYY-MM-DD H:m:s')}'
+  
+  where 	id = '${id}'
+  ` 
+  
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+ 
+      return  {data:data?.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function deleteQuestionSq( 
+  id
+  ) {
+    
+  let query = `
+  delete from t_kuesioner_visit where id='${id}'
+   
+  ` 
+  
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+ 
+      return  {data:data?.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function listAddTypeQuestionSq( 
+  page,limit,search
+  ) {
+    let last = limit*page
+    let first = last - (limit-1)
+  let query = `
+  select * from(
+    select
+    ROW_NUMBER() OVER 
+      (ORDER BY id asc) as row
+    ,*
+    from t_type_kuesioner
+    
+    where m_nama like '%${search}%'
+    ) as awek
+     
+    where row BETWEEN '${first}' AND '${last}'
+
+  ` 
+  let query1 = `
+  select count(*) as tot from(
+    select
+    ROW_NUMBER() OVER 
+      (ORDER BY id asc) as row
+    ,*
+    from t_type_kuesioner
+    
+    where m_nama like '%${search}%'
+    ) as awek
+     
+     
+
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let tot = await pool.request().query(query1);
+      
+      return  {data:data?.recordsets[0],
+        tot:tot.recordsets[0][0]['tot']};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function addTypeQuestionSq( 
+  nama
+  ) {
+    
+  let query = `
+  insert into t_type_kuesioner
+ (
+    m_nama,created_at,
+    updated_at
+  )
+   values ('${nama}',
+  '${moment(new Date()).format('YYYY-MM-DD H:m:s')}', 
+  '${moment(new Date()).format('YYYY-MM-DD H:m:s')}'  )
+  ` 
+  
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+ 
+      return  {data:data?.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function updateTypeQuestionSq( 
+  id,nama
+  ) {
+    
+  let query = `
+  update 	t_type_kuesioner 
+  set  
+  m_nama = '${nama}',
+  updated_at = '${moment(new Date()).format('YYYY-MM-DD H:m:s')}'
+  
+  where 	id = '${id}'
+  ` 
+  
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+ 
+      return  {data:data?.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function deleteTypeQuestionSq( 
+  id
+  ) {
+    
+  let query = `
+  delete from t_type_kuesioner where id='${id}'
+   
+  ` 
+  
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+ 
+      return  {data:data?.recordsets[0]};
   }catch(error){
       console.log({error})
   }
 }
 module.exports = {
+    listAddQuestionsSq,
+    AddQuestionSq,
+    updateQuestionSq,
+    deleteQuestionSq,
+    listAddTypeQuestionSq,
+    addTypeQuestionSq,
+    updateTypeQuestionSq,
+    deleteTypeQuestionSq,
+    setDetailPic,
+    setPIC,
+    searchPicName,
     insertScoring,
     checkStockTaskPIC,
     getHistoryTiket,

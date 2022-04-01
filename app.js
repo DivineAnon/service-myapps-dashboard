@@ -131,6 +131,229 @@ router.route('/finish-follow-up').post((request, response) => {
 
   }
 })
+router.route('/get-list-question-sq').post((request, response) => {
+  let token = request.headers.authorization 
+  let limit = request.body?.limit
+  let page = request.body?.page
+  let search1 = request.body?.search1
+  let search2 = request.body?.search2
+  let type = request.body?.type
+ 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.listAddQuestionsSq( page,limit,search1,search2,type).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/add-question-sq').post((request, response) => {
+  let token = request.headers.authorization 
+ 
+  let id_type = request.body?.id_type
+  let pernyataan = request.body?.pernyataan
+  let feedback = request.body?.feedback
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.addTypeQuestionSq(id_type,pernyataan,feedback).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/update-question-sq').post((request, response) => {
+  let token = request.headers.authorization 
+   
+  let id = request.body?.id
+  let id_type = request.body?.id_type
+  let pernyataan = request.body?.pernyataan
+  let feedback = request.body?.feedback
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.updateQuestionSq(id,id_type,pernyataan,feedback).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/delete-question-sq').post((request, response) => {
+  let token = request.headers.authorization 
+  let id = request.body?.id
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.deleteQuestionSq(id).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/get-list-type-sq').post((request, response) => {
+  let token = request.headers.authorization 
+  let limit = request.body?.limit
+  let page = request.body?.page
+  let search = request.body?.search
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.listAddTypeQuestionSq(page,limit,search).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/add-type-sq').post((request, response) => {
+  let token = request.headers.authorization 
+  let nama = request.body?.nama
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.addTypeQuestionSq(nama).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/update-type-sq').post((request, response) => {
+  let token = request.headers.authorization 
+  let nama = request.body?.nama
+  let id = request.body?.id
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.updateTypeQuestionSq(id,nama).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/delete-type-sq').post((request, response) => {
+  let token = request.headers.authorization 
+  let id = request.body?.id
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.deleteTypeQuestionSq(id).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/set-pic').post((request, response) => {
+  let token = request.headers.authorization 
+  let id = request.body?.id
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.setPIC(id).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/set-pic-detail').post((request, response) => {
+  let token = request.headers.authorization 
+  let id = request.body?.id
+  let m_pic = request.body?.m_pic
+  let shift = request.body?.shift
+  
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.getSelesaiFollowUp(id,m_pic,shift).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
 router.route('/taks-history').post((request, response) => {
   let token = request.headers.authorization 
   let m_number = request.body?.id
@@ -194,6 +417,28 @@ router.route('/detail-follow-up/:id').post((request, response) => {
 
   }
 })
+router.route('/get-list-pic').get((request, response) => {
+  let token = request.headers.authorization 
+   
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.searchPicName().then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
 router.route('/get-unit-filter').post((request, response) => {
   let token = request.headers.authorization 
  
