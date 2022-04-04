@@ -1695,6 +1695,7 @@ async function AddQuestionSq(
       console.log({error})
   }
 }
+
 async function updateQuestionSq( 
   id,id_type,pernyataan,feedback
   ) {
@@ -1705,6 +1706,30 @@ async function updateQuestionSq(
   id_type = '${id_type}',
   m_pernyataan = '${pernyataan}',
   m_feedback = '${feedback}', 
+  updated_at = '${moment(new Date()).format('YYYY-MM-DD H:m:s')}'
+  
+  where 	id = '${id}'
+  ` 
+  
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+ 
+      return  {data:data?.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function togelQuestionSq( 
+  id,st
+  ) {
+    
+  let query = `
+  update 	t_kuesioner_visit 
+  set  
+ 
+  enable = '${st}',
+  
   updated_at = '${moment(new Date()).format('YYYY-MM-DD H:m:s')}'
   
   where 	id = '${id}'
@@ -1885,7 +1910,32 @@ async function deleteTypeQuestionSq(
       console.log({error})
   }
 }
+async function togelTypeQuestionSq( 
+  id,st
+  ) {
+    
+  let query = `
+  update 	t_type_kuesioner 
+  set  
+  enable = '${st}',
+  updated_at = '${moment(new Date()).format('YYYY-MM-DD H:m:s')}'
+  
+  where 	id = '${id}'
+   
+  ` 
+  
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+ 
+      return  {data:data?.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
 module.exports = {
+    togelTypeQuestionSq,
+    togelQuestionSq,
     listSelectTypeQuestionSq,
     checkTypeSq,
     listAddQuestionsSq,

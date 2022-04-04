@@ -204,6 +204,28 @@ router.route('/update-question-sq').post((request, response) => {
 
   }
 })
+router.route('/togel-kuesioner-sq').post((request, response) => {
+  let token = request.headers.authorization 
+  let id = request.body?.id
+  let st = request.body?.st
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.togelQuestionSq(id,st).then((data) => {
+      response.json({status:'Succsess',message:'Succsess change status',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
 router.route('/delete-question-sq').post((request, response) => {
   let token = request.headers.authorization 
   let id = request.body?.id
@@ -328,6 +350,28 @@ router.route('/delete-type-sq').post((request, response) => {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.deleteTypeQuestionSq(id).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/togel-type-sq').post((request, response) => {
+  let token = request.headers.authorization 
+  let id = request.body?.id
+  let st = request.body?.st
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.togelTypeQuestionSq(id,st).then((data) => {
+      response.json({status:'Succsess',message:'Succsess change status',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
