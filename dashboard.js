@@ -1611,19 +1611,20 @@ async function listAddQuestionsSq(
   let query = `
   select*from(
     select ROW_NUMBER() OVER 
-          (ORDER BY id asc) as row
-        ,* from t_kuesioner_visit  
+          (ORDER BY a.id asc) as row
+        ,a.*,b.m_nama from t_kuesioner_visit  a
+        left join t_type_kuesioner b on a.id_type=b.id
     `
     if(search1 !==''){
-      query = query + ` where m_pernyataan like '%${search1}%' `
+      query = query + ` where a.m_pernyataan like '%${search1}%' `
       src = true
     }
     if(search2 !==''){
-      query = query + ` ${src?'and':'where'} m_feedback like '%${search2}%' `
+      query = query + ` ${src?'and':'where'} a.m_feedback like '%${search2}%' `
       src = true
     }
     if(type !==''){
-      query = query + ` ${src?'and':'where'} id_type = ${type} `
+      query = query + ` ${src?'and':'where'} a.id_type = ${type} `
     
     }
     query = query+`  
@@ -1634,30 +1635,35 @@ async function listAddQuestionsSq(
   let query1 = `
   select count(*) as tot from(
     select ROW_NUMBER() OVER 
-          (ORDER BY id asc) as row
-        ,* from t_kuesioner_visit  
+          (ORDER BY a.id asc) as row
+        ,a.*,b.m_nama from t_kuesioner_visit  a
+        left join t_type_kuesioner b on a.id_type=b.id
     `
     if(search1 !==''){
-      query = query + ` where m_pernyataan like '%${search1}%' `
+      query1 = query1 + ` where a.m_pernyataan like '%${search1}%' `
       src = true
     }
     if(search2 !==''){
-      query = query + ` ${src?'and':'where'} m_feedback like '%${search2}%' `
+      query1 = query1 + ` ${src?'and':'where'} a.m_feedback like '%${search2}%' `
       src = true
     }
     if(type !==''){
-      query = query + ` ${src?'and':'where'} id_type = ${type} `
+      query1 = query1 + ` ${src?'and':'where'} a.id_type = ${type} `
     
     }
-    query = query+`  
+    query1 = query1+`  
     ) awek`
   try{
       let pool = await sql.connect(configTICKET);
       let data = await pool.request().query(query);
       let tot = await pool.request().query(query1);
       
-      return  {data:data?.recordsets[0],
-        tot:tot.recordsets[0][0]['tot']};
+      return  {
+        data:data?.recordsets[0],
+        
+        tot:tot.recordsets[0][0]['tot']
+        // query,page,limit,search1,search2,type
+      };
   }catch(error){
       console.log({error})
   }
@@ -1775,6 +1781,46 @@ async function listAddTypeQuestionSq(
       console.log({error})
   }
 }
+async function listSelectTypeQuestionSq( 
+  search
+  ) {
+     
+  let query = `
+  select  TOP 5  m_nama as label, id as value from
+  t_type_kuesioner  where m_nama like '%${search}%'
+
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {data:data?.recordsets[0] };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function checkTypeSq( 
+  search
+  ) {
+     
+  let query = `
+  select count(*) as row  from
+  t_type_kuesioner  where m_nama = '${search.toLowerCase()}'
+
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {data:data.recordsets[0][0]?.row };
+  }catch(error){
+      console.log({error})
+  }
+}
 async function addTypeQuestionSq( 
   nama
   ) {
@@ -1840,6 +1886,8 @@ async function deleteTypeQuestionSq(
   }
 }
 module.exports = {
+    listSelectTypeQuestionSq,
+    checkTypeSq,
     listAddQuestionsSq,
     AddQuestionSq,
     updateQuestionSq,

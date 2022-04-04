@@ -9,6 +9,7 @@ var  router = express.Router();
 const multer = require('multer');
 const swaggerUi = require('swagger-ui-express'),
 swaggerDocument = require('./swagger.json');
+const { check,validationResult ,oneOf } = require('express-validator');
 var jwt = require('jsonwebtoken');
 app.use(bodyParser.urlencoded({ extended:  true }));
 app.use(bodyParser.json());
@@ -164,7 +165,7 @@ router.route('/add-question-sq').post((request, response) => {
   let feedback = request.body?.feedback
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.addTypeQuestionSq(id_type,pernyataan,feedback).then((data) => {
+    dashboard.AddQuestionSq(id_type,pernyataan,feedback).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
@@ -246,13 +247,28 @@ router.route('/get-list-type-sq').post((request, response) => {
 
   }
 })
-router.route('/add-type-sq').post((request, response) => {
+router.route('/add-type-sq').post(
+  
+  check('nama').exists().withMessage('nama is not null'),
+  check('nama').custom((value, { req,res })=>{
+    return   dashboard.checkTypeSq(req?.body?.nama).then((data) => {
+      if(data?.data>0){
+        return Promise.reject('Nama already exist'); 
+      }
+     
+    })
+  }) ,
+  (request, response) => {
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) {
+      return response.status(400).json({ errors: errors.array()  });
+    }
   let token = request.headers.authorization 
   let nama = request.body?.nama
   
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.addTypeQuestionSq(nama).then((data) => {
+    dashboard.addTypeQuestionSq(nama.toLowerCase()).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
@@ -267,13 +283,29 @@ router.route('/add-type-sq').post((request, response) => {
 
   }
 })
-router.route('/update-type-sq').post((request, response) => {
+
+router.route('/update-type-sq').post(
+  check('nama').exists().withMessage('nama is not null'),
+  check('nama').custom((value, { req,res })=>{
+    return   dashboard.checkTypeSq(req?.body?.nama).then((data) => {
+      if(data?.data>0){
+        return Promise.reject('Nama already exist'); 
+      }
+     
+    })
+  }) ,
+  
+  (request, response) => {
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) {
+      return response.status(400).json({ errors: errors.array()  });
+    }
   let token = request.headers.authorization 
   let nama = request.body?.nama
   let id = request.body?.id
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.updateTypeQuestionSq(id,nama).then((data) => {
+    dashboard.updateTypeQuestionSq(id,nama.toLowerCase()).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
@@ -295,6 +327,27 @@ router.route('/delete-type-sq').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.deleteTypeQuestionSq(id).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/select-type-sq').post((request, response) => {
+  let token = request.headers.authorization 
+  let nama = request.body?.nama
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.listSelectTypeQuestionSq(nama).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
