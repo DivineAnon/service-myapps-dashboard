@@ -2391,7 +2391,75 @@ async function insertImageVisit(
       console.log({error})
   }
 }
+async function getReviesVisit( 
+  page,limit,search,store,status,start,end
+  ) {
+    let last = limit*page
+    let first = last - (limit-1)
+    let isWhere = false
+  let query = `
+  select * from (
+    select ROW_NUMBER() OVER 
+        (ORDER BY a.id desc) as row,
+        a.id,
+        a.status_kuesioner,
+        a.created_at,
+        b.m_nama as store, c.m_nama from t_visit_sq2 a
+    left join dbcmk.dbo.msstore b on b.m_kode COLLATE DATABASE_DEFAULT = a.store COLLATE DATABASE_DEFAULT
+    left join dbhrd.dbo.mskaryawan c on c.m_nik COLLATE DATABASE_DEFAULT = a.created_by COLLATE DATABASE_DEFAULT
+  `
+  let query2 = `
+  select count(*) as tot from (
+    select ROW_NUMBER() OVER 
+        (ORDER BY a.id desc) as row,a.id,a.status_kuesioner,a.created_at,b.m_nama as store, c.m_nama from t_visit_sq2 a
+    left join dbcmk.dbo.msstore b on b.m_kode COLLATE DATABASE_DEFAULT = a.store COLLATE DATABASE_DEFAULT
+    left join dbhrd.dbo.mskaryawan c on c.m_nik COLLATE DATABASE_DEFAULT = a.created_by COLLATE DATABASE_DEFAULT
+  `
+
+    if(start?.length>0&&end.length>0){
+      
+    query = query+` where ( a.created_at >= '${start} 00:00:01' and  a.created_at <= '${end} 23:59:59' )`
+    query2 =query2+` where (  a.created_at >= '${start}' and  a.created_at <= '${end}' )`
+    isWhere = true
+    }
+    if(search!== ''){
+      query = query+` ${isWhere?'and':'where'}  c.m_nama like '%${search.toUppercase()}%'`
+      query2 =query2+` ${isWhere?'and':'where'}  c.m_nama like '%${search.toUppercase()}%'`
+       isWhere = true
+    }
+    if(store!== ''){
+      query = query+` ${isWhere?'and':'where'}  a.store = '${store}'`
+      query2 =query2+` ${isWhere?'and':'where'} a.store = '${store}'`
+       isWhere = true
+    }
+    if(status!== ''){
+      query = query+` ${isWhere?'and':'where'}  a.status_kuesioner = '${status}'`
+      query2 =query2+` ${isWhere?'and':'where'}  a.status_kuesioner = '${status}'`
+       isWhere = true
+    }
+  query =query+ `  ) awek
+
+    where row BETWEEN '${first}' AND '${last}'
+  ` 
+  query2 =query2+ `  ) awek
+ 
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let tot = await pool.request().query(query2);
+      
+      return  {
+        data:data?.recordsets[0],
+        tot:tot.recordsets[0][0]['tot']
+        // query,query2
+       };
+  }catch(error){
+      console.log({error})
+  }
+}
 module.exports = { 
+    getReviesVisit,
     insertImageVisit,
     getDataVisitDetail,
     updateDataNoteToPusat,

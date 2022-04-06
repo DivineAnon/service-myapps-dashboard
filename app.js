@@ -1479,6 +1479,35 @@ router.route('/delete-upload-visit-sq').post((req, res) => {
   }
   
 })
+router.route('/get-visit-review').post((request, response) => {
+  let token = request.headers.authorization 
+  let page = request.body?.page
+  let limit = request.body?.limit
+  let search = request.body?.search
+  let store = request.body?.store
+  let status = request.body?.status
+  let start = request.body?.start
+  let end = request.body?.end
+    
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.getReviesVisit(
+      page,limit,search,store,status,start,end
+    ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
 var  port = process.env.PORT || 8090;
 app.listen(port);
 console.log('Order API is runnning at ' + port);
