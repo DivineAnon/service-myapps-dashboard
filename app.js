@@ -4,6 +4,7 @@ const fs = require('fs')
 var  express = require('express');
 var  bodyParser = require('body-parser');
 var  cors = require('cors');
+var  moment = require('moment');
 var  app = express();
 var  router = express.Router();
 const multer = require('multer');
@@ -40,7 +41,16 @@ const storage = multer.diskStorage({
         cb(null, Date.now() + '-' + file.originalname);
     }
 });
+const storageVisitSq = multer.diskStorage({
+  destination: function (req, file, cb) {
+      cb(null, './uploads/visit-sq');
+    },
+  filename: function (req, file, cb) {
+      cb(null, Date.now() + '-' + file.originalname);
+  }
+});
 var upload = multer({ storage: storage });
+var uploadVisitSq  = multer({ storage: storageVisitSq  });
 router.route('/todo-list').get((request, response) => {
   let token = request.headers.authorization 
   try {
@@ -163,9 +173,10 @@ router.route('/add-question-sq').post((request, response) => {
   let id_type = request.body?.id_type
   let pernyataan = request.body?.pernyataan
   let feedback = request.body?.feedback
+  let bobot = request.body?.bobot
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.AddQuestionSq(id_type,pernyataan,feedback).then((data) => {
+    dashboard.AddQuestionSq(id_type,pernyataan,feedback,bobot).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
@@ -187,9 +198,10 @@ router.route('/update-question-sq').post((request, response) => {
   let id_type = request.body?.id_type
   let pernyataan = request.body?.pernyataan
   let feedback = request.body?.feedback
+  let bobot = request.body?.bobot
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.updateQuestionSq(id,id_type,pernyataan,feedback).then((data) => {
+    dashboard.updateQuestionSq(id,id_type,pernyataan,feedback,bobot).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
@@ -406,6 +418,166 @@ router.route('/select-type-sq').post((request, response) => {
 
   }
 })
+router.route('/get-list-kategori-sq').post((request, response) => {
+  let token = request.headers.authorization 
+  let limit = request.body?.limit
+  let page = request.body?.page
+  let search = request.body?.search
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.listAddKategoriQuestionSq(page,limit,search).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/add-kategori-sq').post(
+  
+  // check('nama').exists().withMessage('nama is not null'),
+  // check('nama').custom((value, { req,res })=>{
+  //   return   dashboard.checkKategoriSq(req?.body?.nama).then((data) => {
+  //     if(data?.data>0){
+  //       return Promise.reject('Nama already exist'); 
+  //     }
+     
+  //   })
+  // }) ,
+  (request, response) => {
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) {
+      return response.status(400).json({ errors: errors.array()  });
+    }
+  let token = request.headers.authorization 
+  let nama = request.body?.nama
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.addKategoriQuestionSq(nama.toLowerCase()).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
+router.route('/update-kategori-sq').post(
+  check('nama').exists().withMessage('nama is not null'),
+  check('nama').custom((value, { req,res })=>{
+    return   dashboard.checkKategoriSq(req?.body?.nama).then((data) => {
+      if(data?.data>0){
+        return Promise.reject('Nama already exist'); 
+      }
+     
+    })
+  }) ,
+  
+  (request, response) => {
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) {
+      return response.status(400).json({ errors: errors.array()  });
+    }
+  let token = request.headers.authorization 
+  let nama = request.body?.nama
+  let id = request.body?.id
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.updateKategoriQuestionSq(id,nama.toLowerCase()).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/delete-kategori-sq').post((request, response) => {
+  let token = request.headers.authorization 
+  let id = request.body?.id
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.deleteKategoriQuestionSq(id).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/togel-kategori-sq').post((request, response) => {
+  let token = request.headers.authorization 
+  let id = request.body?.id
+  let st = request.body?.st
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.togelKategoriQuestionSq(id,st).then((data) => {
+      response.json({status:'Succsess',message:'Succsess change status',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/select-kategori-sq').post((request, response) => {
+  let token = request.headers.authorization 
+  let nama = request.body?.nama
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.listSelectKategoriQuestionSq(nama).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
 router.route('/set-pic').post((request, response) => {
   let token = request.headers.authorization 
   let id = request.body?.id
@@ -1004,6 +1176,303 @@ router.route('/generate-entry-request-list').post((req, res) => {
       res.json({status:'Succsess',message:'Succsess fetch data',data });
     })
     
+  } catch(err) {
+    res.json({status:'Error',message:'Succsess fetch data',err,name  });
+    
+  }
+  
+})
+router.route('/add-visit').post((request, response) => {
+  let token = request.headers.authorization 
+  
+  let store = request.body?.store
+  let tim_sq = request.body?.tim_sq
+  let jr = request.body?.jr
+  
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.addVisitSq(
+      decoded?.data[0]?.loginid,
+      store,
+      tim_sq,
+      jr
+    ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/get-kuesioner/:visit').get((request, response) => {
+  let token = request.headers.authorization 
+  let visit = request.params?.visit
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.setKuesioner(
+     visit
+    ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/insert-update-jawaban').post((request, response) => {
+  let token = request.headers.authorization 
+  
+  let id_kuesioner = request.body?.id_kuesioner
+  let id_visit = request.body?.id_visit
+  let id = request.body?.id
+  let jawaban = request.body?.jawaban
+  let type = request.body?.type
+  let bobot = request.body?.bobot
+  
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.jawabanKuesioner(
+      id,
+      jawaban,
+      type,
+      bobot,
+      id_kuesioner,
+      id_visit).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/get-note-to-pusat/:visit').get((request, response) => {
+  let token = request.headers.authorization 
+  let visit = request.params?.visit
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.getDataNoteToPusat(
+     visit
+    ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/insert-note-to-pusat').post((request, response) => {
+  let token = request.headers.authorization 
+  
+   
+  let id_visit = request.body?.id_visit
+  let ket = request.body?.ket
+  let tggp = request.body?.tggp
+ 
+  
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.insertDataNoteToPusat(
+      id_visit,
+      ket,
+      tggp 
+      ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess add data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/update-note-to-pusat').post((request, response) => {
+  let token = request.headers.authorization 
+  
+   
+  let id = request.body?.id
+  let ket = request.body?.ket
+  let tggp = request.body?.tggp
+ 
+  
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.updateDataNoteToPusat(
+      id,
+      ket,
+      tggp 
+      ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess update data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/delete-note-to-pusat').post((request, response) => {
+  let token = request.headers.authorization 
+  
+   
+  let id = request.body?.id
+ 
+  
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.deleteDataNoteToPusat
+    (
+      id
+      ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess delete data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/get-visit-detail/:id').get((request, response) => {
+  let token = request.headers.authorization 
+  let id = request.params?.id
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.getDataVisitDetail(
+      id
+    ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/insert-image-visit-sq').post(uploadVisitSq.single('image'),(request, response) => {
+  let token = request.headers.authorization 
+  let id = request.body?.id
+  let old = request.body?.old
+  let insert = ''
+  let foto_name = `${moment(new Date()).format('YYYY-MM-DD-HH-mm-ss')}_${id}.jpg`
+  const image =  request.file;
+  if(old===''){
+    insert = foto_name
+  }else{
+    insert = old+','+foto_name
+  }
+  
+  fs.rename('./uploads/visit-sq/'+image?.filename, `./uploads/visit-sq/${foto_name}`, function(err) {
+    if ( err ) console.log('ERROR: ' + err);
+  })
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+   
+    dashboard.insertImageVisit(
+      id,insert
+      ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data ,insert });
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/delete-upload-visit-sq').post((req, res) => {
+  // 
+  let img = req?.body?.img
+  let name = './uploads/visit-sq/'+img
+  let id = req?.body?.id
+  let old = req?.body?.old
+  let data = []
+  let isData = null
+  let insert = ''
+  let coma = ''
+  if(old.includes(",")){
+    data = old.split(',')
+    isData = data.findIndex(v => v == img)
+   
+    data.splice(isData, 1);
+    data.map((d,i)=>{
+      coma = i===0?'':','
+      insert = insert+coma+d
+
+    })
+  } 
+   
+
+  
+  try {
+    fs.unlinkSync(name)
+    dashboard.insertImageVisit(
+      id,insert
+      ).then((data) => {
+      res.json({status:'Succsess',message:'Succsess delete image',data ,insert });
+    })
+   
   } catch(err) {
     res.json({status:'Error',message:'Succsess fetch data',err,name  });
     

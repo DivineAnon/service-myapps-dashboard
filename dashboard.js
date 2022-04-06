@@ -1154,9 +1154,9 @@ async function insertEntryRequest(userlogin,no,unit,div,dep,store,city,lokasi) {
       m_kodeunit, m_startdate, m_enddate, m_confirmdate, 
       m_donedate, m_canceldate, m_divisi, m_departemen, 
       m_kode, m_kota, m_approvedate, m_kode2) 
-			values ('${no}', '${moment(new Date()).format('YYYY-MM-DD H:m:s')}',
-      '${moment(new Date()).format('YYYY-MM-DD H:m:s')}', 
-      'REQUEST', '${userlogin}', '', '${unit}', '${moment(new Date()).format('YYYY-MM-DD H:m:s')}', 
+			values ('${no}', '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+      '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}', 
+      'REQUEST', '${userlogin}', '', '${unit}', '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}', 
        '', '', '', '', 
        '${div}', '${dep}', '${store}', '${city}', '', '${lokasi}')
 
@@ -1198,7 +1198,7 @@ async function insertEntryRequestList(id,
   m_doing_time, m_doing_by, m_done_by, m_qty, m_approve_time, 
   m_approve_by, m_done_time, m_nofpp)
   values ('${id}', '${kategori}', '${subkategori}',
-  '${moment(new Date()).format('YYYY-MM-DD H:m:s')}', '', 
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}', '', 
   '${ket}', 'REQUEST', '${foto_name}', '', '${no}', '${m_nomor}',
   '0', '', '', '', '${qty}', '', '', '', '${fpp}')
   ` 
@@ -1215,7 +1215,7 @@ async function insertEntryRequesHistory(id
   let query = `
   insert into t_task_history ( m_nomortask, m_tglpekerjaan, 
   m_statustask)
-  values ('${id}', '${moment(new Date()).format('YYYY-MM-DD H:m:s')}',
+  values ('${id}', '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
     'REQUEST')
   ` 
   try{
@@ -1396,13 +1396,13 @@ async function approveTicketing(user,id) {
   update 	t_task_pic_new 
   set  
   m_status_pic = 'APPROVE',
-  m_approve_time = '${moment(new Date()).format('YYYY-MM-DD H:m:s')}',
+  m_approve_time = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
   m_approve_by = '${user}'
   where 	m_kode = '${id}'
   ` 
   let query2 = `
   insert into t_task_history (m_nomortask, m_tanggalpekerjaan, m_statustask) 
-  values ('${id}', '${moment(new Date()).format('YYYY-MM-DD H:m:s')}',
+  values ('${id}', '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
   'APPROVE')
 
   `
@@ -1498,7 +1498,7 @@ async function insertScoring(user,kode,nomor,m_rating,review
   )
   values ('R-${kode}','${kode}', '${nomor}',
   '${m_rating}','${review}','${user}',
-  '${moment(new Date()).format('YYYY-MM-DD H:m:s')}')
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}')
   ` 
   try{
       let pool = await sql.connect(configTICKET);
@@ -1516,7 +1516,7 @@ async function checkStockTaskPIC(id,st
   update 	t_task_pic_new 
   set  
   m_status_pic = '${st}',
-  m_tgl_item = '${moment(new Date()).format('YYYY-MM-DD H:m:s')}'
+  m_tgl_item = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
   
   where 	m_kode = '${id}'
   ` 
@@ -1526,7 +1526,7 @@ async function checkStockTaskPIC(id,st
     m_statustask
   )
   values ('${id}',
-  '${moment(new Date()).format('YYYY-MM-DD H:m:s')}', 
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}', 
   '${st}'  )
   ` 
   try{
@@ -1544,7 +1544,7 @@ async function setPIC(id
   update 	t_task_pic_new 
   set  
   m_status_pic = 'SETPIC ',
-  m_start_pic = '${moment(new Date()).format('YYYY-MM-DD H:m:s')}'
+  m_start_pic = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
   
   where 	m_kode = '${id}'
   ` 
@@ -1554,7 +1554,7 @@ async function setPIC(id
     m_statustask
   )
   values ('${id}',
-  '${moment(new Date()).format('YYYY-MM-DD H:m:s')}', 
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}', 
   'SETPIC'  )
   ` 
   try{
@@ -1669,21 +1669,24 @@ async function listAddQuestionsSq(
   }
 }
 async function AddQuestionSq( 
-  id_type,pernyataan,feedback
+  id_type,pernyataan,feedback,bobot
   ) {
     
   let query = `
   insert into t_kuesioner_visit
   (
       id_type,m_pernyataan,
-      m_feedback,created_at,
+      m_feedback,
+      bobot,
+      created_at,
       updated_at
     )
     values ('${id_type}',
     '${pernyataan}',
     '${feedback}',
-    '${moment(new Date()).format('YYYY-MM-DD H:m:s')}', 
-    '${moment(new Date()).format('YYYY-MM-DD H:m:s')}' )
+    '${bobot}',
+    '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}', 
+    '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}' )
   ` 
   
   try{
@@ -1697,7 +1700,7 @@ async function AddQuestionSq(
 }
 
 async function updateQuestionSq( 
-  id,id_type,pernyataan,feedback
+  id,id_type,pernyataan,feedback,bobot
   ) {
     
   let query = `
@@ -1706,7 +1709,8 @@ async function updateQuestionSq(
   id_type = '${id_type}',
   m_pernyataan = '${pernyataan}',
   m_feedback = '${feedback}', 
-  updated_at = '${moment(new Date()).format('YYYY-MM-DD H:m:s')}'
+  bobot = '${bobot}',
+  updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
   
   where 	id = '${id}'
   ` 
@@ -1730,7 +1734,7 @@ async function togelQuestionSq(
  
   enable = '${st}',
   
-  updated_at = '${moment(new Date()).format('YYYY-MM-DD H:m:s')}'
+  updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
   
   where 	id = '${id}'
   ` 
@@ -1779,7 +1783,7 @@ async function listAddTypeQuestionSq(
     ) as awek
      
     where row BETWEEN '${first}' AND '${last}'
-
+    order by m_nama asc
   ` 
   let query1 = `
   select count(*) as tot from(
@@ -1813,7 +1817,7 @@ async function listSelectTypeQuestionSq(
   let query = `
   select  TOP 5  m_nama as label, id as value from
   t_type_kuesioner  where m_nama like '%${search}%'
-
+  where enable = 'true'
   ` 
  
   try{
@@ -1857,8 +1861,8 @@ async function addTypeQuestionSq(
     updated_at
   )
    values ('${nama}',
-  '${moment(new Date()).format('YYYY-MM-DD H:m:s')}', 
-  '${moment(new Date()).format('YYYY-MM-DD H:m:s')}'  )
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}', 
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'  )
   ` 
   
   try{
@@ -1878,7 +1882,7 @@ async function updateTypeQuestionSq(
   update 	t_type_kuesioner 
   set  
   m_nama = '${nama}',
-  updated_at = '${moment(new Date()).format('YYYY-MM-DD H:m:s')}'
+  updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
   
   where 	id = '${id}'
   ` 
@@ -1918,7 +1922,7 @@ async function togelTypeQuestionSq(
   update 	t_type_kuesioner 
   set  
   enable = '${st}',
-  updated_at = '${moment(new Date()).format('YYYY-MM-DD H:m:s')}'
+  updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
   
   where 	id = '${id}'
    
@@ -1933,7 +1937,477 @@ async function togelTypeQuestionSq(
       console.log({error})
   }
 }
-module.exports = {
+async function listAddKategoriQuestionSq( 
+  page,limit,search
+  ) {
+    let last = limit*page
+    let first = last - (limit-1)
+  let query = `
+  select * from(
+    select
+    ROW_NUMBER() OVER 
+      (ORDER BY id asc) as row
+    ,*
+    from t_kategori_kuesioner2
+    
+    where m_name like '%${search}%'
+    ) as awek
+     
+    where row BETWEEN '${first}' AND '${last}'
+
+  ` 
+  let query1 = `
+  select count(*) as tot from(
+    select
+    ROW_NUMBER() OVER 
+      (ORDER BY id asc) as row
+    ,*
+    from t_kategori_kuesioner2
+    
+    where m_name like '%${search}%'
+    ) as awek
+     
+     
+
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let tot = await pool.request().query(query1);
+      
+      return  {data:data?.recordsets[0],
+        tot:tot.recordsets[0][0]['tot']};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function listSelectKategoriQuestionSq( 
+  search
+  ) {
+     
+  let query = `
+  select  TOP 5  m_name as label, id as value from
+  t_kategori_kuesioner2  where m_name like '%${search}%'
+
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {data:data?.recordsets[0] };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function addKategoriQuestionSq( 
+  nama
+  ) {
+    
+  let query = `
+  insert into t_kategori_kuesioner2
+ (
+    m_name,created_at,
+    updated_at
+  )
+   values ('${nama}',
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}', 
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'  )
+  ` 
+  
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+ 
+      return  {
+        data:data?.recordsets[0]
+        // query
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function updateKategoriQuestionSq( 
+  id,nama
+  ) {
+    
+  let query = `
+  update 	t_kategori_kuesioner2 
+  set  
+  m_name = '${nama}',
+  updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+  
+  where 	id = '${id}'
+  ` 
+  
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+ 
+      return  {data:data?.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function deleteKategoriQuestionSq( 
+  id
+  ) {
+    
+  let query = `
+  delete from t_kategori_kuesioner2 where id='${id}'
+   
+  ` 
+  
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+ 
+      return  {data:data?.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function togelKategoriQuestionSq( 
+  id,st
+  ) {
+    
+  let query = `
+  update 	t_kategori_kuesioner2 
+  set  
+  enable = '${st}',
+  updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+  
+  where 	id = '${id}'
+   
+  ` 
+  
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+ 
+      return  {data:data?.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function checkKategoriSq( 
+  search
+  ) {
+     
+  let query = `
+  select count(*) as row  from
+  t_kategori_kuesioner2  where m_name = '${search.toLowerCase()}'
+
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {data:data.recordsets[0][0]?.row };
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function addVisitSq( 
+  user,
+  store,
+  tim_sq,
+  jr
+  ) {
+    
+  let query = `
+  insert into t_visit_sq2
+ (
+    created_by,
+    store,
+    image_visit,
+    status_kuesioner,
+    tim_sq,
+    id_kategori,
+    jr,
+    created_at,
+    updated_at
+  )
+   values (
+  '${user}',
+  '${store}',
+  '',
+  'UNCOMPLEATE',
+  '${tim_sq}',
+  '',
+  '${jr}',
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}', 
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'  )
+  ` 
+  let query2 = `select id from t_visit_sq2
+  order by id desc
+  `
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let id = await pool.request().query(query2);
+      return  {
+        // data:data?.recordsets[0],
+        data:id?.recordsets[0][0]['id']
+        // query
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function setKuesioner( 
+  visit
+  ) {
+    
+  let query = `
+  select a.id, a.m_pernyataan,a.m_feedback,a.bobot,b.m_nama from t_kuesioner_visit a
+  left join t_type_kuesioner b on a.id_type = b.id
+  where a.enable = 'true'
+  order by a.id asc
+  `
+  let query2 = `
+  select distinct(b.m_nama) from t_kuesioner_visit a
+  left join t_type_kuesioner b on a.id_type = b.id
+  where a.enable = 'true'
+  order by b.m_nama asc
+  `
+  let query3 = `
+  select * from t_jawaban_visit where id_visit = '${visit}'
+  `
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let data2 = await pool.request().query(query2);
+      let data3 = await pool.request().query(query3);
+      return  {
+        data:data?.recordsets[0],
+        data2:data2?.recordsets[0],
+        data3:data3?.recordsets[0]
+        // query
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function jawabanKuesioner(id,jawaban,type,bobot,id_kuesioner,id_visit){
+
+  let query = `
+  insert into t_jawaban_visit 
+   (
+    id_kuesioner_visit,
+    m_jawaban,
+    m_note,
+    m_bobot,
+    id_visit,
+    created_at,
+    updated_at
+  )
+   values (
+   '${id_kuesioner}',
+   '${jawaban}',
+   '',
+   '${bobot}',
+   '${id_visit}',
+   '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+   '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+   )
+  `
+  let query2 = `
+  update 	t_jawaban_visit 
+  set  `
+  if(type==='note'){
+    query2 =query2+ ` m_note = '${jawaban}',`
+  }else{
+   query2 =query2+ ` m_jawaban = '${jawaban}',`
+  }
+   
+   query2 =query2+ ` updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+  
+  where 	id = '${id}'
+   
+  `
+  let query3 = ``
+  if(id===0){
+    query3 = query
+  }else{
+    query3 = query2
+  }
+  try{
+  let pool = await sql.connect(configTICKET);
+  let data = await pool.request().query(query3);
+      return {
+        data:data.recordsets[0]
+        // ,
+        // query3
+        // id,jawaban,type,bobot,id_kuesioner,id_visit
+      }
+  }catch(error){
+      console.log({error})
+  }
+}
+async function getDataNoteToPusat( 
+  id
+  ) {
+     
+  let query = `
+  select  * from
+  t_note_to_pusat_kuesioner  where id_visit = '${id}'
+
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {data:data?.recordsets[0] };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function insertDataNoteToPusat( 
+  id_visit,m_note,m_tanggapan
+  ) {
+     
+  let query = `
+  insert into t_note_to_pusat_kuesioner 
+  (
+   id_visit, 
+   m_note,
+   m_tanggapan, 
+   created_at,
+   updated_at
+ )
+  values (
+  '${id_visit}',
+  '${m_note}', 
+  '${m_tanggapan}',
+  
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+  )
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {data:data?.recordsets[0] };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function updateDataNoteToPusat( 
+  id,m_note,m_tanggapan
+  ) {
+     
+  let query = `
+  update 	t_note_to_pusat_kuesioner 
+  set  
+  m_note = '${m_note}',
+  m_tanggapan = '${m_tanggapan}', 
+  updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+  
+  where 	id = '${id}'
+   
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {
+        data:data?.recordsets[0] 
+        // query
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function deleteDataNoteToPusat( 
+  id
+  ) {
+     
+  let query = `
+  delete from t_note_to_pusat_kuesioner where id = '${id}'
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {data:data?.recordsets[0] };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function getDataVisitDetail( 
+  id
+  ) {
+     
+  let query = `
+  select * from t_visit_sq2  where id = '${id}'
+
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {data:data?.recordsets[0][0],
+      path:axs.PATH_TICKET+'/uploads/visit-sq/' };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function insertImageVisit( 
+  id,img
+  ) {
+     
+  let query = `
+  update 	t_visit_sq2 
+  set  
+  image_visit = '${img}', 
+  updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+  
+  where 	id = '${id}'
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {data:data?.recordsets[0] };
+  }catch(error){
+      console.log({error})
+  }
+}
+module.exports = { 
+    insertImageVisit,
+    getDataVisitDetail,
+    updateDataNoteToPusat,
+    deleteDataNoteToPusat,
+    insertDataNoteToPusat,
+    getDataNoteToPusat,
+    jawabanKuesioner,
+    setKuesioner,
+    addVisitSq,
+    checkKategoriSq,
+    listSelectKategoriQuestionSq,
+    addKategoriQuestionSq,
+    listAddKategoriQuestionSq,
+    togelKategoriQuestionSq,
+    deleteKategoriQuestionSq,
+    updateKategoriQuestionSq,
     togelTypeQuestionSq,
     togelQuestionSq,
     listSelectTypeQuestionSq,
