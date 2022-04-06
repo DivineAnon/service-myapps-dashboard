@@ -2391,6 +2391,29 @@ async function insertImageVisit(
       console.log({error})
   }
 }
+async function setStatusVisit( 
+  id,st
+  ) {
+     
+  let query = `
+  update 	t_visit_sq2 
+  set  
+  status_kuesioner = '${st}', 
+  updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+  
+  where 	id = '${id}'
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {data:data?.recordsets[0] };
+  }catch(error){
+      console.log({error})
+  }
+}
 async function getReviesVisit( 
   page,limit,search,store,status,start,end
   ) {
@@ -2423,8 +2446,8 @@ async function getReviesVisit(
     isWhere = true
     }
     if(search!== ''){
-      query = query+` ${isWhere?'and':'where'}  c.m_nama like '%${search.toUppercase()}%'`
-      query2 =query2+` ${isWhere?'and':'where'}  c.m_nama like '%${search.toUppercase()}%'`
+      query = query+` ${isWhere?'and':'where'}  c.m_nama like '%${search}%'`
+      query2 = query2+` ${isWhere?'and':'where'}  c.m_nama like '%${search}%'`
        isWhere = true
     }
     if(store!== ''){
@@ -2458,7 +2481,9 @@ async function getReviesVisit(
       console.log({error})
   }
 }
+
 module.exports = { 
+    setStatusVisit,
     getReviesVisit,
     insertImageVisit,
     getDataVisitDetail,

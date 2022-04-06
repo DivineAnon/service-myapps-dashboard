@@ -1508,6 +1508,31 @@ router.route('/get-visit-review').post((request, response) => {
 
   }
 })
+router.route('/set-status-visit').post((request, response) => {
+  let token = request.headers.authorization 
+  let id = request.body?.id
+  let st = request.body?.st
+ 
+    
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.setStatusVisit(
+     id,st
+    ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess save data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
 var  port = process.env.PORT || 8090;
 app.listen(port);
 console.log('Order API is runnning at ' + port);
