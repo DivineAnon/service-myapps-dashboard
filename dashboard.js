@@ -2116,7 +2116,8 @@ async function addVisitSq(
   user,
   store,
   tim_sq,
-  jr
+  jr,
+  type
   ) {
     
   let query = `
@@ -2127,8 +2128,9 @@ async function addVisitSq(
     image_visit,
     status_kuesioner,
     tim_sq,
-    id_kategori,
+  
     jr,
+    type,
     created_at,
     updated_at
   )
@@ -2138,8 +2140,9 @@ async function addVisitSq(
   '',
   'UNCOMPLEATE',
   '${tim_sq}',
-  '',
+  
   '${jr}',
+  '${type}',
   '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}', 
   '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'  )
   ` 
@@ -2262,15 +2265,36 @@ async function getDataNoteToPusat(
   try{
       let pool = await sql.connect(configTICKET);
       let data = await pool.request().query(query);
-     
+      let array = [];
+      let dats = data?.recordsets[0]
+      let r = []
+      let kat =[]
+      dats.map((d)=>{
+         r = d?.kategori.split(',')
+         r.map((s)=>{
+           
+           kat.push({
+             value:s,label:s.split('#')[1]
+           })
+         })
+         array.push({
+           id:d?.id,
+           id_visit:d?.id_visit,
+           m_note:d?.m_note,
+           m_tanggapan:d?.m_tanggapan,
+           kategori:kat
+         })
+         kat=[]
+         r=[]
+      })
       
-      return  {data:data?.recordsets[0] };
+      return  {data:array};
   }catch(error){
       console.log({error})
   }
 }
 async function insertDataNoteToPusat( 
-  id_visit,m_note,m_tanggapan
+  id_visit,m_note,m_tanggapan,kategori
   ) {
      
   let query = `
@@ -2279,6 +2303,7 @@ async function insertDataNoteToPusat(
    id_visit, 
    m_note,
    m_tanggapan, 
+   kategori,
    created_at,
    updated_at
  )
@@ -2286,7 +2311,7 @@ async function insertDataNoteToPusat(
   '${id_visit}',
   '${m_note}', 
   '${m_tanggapan}',
-  
+  '${kategori}',
   '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
   '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
   )
@@ -2297,13 +2322,16 @@ async function insertDataNoteToPusat(
       let data = await pool.request().query(query);
      
       
-      return  {data:data?.recordsets[0] };
+      return  {
+        data:data?.recordsets[0]
+        // query
+      };
   }catch(error){
       console.log({error})
   }
 }
 async function updateDataNoteToPusat( 
-  id,m_note,m_tanggapan
+  id,m_note,m_tanggapan,kategori
   ) {
      
   let query = `
@@ -2311,6 +2339,7 @@ async function updateDataNoteToPusat(
   set  
   m_note = '${m_note}',
   m_tanggapan = '${m_tanggapan}', 
+  kategori = '${kategori}',
   updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
   
   where 	id = '${id}'
@@ -2415,7 +2444,7 @@ async function setStatusVisit(
   }
 }
 async function getReviesVisit( 
-  page,limit,search,store,status,start,end
+  page,limit,search,store,status,start,end,type
   ) {
     let last = limit*page
     let first = last - (limit-1)
@@ -2427,6 +2456,7 @@ async function getReviesVisit(
         a.id,
         a.status_kuesioner,
         a.created_at,
+        a.type,
         b.m_nama as store, c.m_nama from t_visit_sq2 a
     left join dbcmk.dbo.msstore b on b.m_kode COLLATE DATABASE_DEFAULT = a.store COLLATE DATABASE_DEFAULT
     left join dbhrd.dbo.mskaryawan c on c.m_nik COLLATE DATABASE_DEFAULT = a.created_by COLLATE DATABASE_DEFAULT
@@ -2448,6 +2478,11 @@ async function getReviesVisit(
     if(search!== ''){
       query = query+` ${isWhere?'and':'where'}  c.m_nama like '%${search}%'`
       query2 = query2+` ${isWhere?'and':'where'}  c.m_nama like '%${search}%'`
+       isWhere = true
+    }
+    if(type!== ''){
+      query = query+` ${isWhere?'and':'where'}   a.type = '${type}'`
+      query2 = query2+` ${isWhere?'and':'where'}   a.type = '${type}'`
        isWhere = true
     }
     if(store!== ''){
@@ -2481,8 +2516,26 @@ async function getReviesVisit(
       console.log({error})
   }
 }
+async function selectKategoriKuesioner( 
+  ) {
+  let query = `
+  select * from t_kategori_kuesioner2 
+  where enable = 'true'
+  order by m_name asc
 
+  ` 
+  
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+ 
+      return  {data:data?.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
 module.exports = { 
+    selectKategoriKuesioner,
     setStatusVisit,
     getReviesVisit,
     insertImageVisit,

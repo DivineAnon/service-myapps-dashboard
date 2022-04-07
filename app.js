@@ -1188,7 +1188,7 @@ router.route('/add-visit').post((request, response) => {
   let store = request.body?.store
   let tim_sq = request.body?.tim_sq
   let jr = request.body?.jr
-  
+  let type = request.body?.type
   
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
@@ -1196,7 +1196,8 @@ router.route('/add-visit').post((request, response) => {
       decoded?.data[0]?.loginid,
       store,
       tim_sq,
-      jr
+      jr,
+      type
     ).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
@@ -1220,6 +1221,29 @@ router.route('/get-kuesioner/:visit').get((request, response) => {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.setKuesioner(
      visit
+    ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/get-kategori-kuesioner').get((request, response) => {
+  let token = request.headers.authorization 
+ 
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.selectKategoriKuesioner(
+    
     ).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
@@ -1299,7 +1323,7 @@ router.route('/insert-note-to-pusat').post((request, response) => {
   let id_visit = request.body?.id_visit
   let ket = request.body?.ket
   let tggp = request.body?.tggp
- 
+  let kategori = request.body?.kategori
   
   
   try {
@@ -1307,7 +1331,8 @@ router.route('/insert-note-to-pusat').post((request, response) => {
     dashboard.insertDataNoteToPusat(
       id_visit,
       ket,
-      tggp 
+      tggp,
+      kategori 
       ).then((data) => {
       response.json({status:'Succsess',message:'Succsess add data',data});
     })
@@ -1330,7 +1355,7 @@ router.route('/update-note-to-pusat').post((request, response) => {
   let id = request.body?.id
   let ket = request.body?.ket
   let tggp = request.body?.tggp
- 
+  let kategori = request.body?.kategori
   
   
   try {
@@ -1338,7 +1363,8 @@ router.route('/update-note-to-pusat').post((request, response) => {
     dashboard.updateDataNoteToPusat(
       id,
       ket,
-      tggp 
+      tggp ,
+      kategori
       ).then((data) => {
       response.json({status:'Succsess',message:'Succsess update data',data});
     })
@@ -1488,11 +1514,11 @@ router.route('/get-visit-review').post((request, response) => {
   let status = request.body?.status
   let start = request.body?.start
   let end = request.body?.end
-    
+  let type = request.body?.type
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.getReviesVisit(
-      page,limit,search,store,status,start,end
+      page,limit,search,store,status,start,end,type
     ).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
