@@ -1293,6 +1293,43 @@ router.route('/insert-update-jawaban').post((request, response) => {
 
   }
 })
+router.route('/insert-history-jawaban').post((request, response) => {
+  let token = request.headers.authorization 
+  
+ 
+  let id_visit = request.body?.id_visit
+  let id_type = request.body?.id_type
+  let id_kuesioner = request.body?.id_kuesioner
+  let bobot = request.body?.bobot
+  let jwb = request.body?.jwb
+  
+  
+  
+  
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.insertDataHistoryKuesioner(
+      id_type,
+      id_kuesioner,
+      id_visit,
+      bobot,
+      jwb, 
+      decoded?.data[0]?.loginid).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
 router.route('/get-note-to-pusat/:visit').get((request, response) => {
   let token = request.headers.authorization 
   let visit = request.params?.visit

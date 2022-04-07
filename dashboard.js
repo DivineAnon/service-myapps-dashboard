@@ -2167,7 +2167,7 @@ async function setKuesioner(
   ) {
     
   let query = `
-  select a.id, a.m_pernyataan,a.m_feedback,a.bobot,b.m_nama from t_kuesioner_visit a
+  select a.id,a.id_type, a.m_pernyataan,a.m_feedback,a.bobot,b.m_nama from t_kuesioner_visit a
   left join t_type_kuesioner b on a.id_type = b.id
   where a.enable = 'true'
   order by a.id asc
@@ -2257,8 +2257,10 @@ async function getDataNoteToPusat(
   ) {
      
   let query = `
-  select  * from
-  t_note_to_pusat_kuesioner  where id_visit = '${id}'
+  select a.*,b.m_name as label,b.id as value from
+  t_note_to_pusat_kuesioner  a
+  left join t_kategori_kuesioner2 b on a.kategori = b.id 
+  where a.id_visit = '${id}'
 
   ` 
  
@@ -2270,19 +2272,24 @@ async function getDataNoteToPusat(
       let r = []
       let kat =[]
       dats.map((d)=>{
-         r = d?.kategori.split(',')
-         r.map((s)=>{
+        // r = d?.kategori.split(',')
+        // r.map((s)=>{
+          
+        //   kat.push({
+        //     value:s,label:s.split('#')[1]
+        //   })
+        // })
            
-           kat.push({
-             value:s,label:s.split('#')[1]
-           })
-         })
+           
+        
          array.push({
            id:d?.id,
            id_visit:d?.id_visit,
            m_note:d?.m_note,
            m_tanggapan:d?.m_tanggapan,
-           kategori:kat
+           kategori:{
+            value:d.value,label:d.label
+          }
          })
          kat=[]
          r=[]
@@ -2457,16 +2464,32 @@ async function getReviesVisit(
         a.status_kuesioner,
         a.created_at,
         a.type,
+        d.bobot,
+        e.bobot as bobot2,
         b.m_nama as store, c.m_nama from t_visit_sq2 a
     left join dbcmk.dbo.msstore b on b.m_kode COLLATE DATABASE_DEFAULT = a.store COLLATE DATABASE_DEFAULT
     left join dbhrd.dbo.mskaryawan c on c.m_nik COLLATE DATABASE_DEFAULT = a.created_by COLLATE DATABASE_DEFAULT
+    left join (select id_visit,SUM(m_bobot) as bobot  from t_jawaban_visit
+    where  m_jawaban = 'true'
+    group by id_visit) d on a.id=d.id_visit
+    left join   (select id_visit,SUM(bobot) as bobot  from t_history_visit
+    where  m_jawaban = 'true'
+    group by id_visit) e on a.id=e.id_visit
   `
   let query2 = `
   select count(*) as tot from (
     select ROW_NUMBER() OVER 
-        (ORDER BY a.id desc) as row,a.id,a.status_kuesioner,a.created_at,b.m_nama as store, c.m_nama from t_visit_sq2 a
+        (ORDER BY a.id desc) as row,a.id,a.status_kuesioner,a.created_at,
+        d.bobot,
+        e.bobot as bobot2,b.m_nama as store, c.m_nama from t_visit_sq2 a
     left join dbcmk.dbo.msstore b on b.m_kode COLLATE DATABASE_DEFAULT = a.store COLLATE DATABASE_DEFAULT
     left join dbhrd.dbo.mskaryawan c on c.m_nik COLLATE DATABASE_DEFAULT = a.created_by COLLATE DATABASE_DEFAULT
+    left join (select id_visit,SUM(m_bobot) as bobot  from t_jawaban_visit
+    where  m_jawaban = 'true'
+    group by id_visit) d on a.id=d.id_visit
+    left join   (select id_visit,SUM(bobot) as bobot  from t_history_visit
+    where  m_jawaban = 'true'
+    group by id_visit) e on a.id=e.id_visit
   `
 
     if(start?.length>0&&end.length>0){
@@ -2534,7 +2557,51 @@ async function selectKategoriKuesioner(
       console.log({error})
   }
 }
+
+async function insertDataHistoryKuesioner( 
+  id_type,id_kuesioner,id_visit,
+  bobot,jwb,approve
+  ) {
+     
+  let query = `
+  insert into t_history_visit 
+  (
+   id_type,
+   id_kuesioner, 
+   id_visit, 
+   bobot,
+   m_jawaban,
+   approve_by,
+   created_at,
+   updated_at
+ )
+  values (
+  '${id_type}',
+  '${id_kuesioner}',
+  '${id_visit}',
+  '${bobot}', 
+  '${jwb}',
+  '${approve}',
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+  )
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {
+        data:data?.recordsets[0]
+        // query
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
 module.exports = { 
+    insertDataHistoryKuesioner,
     selectKategoriKuesioner,
     setStatusVisit,
     getReviesVisit,
