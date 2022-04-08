@@ -2600,7 +2600,132 @@ async function insertDataHistoryKuesioner(
       console.log({error})
   }
 }
+async function lineChartDataSQVisit( 
+   start,end
+  ) {
+     
+  let query = `
+  select distinct(a.created_at )
+  from t_history_visit a
+  left join t_type_kuesioner b on b.id = a.id_type 
+  where a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
+  ` 
+  let query1 =`
+  select SUM(a.bobot) as bobot,a.id_type,a.created_at,b.m_nama 
+  from t_history_visit a
+  left join t_type_kuesioner b on b.id = a.id_type 
+  where a.m_jawaban = 'true'
+  and a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
+  group by a.id_type,a.created_at,b.m_nama
+  `
+  let query2 = `
+  select distinct(b.m_nama )
+  from t_history_visit a
+  left join t_type_kuesioner b on b.id = a.id_type 
+  where a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
+  `
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let data1 = await pool.request().query(query1);
+      let data2 = await pool.request().query(query2);
+      let dats =data?.recordsets[0]
+      let dats1 =data1?.recordsets[0]
+      let dats2 =data2?.recordsets[0]
+      let array = [];
+      let array2 = [];
+      let isData = null
+      let rdclr = ''
+      dats.map((d)=>{
+        array.push({date:moment(d?.created_at).format('YYYY-MM-DD')})
+      })
+      dats1.map((d)=>{
+        isData = array.findIndex(v => moment(v.date).format('YYYY-MM-DD') === moment(d.created_at).format('YYYY-MM-DD'))
+        
+        array[isData][d?.m_nama] = d?.bobot
+        // array2.push({
+        //   isData,
+        //   dates:d.created_at,
+        //   v:array[0].date,
+        //   s:moment(array[0].date).format('YYYY-MM-DD'),
+        //   d:moment(d.created_at).format('YYYY-MM-DD')
+        // })
+      })
+      dats2.map((d,i)=>{
+        rdclr = Math.floor(Math.random()*16777215).toString(16);
+        array2.push({
+          name:d?.m_nama,
+          color: '#'+rdclr
+        })
+        rdclr = ''
+      })
+      return  {
+        data:array,
+         
+        kategori:array2
+        // query
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function barCharKuesionerSQ( 
+  start,end
+  ) {
+     
+  let query = `
+  select b.m_name as label,count(b.m_name) as value  from t_note_to_pusat_kuesioner a
+  left join t_kategori_kuesioner2 b on b.id = a.kategori
+  where a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
+  group by b.m_name
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {
+        data:data?.recordsets[0]
+        // query
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function detailBarCharSQ( 
+  start,end,nama,limit,page
+  ) {
+    let last = limit*page
+    let first = last - (limit-1)
+  let query = `
+  select * from (
+    select ROW_NUMBER() OVER 
+        (ORDER BY a.created_at desc) as row,a.m_note,a.m_tanggapan,a.created_at,b.m_name,c.type,e.m_nama as store from t_note_to_pusat_kuesioner a
+  left join t_kategori_kuesioner2 b on a.kategori = b.id
+  left join t_visit_sq2 c on a.id_visit = c.id
+  left join dbcmk.dbo.msstore_new d on d.m_kode COLLATE DATABASE_DEFAULT = c.store COLLATE DATABASE_DEFAULT
+  left join dbcmk.dbo.msmaster e on e.m_kode COLLATE DATABASE_DEFAULT = d.m_mall COLLATE DATABASE_DEFAULT
+  where b.m_name = '${nama}'
+  and a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
+  ) awek
+ where row BETWEEN '${first}' AND '${last}'
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {data:data?.recordsets[0] };
+  }catch(error){
+      console.log({error})
+  }
+}
 module.exports = { 
+    detailBarCharSQ,
+    barCharKuesionerSQ,
+    lineChartDataSQVisit,
     insertDataHistoryKuesioner,
     selectKategoriKuesioner,
     setStatusVisit,

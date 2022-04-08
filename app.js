@@ -1330,6 +1330,33 @@ router.route('/insert-history-jawaban').post((request, response) => {
 
   }
 })
+router.route('/line-chart-sq-visit').post((request, response) => {
+  let token = request.headers.authorization 
+  let start = request.body?.start
+  let end = request.body?.end
+   
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.lineChartDataSQVisit(
+      start,end
+      ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
+
 router.route('/get-note-to-pusat/:visit').get((request, response) => {
   let token = request.headers.authorization 
   let visit = request.params?.visit
@@ -1571,6 +1598,7 @@ router.route('/get-visit-review').post((request, response) => {
 
   }
 })
+
 router.route('/set-status-visit').post((request, response) => {
   let token = request.headers.authorization 
   let id = request.body?.id
@@ -1581,6 +1609,57 @@ router.route('/set-status-visit').post((request, response) => {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.setStatusVisit(
      id,st
+    ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess save data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/bar-char-sq').post((request, response) => {
+  let token = request.headers.authorization 
+  let start = request.body?.start
+  let end = request.body?.end
+ 
+    
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.barCharKuesionerSQ(
+      start,end
+    ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess save data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/detail-bar-char-sq').post((request, response) => {
+  let token = request.headers.authorization 
+  let start = request.body?.start
+  let end = request.body?.end
+  let nama = request.body?.nama
+  let limit = request.body?.limit
+  let page = request.body?.page
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.detailBarCharSQ(
+      start,end,nama,limit,page
     ).then((data) => {
       response.json({status:'Succsess',message:'Succsess save data',data});
     })
