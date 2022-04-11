@@ -2601,29 +2601,55 @@ async function insertDataHistoryKuesioner(
   }
 }
 async function lineChartDataSQVisit( 
-   start,end
+   start,end,brand,location
   ) {
      
   let query = `
   select distinct(a.created_at )
   from t_history_visit a
   left join t_type_kuesioner b on b.id = a.id_type 
+  left join t_visit_sq2 c on a.id_visit=c.id
+  left join dbcmk.dbo.msstore_new d on d.m_kode COLLATE DATABASE_DEFAULT = c.store COLLATE DATABASE_DEFAULT
   where a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
   ` 
+  if(brand!==''){
+    query = query+` and d.m_brand = ${brand}`
+  }
+  if(location!==''){
+    query = query+` and d.m_store_location = ${location}`
+  }
   let query1 =`
   select SUM(a.bobot) as bobot,a.id_type,a.created_at,b.m_nama 
   from t_history_visit a
   left join t_type_kuesioner b on b.id = a.id_type 
+  left join t_visit_sq2 c on a.id_visit=c.id
+  left join dbcmk.dbo.msstore_new d on d.m_kode COLLATE DATABASE_DEFAULT = c.store COLLATE DATABASE_DEFAULT
   where a.m_jawaban = 'true'
   and a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
+  `
+  if(brand!==''){
+    query1 = query1+` and d.m_brand = ${brand}`
+  }
+  if(location!==''){
+    query1 = query1+` and d.m_store_location = ${location}`
+  }
+  query1 =query1+` 
   group by a.id_type,a.created_at,b.m_nama
   `
   let query2 = `
   select distinct(b.m_nama )
   from t_history_visit a
   left join t_type_kuesioner b on b.id = a.id_type 
+  left join t_visit_sq2 c on a.id_visit=c.id
+  left join dbcmk.dbo.msstore_new d on d.m_kode COLLATE DATABASE_DEFAULT = c.store COLLATE DATABASE_DEFAULT
   where a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
   `
+  if(brand!==''){
+    query2 = query2+` and d.m_brand = ${brand}`
+  }
+  if(location!==''){
+    query2 = query2+` and d.m_store_location = ${location}`
+  }
   try{
       let pool = await sql.connect(configTICKET);
       let data = await pool.request().query(query);
@@ -2722,7 +2748,79 @@ async function detailBarCharSQ(
       console.log({error})
   }
 }
+async function getReviesVisitExport( 
+  search,store,status,start,end,type
+  ) {
+ 
+    let isWhere = false
+  let query = `
+  select * from (
+    select ROW_NUMBER() OVER 
+        (ORDER BY a.id desc) as row,
+        a.id,
+        a.status_kuesioner,
+        a.created_at,
+        a.type,
+        d.bobot,
+        e.bobot as bobot2,
+        b.m_nama as store, c.m_nama from t_visit_sq2 a
+    left join dbcmk.dbo.msstore b on b.m_kode COLLATE DATABASE_DEFAULT = a.store COLLATE DATABASE_DEFAULT
+    left join dbhrd.dbo.mskaryawan c on c.m_nik COLLATE DATABASE_DEFAULT = a.created_by COLLATE DATABASE_DEFAULT
+    left join (select id_visit,SUM(m_bobot) as bobot  from t_jawaban_visit
+    where  m_jawaban = 'true'
+    group by id_visit) d on a.id=d.id_visit
+    left join   (select id_visit,SUM(bobot) as bobot  from t_history_visit
+    where  m_jawaban = 'true'
+    group by id_visit) e on a.id=e.id_visit
+  `
+   
+
+    if(start?.length>0&&end.length>0){
+      
+    query = query+` where ( a.created_at >= '${start} 00:00:01' and  a.created_at <= '${end} 23:59:59' )`
+     
+    isWhere = true
+    }
+    if(search!== ''){
+      query = query+` ${isWhere?'and':'where'}  c.m_nama like '%${search}%'`
+      
+       isWhere = true
+    }
+    if(type!== ''){
+      query = query+` ${isWhere?'and':'where'}   a.type = '${type}'`
+      
+       isWhere = true
+    }
+    if(store!== ''){
+      query = query+` ${isWhere?'and':'where'}  a.store = '${store}'`
+       
+       isWhere = true
+    }
+    if(status!== ''){
+      query = query+` ${isWhere?'and':'where'}  a.status_kuesioner = '${status}'`
+       
+       isWhere = true
+    }
+  query =query+ `  ) awek
+ 
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+  
+      
+      return  {
+        data:data?.recordsets[0],
+   
+        // query,query2
+       };
+  }catch(error){
+      console.log({error})
+  }
+}
 module.exports = { 
+    getReviesVisitExport,
     detailBarCharSQ,
     barCharKuesionerSQ,
     lineChartDataSQVisit,

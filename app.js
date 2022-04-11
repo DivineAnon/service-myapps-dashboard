@@ -1334,12 +1334,13 @@ router.route('/line-chart-sq-visit').post((request, response) => {
   let token = request.headers.authorization 
   let start = request.body?.start
   let end = request.body?.end
-   
+  let brand = request.body?.brand
+  let location = request.body?.location
   
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.lineChartDataSQVisit(
-      start,end
+      start,end,brand,location
       ).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
@@ -1662,6 +1663,34 @@ router.route('/detail-bar-char-sq').post((request, response) => {
       start,end,nama,limit,page
     ).then((data) => {
       response.json({status:'Succsess',message:'Succsess save data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/get-export-visit-filter').post((request, response) => {
+  let token = request.headers.authorization 
+ 
+  let search = request.body?.search
+  let store = request.body?.store
+  let status = request.body?.status
+  let start = request.body?.start
+  let end = request.body?.end
+  let type = request.body?.type
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.getReviesVisitExport(
+      search,store,status,start,end,type
+    ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
