@@ -1851,16 +1851,16 @@ async function checkTypeSq(
   }
 }
 async function addTypeQuestionSq( 
-  nama
+  nama,color
   ) {
     
   let query = `
   insert into t_type_kuesioner
  (
-    m_nama,created_at,
+    m_nama,color,created_at,
     updated_at
   )
-   values ('${nama}',
+   values ('${nama}','${color}',
   '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}', 
   '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'  )
   ` 
@@ -1875,13 +1875,14 @@ async function addTypeQuestionSq(
   }
 }
 async function updateTypeQuestionSq( 
-  id,nama
+  id,nama,color
   ) {
     
   let query = `
   update 	t_type_kuesioner 
   set  
   m_nama = '${nama}',
+  color = '${color}',
   updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
   
   where 	id = '${id}'
@@ -2637,7 +2638,7 @@ async function lineChartDataSQVisit(
   group by a.id_type,a.created_at,b.m_nama
   `
   let query2 = `
-  select distinct(b.m_nama )
+  select distinct(b.m_nama ),b.color
   from t_history_visit a
   left join t_type_kuesioner b on b.id = a.id_type 
   left join t_visit_sq2 c on a.id_visit=c.id
@@ -2650,16 +2651,35 @@ async function lineChartDataSQVisit(
   if(location!==''){
     query2 = query2+` and d.m_store_location = ${location}`
   }
+  let query3 =`
+  select a.id,SUM(b.bobot) as value, a.created_at as label from t_visit_sq2 a
+  join t_history_visit b on b.id_visit = a.id
+   join dbcmk.dbo.msstore_new c on c.m_kode COLLATE DATABASE_DEFAULT = a.store COLLATE DATABASE_DEFAULT
+  where b.m_jawaban = 'true'
+  and a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
+  `
+  if(brand!==''){
+    query3 = query3+` and d.m_brand = ${brand}`
+  }
+  if(location!==''){
+    query3 = query3+` and d.m_store_location = ${location}`
+  }
+  query3 =query3+` 
+  group by  a.id,a.created_at order by a.created_at asc
+  `
   try{
       let pool = await sql.connect(configTICKET);
       let data = await pool.request().query(query);
       let data1 = await pool.request().query(query1);
       let data2 = await pool.request().query(query2);
+      let data3 = await pool.request().query(query3);
       let dats =data?.recordsets[0]
       let dats1 =data1?.recordsets[0]
       let dats2 =data2?.recordsets[0]
+      let dats3 =data3?.recordsets[0]
       let array = [];
       let array2 = [];
+      let array3 = [];
       let isData = null
       let rdclr = ''
       dats.map((d)=>{
@@ -2681,13 +2701,20 @@ async function lineChartDataSQVisit(
         rdclr = Math.floor(Math.random()*16777215).toString(16);
         array2.push({
           name:d?.m_nama,
-          color: '#'+rdclr
+          // color: '#'+rdclr
+          color: d?.color
         })
         rdclr = ''
       })
+      dats3?.map((d)=>{
+        array3?.push({ 
+          id:d?.id,value:d?.value,label:moment(d?.label).format('YYYY-MM-DD')
+        })
+      })
       return  {
         data:array,
-         
+        bar:array3,
+        // query3,
         kategori:array2
         // query
       };
@@ -2734,9 +2761,12 @@ async function detailBarCharSQ(
   left join dbcmk.dbo.msmaster e on e.m_kode COLLATE DATABASE_DEFAULT = d.m_mall COLLATE DATABASE_DEFAULT
   where b.m_name = '${nama}'
   and a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
-  ) awek
+  ) awek`
+  if(page>0&&limit>0){
+  query =query+`  
  where row BETWEEN '${first}' AND '${last}'
   ` 
+}
  
   try{
       let pool = await sql.connect(configTICKET);

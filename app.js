@@ -284,6 +284,7 @@ router.route('/get-list-type-sq').post((request, response) => {
 router.route('/add-type-sq').post(
   
   check('nama').exists().withMessage('nama is not null'),
+  check('color').exists().withMessage('color is not null'),
   check('nama').custom((value, { req,res })=>{
     return   dashboard.checkTypeSq(req?.body?.nama).then((data) => {
       if(data?.data>0){
@@ -299,10 +300,10 @@ router.route('/add-type-sq').post(
     }
   let token = request.headers.authorization 
   let nama = request.body?.nama
-  
+  let color = request.body?.color
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.addTypeQuestionSq(nama.toLowerCase()).then((data) => {
+    dashboard.addTypeQuestionSq(nama.toLowerCase(),color).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
@@ -320,14 +321,15 @@ router.route('/add-type-sq').post(
 
 router.route('/update-type-sq').post(
   check('nama').exists().withMessage('nama is not null'),
-  check('nama').custom((value, { req,res })=>{
-    return   dashboard.checkTypeSq(req?.body?.nama).then((data) => {
-      if(data?.data>0){
-        return Promise.reject('Nama already exist'); 
-      }
+  check('color').exists().withMessage('color is not null'),
+  // check('nama').custom((value, { req,res })=>{
+  //   return   dashboard.checkTypeSq(req?.body?.nama).then((data) => {
+  //     if(data?.data>0){
+  //       return Promise.reject('Nama already exist'); 
+  //     }
      
-    })
-  }) ,
+  //   })
+  // }) ,
   
   (request, response) => {
     const errors = validationResult(request);
@@ -336,10 +338,11 @@ router.route('/update-type-sq').post(
     }
   let token = request.headers.authorization 
   let nama = request.body?.nama
+  let color = request.body?.color
   let id = request.body?.id
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.updateTypeQuestionSq(id,nama.toLowerCase()).then((data) => {
+    dashboard.updateTypeQuestionSq(id,nama.toLowerCase(),color).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
