@@ -167,6 +167,29 @@ router.route('/get-list-question-sq').post((request, response) => {
 
   }
 })
+router.route('/send-email-sq-visit').post((request, response) => {
+  let token = request.headers.authorization 
+  let email = request.body?.email
+  let type = request.body?.type
+  let datas = request.body?.data
+  let visit = request.body?.visit
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.sendEmailApprovedSQVisit(email,type,datas,visit).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
 router.route('/add-question-sq').post((request, response) => {
   let token = request.headers.authorization 
  

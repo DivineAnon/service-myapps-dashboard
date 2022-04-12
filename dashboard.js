@@ -2849,7 +2849,138 @@ async function getReviesVisitExport(
       console.log({error})
   }
 }
+async function sendEmailApprovedSQVisit( 
+  email,type,data,visit
+  ) {
+    // @recipients='rafi.assidiq@centralmegakencana.com',
+    let images = visit?.data?.image_visit?.split(',')
+    let html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+      <style>
+      table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+      }
+
+      
+      </style>
+      </head>
+      <body>
+
+      <h2>Visit store report</h2>
+
+      <table>
+        <tr>
+           
+          <th>Keterangan</th>
+          <th>Yes</th>
+          <th>No</th>
+          <th>Note</th>
+        </tr>`
+        
+        type?.map((t,i)=>{
+           
+        html = html+  ` <tr >
+              <td style="  font-weight: bold;" colspan="4">  ${t?.m_nama} </td>
+            
+              
+          </tr>`
+          data?.map((d,j)=>{
+            html = html+   ` <tr>
+               
+              <td >${d?.m_pernyataan}  </td>
+              <td style="text-align: center;">
+              ${d?.jwb?.includes('true')?"V":""}
+              </td>
+              <td style="text-align: center;">
+              ${d?.jwb?.includes('false')?"V":""}
+              </td>
+              <td>
+              ${d?.note}
+              </td>
+            </tr>`
+          })
+        })
+     html = html+`   
+      </table>
+      `
+      // for(let i;images.length>i;i++){
+        // html = html+ `<img src="https://api-dbticket.cmk.co.id/uploads/visit-sq/${images[0]}" alt="Girl in a jacket" width="300" height="300">`
+      // }
+      
+      html = html+`<h2 style="margin-top:10px">Not To SM</h2>
+
+      <table>
+        <tr>
+           
+          <th>Keterangan</th>
+          <th>Tanggapan</th>
+           
+        </tr>`
+        
+         
+          data?.map((d,j)=>{
+            html = html+   ` <tr>
+               
+              <td >${d?.m_pernyataan}  </td>
+              
+              <td>
+              ${d?.m_feedback}
+              </td>
+            </tr>`
+          })
+       
+     html = html+`   
+      </table>
+      `  
+      html = html+`<h2 style="margin-top:10px">Foto Kunjungan</h2>`
+      images.map((d)=>{
+         
+        html = html+` 
+     
+        <img style="margin:10px;margin-top:10px" src="${visit.path+d}" alt="Girl in a jacket" width="300" height="300">
+      `
+    })
+     
+      html=html+`  
+      </body>
+    </html>
+
+
+    `
+  let query = `
+  EXEC msdb.dbo.sp_send_dbmail 
+			@profile_name='sysadmin', 
+			@recipients='${email}',
+			@subject='Visit store report', 
+			@body= '${html}',
+			@body_format = 'HTML'
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let datas = await pool.request().query(query);
+     
+      
+      return  {
+        data:datas?.recordsets[0]
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+
 module.exports = { 
+    sendEmailApprovedSQVisit,
     getReviesVisitExport,
     detailBarCharSQ,
     barCharKuesionerSQ,
