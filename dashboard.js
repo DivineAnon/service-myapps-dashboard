@@ -2388,9 +2388,11 @@ async function deleteDataNoteToPusat(
 async function getDataVisitDetail( 
   id
   ) {
-     
+    // join dbcmk.dbo.msstore_new b on b.m_kode COLLATE DATABASE_DEFAULT = a.store COLLATE DATABASE_DEFAULT
   let query = `
-  select * from t_visit_sq2  where id = '${id}'
+  select  a.*,b.m_nama from t_visit_sq2  a 
+  join dbcmk.dbo.msmaster b on b.m_kode COLLATE DATABASE_DEFAULT = a.store COLLATE DATABASE_DEFAULT
+  where a.id = '${id}'
 
   ` 
  
@@ -2876,7 +2878,7 @@ async function sendEmailApprovedSQVisit(
       </head>
       <body>
 
-      <h2>Visit store report</h2>
+      <h2>Visit store report ${visit?.data?.m_nama}</h2>
 
       <table>
         <tr>
@@ -2895,6 +2897,7 @@ async function sendEmailApprovedSQVisit(
               
           </tr>`
           data?.map((d,j)=>{
+            {t?.m_nama===d.m_nama?
             html = html+   ` <tr>
                
               <td >${d?.m_pernyataan}  </td>
@@ -2908,6 +2911,7 @@ async function sendEmailApprovedSQVisit(
               ${d?.note}
               </td>
             </tr>`
+            :null}
           })
         })
      html = html+`   
@@ -2929,6 +2933,7 @@ async function sendEmailApprovedSQVisit(
         
          
           data?.map((d,j)=>{
+            {d?.jwb.includes('false')?
             html = html+   ` <tr>
                
               <td >${d?.m_pernyataan}  </td>
@@ -2936,7 +2941,7 @@ async function sendEmailApprovedSQVisit(
               <td>
               ${d?.m_feedback}
               </td>
-            </tr>`
+            </tr>`:null}
           })
        
      html = html+`   
@@ -2980,6 +2985,7 @@ async function sendEmailApprovedSQVisit(
 }
 
 module.exports = { 
+     
     sendEmailApprovedSQVisit,
     getReviesVisitExport,
     detailBarCharSQ,

@@ -1522,6 +1522,8 @@ router.route('/get-visit-detail/:id').get((request, response) => {
 
   }
 })
+
+ 
 router.route('/insert-image-visit-sq').post(uploadVisitSq.single('image'),(request, response) => {
   let token = request.headers.authorization 
   let id = request.body?.id
