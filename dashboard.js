@@ -2616,10 +2616,10 @@ async function lineChartDataSQVisit(
   where a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
   ` 
   if(brand!==''){
-    query = query+` and d.m_brand = ${brand}`
+    query = query+` and d.m_brand = '${brand}'`
   }
   if(location!==''){
-    query = query+` and d.m_store_location = ${location}`
+    query = query+` and d.m_kode = '${location}'`
   }
   let query1 =`
   select SUM(a.bobot) as bobot,a.id_type,a.created_at,b.m_nama 
@@ -2631,10 +2631,10 @@ async function lineChartDataSQVisit(
   and a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
   `
   if(brand!==''){
-    query1 = query1+` and d.m_brand = ${brand}`
+    query1 = query1+` and d.m_brand = '${brand}'`
   }
   if(location!==''){
-    query1 = query1+` and d.m_store_location = ${location}`
+    query1 = query1+` and d.m_kode = '${location}'`
   }
   query1 =query1+` 
   group by a.id_type,a.created_at,b.m_nama
@@ -2648,10 +2648,10 @@ async function lineChartDataSQVisit(
   where a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
   `
   if(brand!==''){
-    query2 = query2+` and d.m_brand = ${brand}`
+    query2 = query2+` and d.m_brand = '${brand}'`
   }
   if(location!==''){
-    query2 = query2+` and d.m_store_location = ${location}`
+    query2 = query2+` and d.m_kode = '${location}'`
   }
   let query3 =`
   select a.id,SUM(b.bobot) as value, a.created_at as label from t_visit_sq2 a
@@ -2661,10 +2661,10 @@ async function lineChartDataSQVisit(
   and a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
   `
   if(brand!==''){
-    query3 = query3+` and d.m_brand = ${brand}`
+    query3 = query3+` and c.m_brand = '${brand}'`
   }
   if(location!==''){
-    query3 = query3+` and d.m_store_location = ${location}`
+    query3 = query3+` and c.m_kode = '${location}'`
   }
   query3 =query3+` 
   group by  a.id,a.created_at order by a.created_at asc
@@ -2716,9 +2716,13 @@ async function lineChartDataSQVisit(
       return  {
         data:array,
         bar:array3,
+         kategori:array2
         // query3,
-        kategori:array2
+        // query2,
+        // query1,
         // query
+       
+        
       };
   }catch(error){
       console.log({error})
