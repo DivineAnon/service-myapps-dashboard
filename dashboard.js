@@ -2608,12 +2608,12 @@ async function lineChartDataSQVisit(
   ) {
      
   let query = `
-  select distinct(a.created_at )
+  select distinct(c.created_at )
   from t_history_visit a
   left join t_type_kuesioner b on b.id = a.id_type 
   left join t_visit_sq2 c on a.id_visit=c.id
   left join dbcmk.dbo.msstore_new d on d.m_kode COLLATE DATABASE_DEFAULT = c.store COLLATE DATABASE_DEFAULT
-  where a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
+  where c.created_at between '${start} 00:00:01' and '${end} 23:59:59'
   ` 
   if(brand!==''){
     query = query+` and d.m_brand = '${brand}'`
@@ -2622,13 +2622,13 @@ async function lineChartDataSQVisit(
     query = query+` and d.m_kode = '${location}'`
   }
   let query1 =`
-  select SUM(a.bobot) as bobot,a.id_type,a.created_at,b.m_nama 
+  select SUM(a.bobot) as bobot,a.id_type,c.created_at,b.m_nama 
   from t_history_visit a
   left join t_type_kuesioner b on b.id = a.id_type 
   left join t_visit_sq2 c on a.id_visit=c.id
   left join dbcmk.dbo.msstore_new d on d.m_kode COLLATE DATABASE_DEFAULT = c.store COLLATE DATABASE_DEFAULT
   where a.m_jawaban = 'true'
-  and a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
+  and c.created_at between '${start} 00:00:01' and '${end} 23:59:59'
   `
   if(brand!==''){
     query1 = query1+` and d.m_brand = '${brand}'`
@@ -2637,7 +2637,7 @@ async function lineChartDataSQVisit(
     query1 = query1+` and d.m_kode = '${location}'`
   }
   query1 =query1+` 
-  group by a.id_type,a.created_at,b.m_nama
+  group by a.id_type,c.created_at,b.m_nama
   `
   let query2 = `
   select distinct(b.m_nama ),b.color
@@ -2645,7 +2645,7 @@ async function lineChartDataSQVisit(
   left join t_type_kuesioner b on b.id = a.id_type 
   left join t_visit_sq2 c on a.id_visit=c.id
   left join dbcmk.dbo.msstore_new d on d.m_kode COLLATE DATABASE_DEFAULT = c.store COLLATE DATABASE_DEFAULT
-  where a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
+  where c.created_at between '${start} 00:00:01' and '${end} 23:59:59'
   `
   if(brand!==''){
     query2 = query2+` and d.m_brand = '${brand}'`
