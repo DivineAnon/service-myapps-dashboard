@@ -2710,7 +2710,7 @@ async function lineChartDataSQVisit(
       })
       dats3?.map((d)=>{
         array3?.push({ 
-          id:d?.id,value:d?.value,label:moment(d?.label).format('YYYY-MM-DD')
+          id:d?.id,value:d?.value,label:d?.label
         })
       })
       return  {
