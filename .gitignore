@@ -12,7 +12,7 @@
 # production
 /build
 /documentation
-
+/uploads
 # misc
 .DS_Store
 .env.local
