@@ -2118,7 +2118,8 @@ async function addVisitSq(
   store,
   tim_sq,
   jr,
-  type
+  type,
+  date
   ) {
     
   let query = `
@@ -2144,7 +2145,7 @@ async function addVisitSq(
   
   '${jr}',
   '${type}',
-  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}', 
+  '${date}', 
   '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'  )
   ` 
   let query2 = `select id from t_visit_sq2

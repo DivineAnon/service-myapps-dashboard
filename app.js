@@ -1215,6 +1215,7 @@ router.route('/add-visit').post((request, response) => {
   let tim_sq = request.body?.tim_sq
   let jr = request.body?.jr
   let type = request.body?.type
+  let date = request.body?.date
   
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
@@ -1223,7 +1224,8 @@ router.route('/add-visit').post((request, response) => {
       store,
       tim_sq,
       jr,
-      type
+      type,
+      date
     ).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
