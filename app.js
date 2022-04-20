@@ -691,6 +691,300 @@ router.route('/taks-approve').post((request, response) => {
 
   }
 })
+router.route('/insert-budget').post((request, response) => {
+  let token = request.headers.authorization 
+  let nik = request.body?.nik
+  let nominal = request.body?.nominal
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.insertBudget(nik,decoded?.data[0]?.loginid,nominal).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/get-budget').post((request, response) => {
+  let token = request.headers.authorization 
+  let page = request.body?.page
+  let limit = request.body?.limit
+  let search = request.body?.search
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.listBudget(page,limit,search).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/insert-kategori-legalitas').post((request, response) => {
+  let token = request.headers.authorization 
+  let nama = request.body?.nama
+  let type = request.body?.type
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.insertKategoriLegalitas( nama,type).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/update-kategori-legalitas').post((request, response) => {
+  let token = request.headers.authorization 
+  let id = request.body?.id
+  let nama = request.body?.nama
+  let type = request.body?.type
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.updateKategoriLegalitas(id,nama,type).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/get-kategori-legalitas').post((request, response) => {
+  let token = request.headers.authorization 
+  let page = request.body?.page
+  let limit = request.body?.limit
+  let search = request.body?.search
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.listKategoriLegalitas(page,limit,search).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
+router.route('/select-kategori-legalitas').post((request, response) => {
+  let token = request.headers.authorization 
+  let nama = request.body?.nama
+  let type = request.body?.type
+ 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.getKategoriLegalitas( nama,type
+      ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/insert-bangunan-penunjang-legalitas').post((request, response) => {
+  let token = request.headers.authorization 
+  let nama = request.body?.nama
+  let kategori = request.body?.kategori
+  let izin = request.body?.izin
+  let penerbit = request.body?.penerbit
+  let start = request.body?.start
+  let end = request.body?.end
+  let keterangan = request.body?.keterangan
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.insertBangunanPenunjangLegalitas( nama,kategori,izin,
+      penerbit,start,end,keterangan
+      ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/update-bangunan-penunjang-legalitas').post((request, response) => {
+  let token = request.headers.authorization 
+  let id = request.body?.id
+  let issend = request.body?.issend
+  let nama = request.body?.nama
+  let kategori = request.body?.kategori
+  let izin = request.body?.izin
+  let penerbit = request.body?.penerbit
+  let start = request.body?.start
+  let end = request.body?.end
+  let keterangan = request.body?.keterangan
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.updateBangunanPenunjangLegalitas( id,nama,kategori,izin,
+      penerbit,start,end,keterangan,issend
+      ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/get-bangunan-penunjang-legalitas').post((request, response) => {
+  let token = request.headers.authorization 
+  let page = request.body?.page
+  let limit = request.body?.limit
+  let search = request.body?.search
+  let type = request.body?.type
+  let kategori = request.body?.kategori
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.listBangunanPenunjangLegalitas(page,limit,search,type,kategori).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/insert-kompetensi-legalitas').post((request, response) => {
+  let token = request.headers.authorization 
+  let nik = request.body?.nik
+  let no_sertif = request.body?.no_sertif
+  let nama_sertif = request.body?.nama_sertif
+  let penerbit = request.body?.penerbit
+  let start = request.body?.start
+  let end = request.body?.end
+  let aspek = request.body?.aspek
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.insertKompetensiLegalitas( nik,no_sertif,nama_sertif,
+      penerbit,start,end,aspek
+      ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/update-kompetensi-legalitas').post((request, response) => {
+  let token = request.headers.authorization 
+  let nik = request.body?.nik
+  let no_sertif = request.body?.no_sertif
+  let nama_sertif = request.body?.nama_sertif
+  let penerbit = request.body?.penerbit
+  let start = request.body?.start
+  let end = request.body?.end
+  let aspek = request.body?.aspek
+  let id = request.body?.id
+  let issend = request.body?.issend
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.updateKompetensiLegalitas( id,nik,no_sertif,nama_sertif,
+      penerbit,start,end,aspek,issend
+      ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/get-kompetensi-legalitas').post((request, response) => {
+  let token = request.headers.authorization 
+  let page = request.body?.page
+  let limit = request.body?.limit
+  let search = request.body?.search
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.listKompetensiLegalitas(page,limit,search).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
 router.route('/detail-follow-up/:id').post((request, response) => {
   let token = request.headers.authorization 
   let id = request.params.id

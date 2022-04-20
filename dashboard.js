@@ -2988,9 +2988,520 @@ async function sendEmailApprovedSQVisit(
       console.log({error})
   }
 }
-
-module.exports = { 
+async function listBudget( 
+  page,limit,search
+  ) {
+    let last = limit*page
+    let first = last - (limit-1)
+  let query = `
+  select * from(
+    select ROW_NUMBER() OVER 
+    (ORDER BY id asc) as row,b.m_nama,b.m_jabatan,a.* from t_budget_jamuan a 
+    left join dbhrd.dbo.mskaryawan b on b.m_nik   = a.nik  
+ 
+    `
+    if(search!==''){
+    query = query+` where b.m_nama like '%${search}%'`
+  }
+  query = query+` 
+    ) as awek
      
+    where row BETWEEN '${first}' AND '${last}'
+
+  ` 
+  let query1 = `
+  select count(*) as tot from(
+    select ROW_NUMBER() OVER 
+    (ORDER BY id asc) as row,b.m_nama,b.m_jabatan,a.* from t_budget_jamuan a 
+    left join dbhrd.dbo.mskaryawan b on b.m_nik   = a.nik  
+`
+if(search!==''){
+  query1 = query1+`where b.m_nama like '%${search}%'`
+}
+    query1 = query1+` ) as awek`
+   
+    
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let tot = await pool.request().query(query1);
+      
+      return  {
+        // query,query1,first,limit
+        data:data?.recordsets[0],
+        tot:tot.recordsets[0][0]['tot']
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function insertBudget( 
+  nik,user,nominal
+  ) {
+     
+  let query = `
+  insert into t_budget_jamuan 
+  (
+   nik,
+   nominal, 
+   created_at, 
+   updated_at,
+   status_aktif
+    
+ )
+  values (
+  '${nik}',
+  '${nominal}',
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+  'true'
+  )
+
+  ` 
+   
+  let query1 = `
+  SELECT * FROM t_log_jamuan order by id desc
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      // let data = await pool.request().query(query);
+      let getid = await pool.request().query(query1);
+    //   let addlog = await pool.request().query(`
+    //   insert into t_log_jamuan 
+    //   (
+    //    id_t_budget_jamuan,
+    //    nominal, 
+    //    status,
+    //    type,
+    //    keterangan,
+    //    created_by,
+    //    created_at, 
+    //    updated_at
+       
+        
+    //  )
+    //   values (
+    //   '${parseInt(getid?.recordsets[0][0]['id']?getid?.recordsets[0][0]['id']:0)+1}',
+    //   '${nominal}',
+    //   'D',
+    //   'CREATE',
+    //   'CREATE BUDGET',
+    //   '${user}',
+    //   '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+    //   '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+    //   )
+    //   ` );
+      return  {
+        // data:data?.recordsets[0],
+        getid:getid.recordsets[0],
+        // addlog:addlog.recordsets[0]
+       };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function listKategoriLegalitas( 
+  page,limit,search
+  ) {
+    let last = limit*page
+    let first = last - (limit-1)
+  let query = `
+  select * from(
+    select ROW_NUMBER() OVER 
+    (ORDER BY id asc) as row,* from t_kategori_legalitas
+     
+ 
+    `
+    if(search!==''){
+    query = query+` where nama like '%${search}%'`
+  }
+  query = query+` 
+    ) as awek
+     
+    where row BETWEEN '${first}' AND '${last}'
+
+  ` 
+  let query1 = `
+  select count(*) as tot from(
+    select ROW_NUMBER() OVER 
+    (ORDER BY id asc) as row,* from t_kategori_legalitas
+`
+if(search!==''){
+  query1 = query1+`where nama like '%${search}%'`
+}
+    query1 = query1+` ) as awek`
+   
+    
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let tot = await pool.request().query(query1);
+      
+      return  {
+        // query,query1,first,limit
+        data:data?.recordsets[0],
+        tot:tot.recordsets[0][0]['tot']
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function listBangunanPenunjangLegalitas( 
+  page,limit,search,type,kategori
+  ) {
+    let last = limit*page
+    let first = last - (limit-1)
+  let query = `
+  select * from(
+    select ROW_NUMBER() OVER 
+    (ORDER BY a.id asc) as row,a.*,b.nama as kategori from t_bangunan_penunjang_legalitas a
+    join t_kategori_legalitas b on b.id= a.id_kategori
+     where b.type = '${type}'
+ 
+    `
+    if(search!==''){
+    query = query+` and a.nama like '%${search}%'`
+  }
+  if(kategori!==''){
+    query = query+` and a.id_kategori = '${kategori}'`
+  }
+  query = query+` 
+    ) as awek
+     
+    where row BETWEEN '${first}' AND '${last}'
+
+  ` 
+  let query1 = `
+  select count(*) as tot from(
+    select ROW_NUMBER() OVER 
+    (ORDER BY a.id asc) as row,a.*,b.nama as kategori from t_bangunan_penunjang_legalitas a
+    join t_kategori_legalitas b on b.id= a.id_kategori
+    where b.type = '${type}'
+`
+if(search!==''){
+  query1 = query1+`and a.nama like '%${search}%'`
+}
+if(kategori!==''){
+  query = query+` and a.id_kategori = '${kategori}'`
+}
+    query1 = query1+` ) as awek`
+   
+    
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let tot = await pool.request().query(query1);
+      
+      return  {
+        // query,query1,first,limit
+        data:data?.recordsets[0],
+        tot:tot.recordsets[0][0]['tot']
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function listKompetensiLegalitas( 
+  page,limit,search
+  ) {
+    let last = limit*page
+    let first = last - (limit-1)
+  let query = `
+  select * from(
+    select ROW_NUMBER() OVER 
+    (ORDER BY id asc) as row,a.*,b.m_nama,b.m_jabatan  from t_kompetensi_legalitas a
+join dbhrd.dbo.mskaryawan b on b.m_nik = a.nik
+ 
+     
+ 
+    `
+    if(search!==''){
+    query = query+` where b.m_nama like '%${search}%'`
+  }
+  query = query+` 
+    ) as awek
+     
+    where row BETWEEN '${first}' AND '${last}'
+
+  ` 
+  let query1 = `
+  select count(*) as tot from(
+    select ROW_NUMBER() OVER 
+    (ORDER BY id asc) as row,a.*,b.m_nama,b.m_jabatan  from t_kompetensi_legalitas a
+join dbhrd.dbo.mskaryawan b on b.m_nik = a.nik
+ 
+`
+if(search!==''){
+  query1 = query1+`where b.m_nama like '%${search}%'`
+}
+    query1 = query1+` ) as awek`
+   
+    
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let tot = await pool.request().query(query1);
+      
+      return  {
+        // query,query1,first,limit
+        data:data?.recordsets[0],
+        tot:tot.recordsets[0][0]['tot']
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function insertKategoriLegalitas( 
+  nama,type
+  ) {
+     
+  let query = `
+  insert into t_kategori_legalitas 
+  (
+   nama,
+   type, 
+   created_at, 
+   updated_at 
+    
+ )
+  values (
+  '${nama}',
+  '${type}',
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}' 
+  )
+
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      return  {
+        data:data?.recordsets[0],
+        // getid:getid.recordsets[0],
+        // addlog:addlog.recordsets[0]
+       };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function updateKategoriLegalitas( 
+  id,nama,type
+  ) {
+     
+  let query = `
+  update 	t_kategori_legalitas 
+  set  
+  nama = '${nama}', 
+  type = '${type}', 
+  updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+  
+  where 	id = '${id}'
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {data:data?.recordsets[0] };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function insertBangunanPenunjangLegalitas( 
+  nama,kategori,izin,
+      penerbit,start,end,keterangan
+  ) {
+     
+  let query = `
+  insert into t_bangunan_penunjang_legalitas 
+  (
+   nama,
+   id_kategori, 
+   no_izin, 
+   penerbit, 
+   start_date, 
+   end_date, 
+   keterangan,  
+   created_at, 
+   updated_at,
+   issend 
+    
+ )
+  values (
+  '${nama}',
+  '${kategori}',
+  '${izin}',
+  '${penerbit}',
+  '${start}',
+  '${end}',
+  '${keterangan}',
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+  'false'
+  )
+
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      return  {
+        data:data?.recordsets[0],
+        // getid:getid.recordsets[0],
+        // addlog:addlog.recordsets[0]
+       };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function updateBangunanPenunjangLegalitas( 
+  id,nama,kategori,izin,
+  penerbit,start,end,keterangan,issend
+  ) {
+     
+  let query = `
+  update 	t_bangunan_penunjang_legalitas 
+  set  
+  nama = '${nama}',
+  id_kategori = '${kategori}', 
+  no_izin = '${izin}', 
+  penerbit = '${penerbit}', 
+  start_date = '${start}', 
+  end_date = '${end}', 
+  keterangan = '${keterangan}',   
+  issend = '${issend}',
+  updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+  
+  where 	id = '${id}'
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {data:data?.recordsets[0] };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function insertKompetensiLegalitas( 
+  nik,no_sertif,nama_sertif,
+      penerbit,start,end,aspek
+  ) {
+     
+  let query = `
+  insert into t_kompetensi_legalitas 
+  (
+   nik,
+   no_sertifikat, 
+   nama_sertifikat, 
+   penerbit, 
+   start_date, 
+   end_date, 
+   aspek,  
+   created_at, 
+   updated_at,
+   issend 
+    
+ )
+  values (
+  '${nik}',
+  '${no_sertif}',
+  '${nama_sertif}',
+  '${penerbit}',
+  '${start}',
+  '${end}',
+  '${aspek}',
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+  'false' 
+  )
+
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      return  {
+        data:data?.recordsets[0],
+        // getid:getid.recordsets[0],
+        // addlog:addlog.recordsets[0]
+       };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function updateKompetensiLegalitas( 
+  id,nik,no_sertif,nama_sertif,
+  penerbit,start,end,aspek,issend
+  ) {
+     
+  let query = `
+  update 	t_kompetensi_legalitas 
+  set  
+   nik = '${nik}',
+   no_sertifikat = '${no_sertif}', 
+   nama_sertifikat = '${nama_sertif}', 
+   penerbit = '${penerbit}', 
+   start_date = '${start}', 
+   end_date = '${end}', 
+   aspek = '${aspek}',  
+    
+   issend = '${issend}',
+  updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+  
+  where 	id = '${id}'
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {data:data?.recordsets[0] };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function getKategoriLegalitas( 
+  nama,type
+  ) {
+     
+  let query = `
+  select TOP 5 id as value, nama as label from t_kategori_legalitas
+  where 	type = '${type}'
+  and nama like '%${nama}%'
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {data:data?.recordsets[0] };
+  }catch(error){
+      console.log({error})
+  }
+}
+module.exports = { 
+    getKategoriLegalitas,
+    updateKompetensiLegalitas,
+    updateBangunanPenunjangLegalitas,
+    updateKategoriLegalitas,
+    insertKompetensiLegalitas,
+    insertBangunanPenunjangLegalitas,
+    insertKategoriLegalitas,
+    listKompetensiLegalitas,
+    listBangunanPenunjangLegalitas,
+    listKategoriLegalitas,
+    insertBudget,
+    listBudget,
     sendEmailApprovedSQVisit,
     getReviesVisitExport,
     detailBarCharSQ,
