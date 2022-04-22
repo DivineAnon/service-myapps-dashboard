@@ -889,15 +889,15 @@ router.route('/insert-bangunan-penunjang-legalitas').post(uploadBangunanPenunjan
   let end = request.body?.end
   let keterangan = request.body?.keterangan
   const pdf =  request.file;
-  // let pdf_name = `${moment(new Date()).format('YYYY-MM-DD-HH-mm-ss')}_doc_bangunan_penunjang.pdf`
-  // fs.rename('./uploads/bangunan-penunjang/'+pdf?.filename, `./uploads/bangunan-penunjang/${pdf_name}`, function(err) {
-  //   if ( err ) console.log('ERROR: ' + err);
-  // })
+  let pdf_name = `${moment(new Date()).format('YYYY-MM-DD-HH-mm-ss')}_doc_bangunan_penunjang.pdf`
+  fs.rename('./uploads/bangunan-penunjang/'+pdf?.filename, `./uploads/bangunan-penunjang/${pdf_name}`, function(err) {
+    if ( err ) console.log('ERROR: ' + err);
+  })
   
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.insertBangunanPenunjangLegalitas(nama,kategori,izin,
-      penerbit,start,end,keterangan,'pdf_name'
+      penerbit,start,end,keterangan,pdf_name
       ).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data });
     })
