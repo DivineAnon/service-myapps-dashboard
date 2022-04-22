@@ -890,7 +890,7 @@ router.route('/insert-bangunan-penunjang-legalitas').post(uploadBangunanPenunjan
   let keterangan = request.body?.keterangan
   const pdf =  request.file;
   let pdf_name = `${moment(new Date()).format('YYYY-MM-DD-HH-mm-ss')}_doc_bangunan_penunjang.pdf`
-  fs.rename('/uploads/bangunan-penunjang/'+pdf?.filename, `/uploads/bangunan-penunjang/${pdf_name}`, function(err) {
+  fs.rename('./uploads/bangunan-penunjang/'+pdf?.filename, `./uploads/bangunan-penunjang/${pdf_name}`, function(err) {
     if ( err ) console.log('ERROR: ' + err);
   })
    
