@@ -1019,7 +1019,7 @@ router.route('/update-kompetensi-legalitas').post(uploadKompentensi.single('file
     dashboard.updateKompetensiLegalitas( id,nik,no_sertif,nama_sertif,
       penerbit,start,end,aspek,issend,pdf_name,a
       ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data,tes:pdf?.filename,pdf_name});
+      response.json({status:'Succsess',message:'Succsess fetch data',data,a});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
