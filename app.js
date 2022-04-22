@@ -934,9 +934,10 @@ router.route('/get-bangunan-penunjang-legalitas').post((request, response) => {
   let search = request.body?.search
   let type = request.body?.type
   let kategori = request.body?.kategori
+  let status = request.body?.status
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.listBangunanPenunjangLegalitas(page,limit,search,type,kategori).then((data) => {
+    dashboard.listBangunanPenunjangLegalitas(page,limit,search,type,kategori,status).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
@@ -1038,9 +1039,10 @@ router.route('/get-kompetensi-legalitas').post((request, response) => {
   let page = request.body?.page
   let limit = request.body?.limit
   let search = request.body?.search
+  let status = request.body?.status
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.listKompetensiLegalitas(page,limit,search).then((data) => {
+    dashboard.listKompetensiLegalitas(page,limit,search,status).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {

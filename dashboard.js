@@ -3147,7 +3147,7 @@ if(search!==''){
   }
 }
 async function listBangunanPenunjangLegalitas( 
-  page,limit,search,type,kategori
+  page,limit,search,type,kategori,status
   ) {
     let last = limit*page
     let first = last - (limit-1)
@@ -3164,6 +3164,9 @@ async function listBangunanPenunjangLegalitas(
   }
   if(kategori!==''){
     query = query+` and a.id_kategori = '${kategori}'`
+  }
+  if(status!==''){
+    query = query+` and a.end_date ${status==='expired'?'<=':'>='} '${moment(new Date()).format('YYYY-MM-DD')+' 00:00:00'}'`
   }
   query = query+` 
     ) as awek
@@ -3203,7 +3206,7 @@ if(kategori!==''){
   }
 }
 async function listKompetensiLegalitas( 
-  page,limit,search
+  page,limit,search,status
   ) {
     let last = limit*page
     let first = last - (limit-1)
@@ -3218,6 +3221,9 @@ join dbhrd.dbo.mskaryawan b on b.m_nik = a.nik
     `
     if(search!==''){
     query = query+` where b.m_nama like '%${search}%'`
+  }
+  if(status!==''){
+    query = query+` and a.end_date ${status==='expired'?'<=':'>='} '${moment(new Date()).format('YYYY-MM-DD')+' 00:00:00'}'`
   }
   query = query+` 
     ) as awek
