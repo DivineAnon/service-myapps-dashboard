@@ -893,7 +893,7 @@ router.route('/insert-bangunan-penunjang-legalitas').post(uploadBangunanPenunjan
   fs.rename('./uploads/bangunan-penunjang/'+pdf?.filename, `./uploads/bangunan-penunjang/${pdf_name}`, function(err) {
     if ( err ) console.log('ERROR: ' + err);
   })
-  
+   
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.insertBangunanPenunjangLegalitas(nama,kategori,izin,
