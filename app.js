@@ -35,7 +35,7 @@ router.use((request, response, next) => {
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, '/uploads/entry-request');
+        cb(null, './uploads/entry-request');
       },
     filename: function (req, file, cb) {
         cb(null, Date.now() + '-' + file.originalname);
@@ -43,7 +43,7 @@ const storage = multer.diskStorage({
 });
 const storageVisitSq = multer.diskStorage({
   destination: function (req, file, cb) {
-      cb(null, '/uploads/visit-sq');
+      cb(null, './uploads/visit-sq');
     },
   filename: function (req, file, cb) {
       cb(null, Date.now() + '-' + file.originalname);
@@ -51,8 +51,8 @@ const storageVisitSq = multer.diskStorage({
 });
 const storageBangunanPenunjangDoc= multer.diskStorage({
   destination: function (req, file, cb) {
-      cb(null, '/uploads/bangunan-penunjang');
-      // cb(null,path.join('/uploads/bangunan-penunjang'));
+      cb(null, './uploads/bangunan-penunjang');
+      // cb(null,path.join('./uploads/bangunan-penunjang'));
     },
   filename: function (req, file, cb) {
       cb(null, Date.now() + '-' + file.originalname);
@@ -60,7 +60,7 @@ const storageBangunanPenunjangDoc= multer.diskStorage({
 });
 const storageKompetensiDoc= multer.diskStorage({
   destination: function (req, file, cb) {
-      cb(null, '/uploads/kompetensi');
+      cb(null, './uploads/kompetensi');
     },
   filename: function (req, file, cb) {
       cb(null, Date.now() + '-' + file.originalname);
@@ -856,7 +856,7 @@ router.route('/select-kategori-legalitas').post((request, response) => {
 //     insert = old+','+foto_name
 //   }
   
-//   fs.rename('/uploads/visit-sq/'+image?.filename, `/uploads/visit-sq/${foto_name}`, function(err) {
+//   fs.rename('./uploads/visit-sq/'+image?.filename, `./uploads/visit-sq/${foto_name}`, function(err) {
 //     if ( err ) console.log('ERROR: ' + err);
 //   })
 //   try {
@@ -890,7 +890,7 @@ router.route('/insert-bangunan-penunjang-legalitas').post(uploadBangunanPenunjan
   let keterangan = request.body?.keterangan
   const pdf =  request.file;
   let pdf_name = `${moment(new Date()).format('YYYY-MM-DD-HH-mm-ss')}_doc_bangunan_penunjang.pdf`
-  fs.rename('/uploads/bangunan-penunjang/'+pdf?.filename, `/uploads/bangunan-penunjang/${pdf_name}`, function(err) {
+  fs.rename('./uploads/bangunan-penunjang/'+pdf?.filename, `./uploads/bangunan-penunjang/${pdf_name}`, function(err) {
     if ( err ) console.log('ERROR: ' + err);
   })
   
@@ -928,7 +928,7 @@ router.route('/update-bangunan-penunjang-legalitas').post(uploadBangunanPenunjan
   let pdf_name = `${moment(new Date()).format('YYYY-MM-DD-HH-mm-ss')}_doc_bangunan_penunjang.pdf`
   let name 
   if(request?.body?.name_file!=='null'){
-   name ='/uploads/bangunan-penunjang/'+request?.body?.name_file
+   name ='./uploads/bangunan-penunjang/'+request?.body?.name_file
   }
   if(pdf){
     
@@ -936,7 +936,7 @@ router.route('/update-bangunan-penunjang-legalitas').post(uploadBangunanPenunjan
     if(request?.body?.name_file!=='null'){
      fs.unlinkSync(name)
     }
-    fs.rename('/uploads/bangunan-penunjang/'+pdf?.filename, `/uploads/bangunan-penunjang/${pdf_name}`, function(err) {
+    fs.rename('./uploads/bangunan-penunjang/'+pdf?.filename, `./uploads/bangunan-penunjang/${pdf_name}`, function(err) {
       if ( err ) console.log('ERROR: ' + err);
     })
   }else{
@@ -1375,13 +1375,13 @@ router.route('/test-upload').post( upload.single('image'),(req, res) => {
   console.log( data );
   console.log( req.file );
    
-  fs.rename('/uploads/entry-request/'+image?.filename, '/uploads/entry-request/'+'a.jpg', function(err) {
+  fs.rename('./uploads/entry-request/'+image?.filename, './uploads/entry-request/'+'a.jpg', function(err) {
     if ( err ) console.log('ERROR: ' + err);
   })
   res.json({status:'Succsess',message:'Succsess fetch data',image,data,img:image?.filename});
 })
 router.route('/delete-upload').post((req, res) => {
-  let name = '/uploads/entry-request/'+req?.body?.name
+  let name = './uploads/entry-request/'+req?.body?.name
   try {
     fs.unlinkSync(name)
     res.json({status:'Succsess',message:'Succsess fetch data',name  });
@@ -1435,7 +1435,7 @@ router.route('/insert-entry-request-list').post(upload.single('image'),(request,
   let fpp = request.body?.fpp
   const image =  request.file;
  
-  fs.rename('/uploads/entry-request/'+image?.filename, `/uploads/entry-request/${foto_name}`, function(err) {
+  fs.rename('./uploads/entry-request/'+image?.filename, `./uploads/entry-request/${foto_name}`, function(err) {
     if ( err ) console.log('ERROR: ' + err);
   })
   try {
@@ -1485,7 +1485,7 @@ router.route('/update-entry-request').post((request, response) => {
 })
 router.route('/update-entry-request-list').post(upload.single('image'),(request, response) => {
   let token = request.headers.authorization 
-  let name = '/uploads/entry-request/'+request?.body?.name
+  let name = './uploads/entry-request/'+request?.body?.name
   let m_nomor = request.body?.m_nomor
   let no = request.body?.no
   let r = (Math.random() + 1).toString(36).substring(7);
@@ -1505,7 +1505,7 @@ router.route('/update-entry-request-list').post(upload.single('image'),(request,
     a = true
     
     fs.unlinkSync(name)
-    fs.rename('/uploads/entry-request/'+image?.filename, `/uploads/entry-request/${foto_name}`, function(err) {
+    fs.rename('./uploads/entry-request/'+image?.filename, `./uploads/entry-request/${foto_name}`, function(err) {
       if ( err ) console.log('ERROR: ' + err);
     })
   }else{
@@ -1538,7 +1538,7 @@ router.route('/update-entry-request-list').post(upload.single('image'),(request,
   }
 })
 router.route('/delete-entry-request-list').post((req, res) => {
-  let name = '/uploads/entry-request/'+req?.body?.name
+  let name = './uploads/entry-request/'+req?.body?.name
   let id = req?.body?.id
   try {
     fs.unlinkSync(name)
@@ -1913,7 +1913,7 @@ router.route('/insert-image-visit-sq').post(uploadVisitSq.single('image'),(reque
     insert = old+','+foto_name
   }
   
-  fs.rename('/uploads/visit-sq/'+image?.filename, `/uploads/visit-sq/${foto_name}`, function(err) {
+  fs.rename('./uploads/visit-sq/'+image?.filename, `./uploads/visit-sq/${foto_name}`, function(err) {
     if ( err ) console.log('ERROR: ' + err);
   })
   try {
@@ -1939,7 +1939,7 @@ router.route('/insert-image-visit-sq').post(uploadVisitSq.single('image'),(reque
 router.route('/delete-upload-visit-sq').post((req, res) => {
   // 
   let img = req?.body?.img
-  let name = '/uploads/visit-sq/'+img
+  let name = './uploads/visit-sq/'+img
   let id = req?.body?.id
   let old = req?.body?.old
   let data = []
