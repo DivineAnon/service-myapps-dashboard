@@ -3608,11 +3608,18 @@ async function sendEmailReminderBangunanPenunjangLegalitas(
 			@body= '${html}',
 			@body_format = 'HTML'
   ` 
- 
+  let query1 = `
+  EXEC msdb.dbo.sp_send_dbmail 
+			@profile_name='sysadmin', 
+			@recipients='lisa.lijanto@centralmegakencana.com',
+			@subject='Pengingat jatuh tempo', 
+			@body= '${html}',
+			@body_format = 'HTML'
+  ` 
   try{
       let pool = await sql.connect(configTICKET);
       let datas = await pool.request().query(query);
-       
+      let datas1 = await pool.request().query(query1);
       data?.map(async(d,j)=>{
          await pool.request().query(`
          update t_bangunan_penunjang_legalitas set
