@@ -35,7 +35,7 @@ router.use((request, response, next) => {
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, './uploads/entry-request');
+        cb(null, '/uploads/entry-request');
       },
     filename: function (req, file, cb) {
         cb(null, Date.now() + '-' + file.originalname);
@@ -43,7 +43,24 @@ const storage = multer.diskStorage({
 });
 const storageVisitSq = multer.diskStorage({
   destination: function (req, file, cb) {
-      cb(null, './uploads/visit-sq');
+      cb(null, '/uploads/visit-sq');
+    },
+  filename: function (req, file, cb) {
+      cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+const storageBangunanPenunjangDoc= multer.diskStorage({
+  destination: function (req, file, cb) {
+      cb(null, '/uploads/bangunan-penunjang');
+      // cb(null,path.join('/uploads/bangunan-penunjang'));
+    },
+  filename: function (req, file, cb) {
+      cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+const storageKompetensiDoc= multer.diskStorage({
+  destination: function (req, file, cb) {
+      cb(null, '/uploads/kompetensi');
     },
   filename: function (req, file, cb) {
       cb(null, Date.now() + '-' + file.originalname);
@@ -51,6 +68,8 @@ const storageVisitSq = multer.diskStorage({
 });
 var upload = multer({ storage: storage });
 var uploadVisitSq  = multer({ storage: storageVisitSq  });
+var uploadBangunanPenunjang  = multer({ storage: storageBangunanPenunjangDoc  });
+var uploadKompentensi  = multer({ storage: storageKompetensiDoc  });
 router.route('/todo-list').get((request, response) => {
   let token = request.headers.authorization 
   try {
@@ -823,7 +842,44 @@ router.route('/select-kategori-legalitas').post((request, response) => {
 
   }
 })
-router.route('/insert-bangunan-penunjang-legalitas').post((request, response) => {
+
+// router.route('/insert-image-visit-sq').post(uploadVisitSq.single('image'),(request, response) => {
+//   let token = request.headers.authorization 
+//   let id = request.body?.id
+//   let old = request.body?.old
+//   let insert = ''
+//   let foto_name = `${moment(new Date()).format('YYYY-MM-DD-HH-mm-ss')}_${id}.jpg`
+//   const image =  request.file;
+//   if(old===''){
+//     insert = foto_name
+//   }else{
+//     insert = old+','+foto_name
+//   }
+  
+//   fs.rename('/uploads/visit-sq/'+image?.filename, `/uploads/visit-sq/${foto_name}`, function(err) {
+//     if ( err ) console.log('ERROR: ' + err);
+//   })
+//   try {
+//     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+   
+//     dashboard.insertImageVisit(
+//       id,insert
+//       ).then((data) => {
+//       response.json({status:'Succsess',message:'Succsess fetch data',data ,insert });
+//     })
+//   } catch(err) {
+//     if(err?.name==='TokenExpiredError'){
+      
+//       response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+//     }else{
+      
+//       response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+//     }
+
+//   }
+// })
+router.route('/insert-bangunan-penunjang-legalitas').post(uploadBangunanPenunjang.single('files'),(request, response) => {
   let token = request.headers.authorization 
   let nama = request.body?.nama
   let kategori = request.body?.kategori
@@ -832,12 +888,18 @@ router.route('/insert-bangunan-penunjang-legalitas').post((request, response) =>
   let start = request.body?.start
   let end = request.body?.end
   let keterangan = request.body?.keterangan
+  const pdf =  request.file;
+  let pdf_name = `${moment(new Date()).format('YYYY-MM-DD-HH-mm-ss')}_doc_bangunan_penunjang.pdf`
+  fs.rename('/uploads/bangunan-penunjang/'+pdf?.filename, `/uploads/bangunan-penunjang/${pdf_name}`, function(err) {
+    if ( err ) console.log('ERROR: ' + err);
+  })
+  
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.insertBangunanPenunjangLegalitas( nama,kategori,izin,
-      penerbit,start,end,keterangan
+      penerbit,start,end,keterangan,pdf_name
       ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Succsess',message:'Succsess fetch data',data,s:__dirname});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -851,7 +913,7 @@ router.route('/insert-bangunan-penunjang-legalitas').post((request, response) =>
 
   }
 })
-router.route('/update-bangunan-penunjang-legalitas').post((request, response) => {
+router.route('/update-bangunan-penunjang-legalitas').post(uploadBangunanPenunjang.single('files'),(request, response) => {
   let token = request.headers.authorization 
   let id = request.body?.id
   let issend = request.body?.issend
@@ -862,10 +924,28 @@ router.route('/update-bangunan-penunjang-legalitas').post((request, response) =>
   let start = request.body?.start
   let end = request.body?.end
   let keterangan = request.body?.keterangan
+  const pdf =  request.file;
+  let pdf_name = `${moment(new Date()).format('YYYY-MM-DD-HH-mm-ss')}_doc_bangunan_penunjang.pdf`
+  let name 
+  if(request?.body?.name_file!=='null'){
+   name ='/uploads/bangunan-penunjang/'+request?.body?.name_file
+  }
+  if(pdf){
+    
+    a = true
+    if(request?.body?.name_file!=='null'){
+     fs.unlinkSync(name)
+    }
+    fs.rename('/uploads/bangunan-penunjang/'+pdf?.filename, `/uploads/bangunan-penunjang/${pdf_name}`, function(err) {
+      if ( err ) console.log('ERROR: ' + err);
+    })
+  }else{
+    a= false
+  }
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.updateBangunanPenunjangLegalitas( id,nama,kategori,izin,
-      penerbit,start,end,keterangan,issend
+      penerbit,start,end,keterangan,issend,pdf_name,a
       ).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
@@ -1295,13 +1375,13 @@ router.route('/test-upload').post( upload.single('image'),(req, res) => {
   console.log( data );
   console.log( req.file );
    
-  fs.rename('./uploads/entry-request/'+image?.filename, './uploads/entry-request/'+'a.jpg', function(err) {
+  fs.rename('/uploads/entry-request/'+image?.filename, '/uploads/entry-request/'+'a.jpg', function(err) {
     if ( err ) console.log('ERROR: ' + err);
   })
   res.json({status:'Succsess',message:'Succsess fetch data',image,data,img:image?.filename});
 })
 router.route('/delete-upload').post((req, res) => {
-  let name = './uploads/entry-request/'+req?.body?.name
+  let name = '/uploads/entry-request/'+req?.body?.name
   try {
     fs.unlinkSync(name)
     res.json({status:'Succsess',message:'Succsess fetch data',name  });
@@ -1355,7 +1435,7 @@ router.route('/insert-entry-request-list').post(upload.single('image'),(request,
   let fpp = request.body?.fpp
   const image =  request.file;
  
-  fs.rename('./uploads/entry-request/'+image?.filename, `./uploads/entry-request/${foto_name}`, function(err) {
+  fs.rename('/uploads/entry-request/'+image?.filename, `/uploads/entry-request/${foto_name}`, function(err) {
     if ( err ) console.log('ERROR: ' + err);
   })
   try {
@@ -1405,7 +1485,7 @@ router.route('/update-entry-request').post((request, response) => {
 })
 router.route('/update-entry-request-list').post(upload.single('image'),(request, response) => {
   let token = request.headers.authorization 
-  let name = './uploads/entry-request/'+request?.body?.name
+  let name = '/uploads/entry-request/'+request?.body?.name
   let m_nomor = request.body?.m_nomor
   let no = request.body?.no
   let r = (Math.random() + 1).toString(36).substring(7);
@@ -1425,7 +1505,7 @@ router.route('/update-entry-request-list').post(upload.single('image'),(request,
     a = true
     
     fs.unlinkSync(name)
-    fs.rename('./uploads/entry-request/'+image?.filename, `./uploads/entry-request/${foto_name}`, function(err) {
+    fs.rename('/uploads/entry-request/'+image?.filename, `/uploads/entry-request/${foto_name}`, function(err) {
       if ( err ) console.log('ERROR: ' + err);
     })
   }else{
@@ -1458,7 +1538,7 @@ router.route('/update-entry-request-list').post(upload.single('image'),(request,
   }
 })
 router.route('/delete-entry-request-list').post((req, res) => {
-  let name = './uploads/entry-request/'+req?.body?.name
+  let name = '/uploads/entry-request/'+req?.body?.name
   let id = req?.body?.id
   try {
     fs.unlinkSync(name)
@@ -1833,7 +1913,7 @@ router.route('/insert-image-visit-sq').post(uploadVisitSq.single('image'),(reque
     insert = old+','+foto_name
   }
   
-  fs.rename('./uploads/visit-sq/'+image?.filename, `./uploads/visit-sq/${foto_name}`, function(err) {
+  fs.rename('/uploads/visit-sq/'+image?.filename, `/uploads/visit-sq/${foto_name}`, function(err) {
     if ( err ) console.log('ERROR: ' + err);
   })
   try {
@@ -1859,7 +1939,7 @@ router.route('/insert-image-visit-sq').post(uploadVisitSq.single('image'),(reque
 router.route('/delete-upload-visit-sq').post((req, res) => {
   // 
   let img = req?.body?.img
-  let name = './uploads/visit-sq/'+img
+  let name = '/uploads/visit-sq/'+img
   let id = req?.body?.id
   let old = req?.body?.old
   let data = []
@@ -2028,6 +2108,82 @@ router.route('/get-export-visit-filter').post((request, response) => {
 
   }
 })
-var  port = process.env.PORT || 8090;
+router.route('/get-count-bangunan-penunjang').post((request, response) => {
+  
+  try {
+ 
+    dashboard.countBangunanPenunjang( ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/send-mail-bangunan-penunjang').post((request, response) => {
+  let data = request.body.data
+  try {
+ 
+    dashboard.sendEmailReminderBangunanPenunjangLegalitas(data).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/kompetensi-user-send-mail').post((request, response) => {
+  
+  try {
+ 
+    dashboard.getKompetensiSendmail( ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/kompetensi-send-mail').post((request, response) => {
+  let data = request.body.data
+  try {
+ 
+    dashboard.sendEmailKompetensiLegalitas(data ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+var  port = process.env.PORT || 9010;
 app.listen(port);
 console.log('Order API is runnning at ' + port);

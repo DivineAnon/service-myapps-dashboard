@@ -3182,7 +3182,7 @@ if(search!==''){
   query1 = query1+`and a.nama like '%${search}%'`
 }
 if(kategori!==''){
-  query = query+` and a.id_kategori = '${kategori}'`
+  query1 = query1+` and a.id_kategori = '${kategori}'`
 }
     query1 = query1+` ) as awek`
    
@@ -3195,7 +3195,8 @@ if(kategori!==''){
       return  {
         // query,query1,first,limit
         data:data?.recordsets[0],
-        tot:tot.recordsets[0][0]['tot']
+        tot:tot.recordsets[0][0]['tot'],
+        path:axs.PATH_TICKET+'/uploads/bangunan-penunjang/'
       };
   }catch(error){
       console.log({error})
@@ -3312,7 +3313,7 @@ async function updateKategoriLegalitas(
 }
 async function insertBangunanPenunjangLegalitas( 
   nama,kategori,izin,
-      penerbit,start,end,keterangan
+      penerbit,start,end,keterangan,doc
   ) {
      
   let query = `
@@ -3327,7 +3328,8 @@ async function insertBangunanPenunjangLegalitas(
    keterangan,  
    created_at, 
    updated_at,
-   issend 
+   issend,
+   doc 
     
  )
   values (
@@ -3340,7 +3342,8 @@ async function insertBangunanPenunjangLegalitas(
   '${keterangan}',
   '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
   '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
-  'false'
+  'false',
+  '${doc}'
   )
 
   ` 
@@ -3360,7 +3363,7 @@ async function insertBangunanPenunjangLegalitas(
 }
 async function updateBangunanPenunjangLegalitas( 
   id,nama,kategori,izin,
-  penerbit,start,end,keterangan,issend
+  penerbit,start,end,keterangan,issend,doc,a
   ) {
      
   let query = `
@@ -3373,8 +3376,13 @@ async function updateBangunanPenunjangLegalitas(
   start_date = '${start}', 
   end_date = '${end}', 
   keterangan = '${keterangan}',   
-  issend = '${issend}',
-  updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+  issend = '${issend}',`
+  if(a){
+    query = query+` doc = '${doc}',` 
+   
+  }
+  
+  query = query+` updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
   
   where 	id = '${id}'
   ` 
@@ -3489,7 +3497,263 @@ async function getKategoriLegalitas(
       console.log({error})
   }
 }
+async function countBangunanPenunjang( 
+  ) {
+     
+  let query = `
+  select  b.nama as kategori,b.type,a.* from t_bangunan_penunjang_legalitas a
+  join t_kategori_legalitas b on a.id_kategori = b.id
+  where a.issend='false'
+  and a.end_date BETWEEN '${moment(new Date()).format('YYYY-MM-DD')} 00:00:00' and '${moment().add(2, 'months').format('YYYY-MM-DD')+' 00:00:00'}'
+  ` 
+   
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {
+        data:data?.recordsets[0] 
+        // query
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function sendEmailReminderBangunanPenunjangLegalitas( 
+  data
+  ) {
+   
+   
+    let html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+      <style>
+      table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+      }
+
+      
+      </style>
+      </head>
+      <body>
+
+      <h2>Bangunan, Penunjang Produksi, Infra & LH</h2>
+
+      <table>
+      <tr>
+         
+        <th>Kategori</th>
+        <th>Type</th>
+        <th>Nama</th>
+        <th>No. Izin</th>
+        <th>Penerbit</th>
+        <th>Tanggal mulai</th>
+        <th>Tanggal selesai</th>
+        <th>Keterangan</th>
+      </tr>`
+      
+       
+        data?.map((d,j)=>{
+       
+          html = html+   ` <tr>
+             
+            <td >${d?.kategori}  </td>
+            
+            <td> ${d?.type} </td>
+            <td> ${d?.nama} </td>
+            <td> ${d?.no_izin} </td>
+            <td> ${d?.penerbit} </td>
+            <td> ${moment(d?.start_date).format('YYYY-MM-DD')} </td>
+            <td> ${moment(d?.end_date).format('YYYY-MM-DD')} </td>
+            <td> ${d?.keterangan} </td>
+          </tr>` 
+        })
+     
+   html = html+`   
+    </table>
+      `
+
+      html=html+`  
+      </body>
+    </html>
+    `
+  let query = `
+  EXEC msdb.dbo.sp_send_dbmail 
+			@profile_name='sysadmin', 
+			@recipients='rafi.assidiq@centralmegakencana.com',
+			@subject='Pengingat jatuh tempo', 
+			@body= '${html}',
+			@body_format = 'HTML'
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let datas = await pool.request().query(query);
+       
+      data?.map(async(d,j)=>{
+         await pool.request().query(`
+         update t_bangunan_penunjang_legalitas set
+          issend = 'true',
+          updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+          where id = '${d?.id}' 
+         
+         `);
+      })
+      return  {
+        datar:datas?.recordsets[0],
+        data
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function getKompetensiSendmail( 
+  ) {
+     
+  let query = `
+  
+  select c.m_emailkantor,a.*,b.m_nama,b.m_jabatan from t_kompetensi_legalitas a
+  join dbhrd.dbo.mskaryawan b on a.nik = m_nik
+  join dbhrd.dbo.msemailkaryawan c on a.nik = c.m_nik
+  where a.issend = 'false'
+  and a.end_date BETWEEN '${moment(new Date()).format('YYYY-MM-DD')} 00:00:00' and '${moment().add(2, 'months').format('YYYY-MM-DD')+' 00:00:00'}'
+  ` 
+  let query1 = `
+  
+  select distinct(c.m_emailkantor) from t_kompetensi_legalitas a
+  join dbhrd.dbo.mskaryawan b on a.nik = m_nik
+  join dbhrd.dbo.msemailkaryawan c on a.nik = c.m_nik
+  where a.issend = 'false'
+  and a.end_date BETWEEN '${moment(new Date()).format('YYYY-MM-DD')} 00:00:00' and '${moment().add(2, 'months').format('YYYY-MM-DD')+' 00:00:00'}'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let data1= await pool.request().query(query1);
+      
+      return  {
+        data:data?.recordsets[0] ,
+        data1:data1?.recordsets[0] 
+        // query
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function sendEmailKompetensiLegalitas( 
+  data
+  ) {
+   
+   
+    let html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+      <style>
+      table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+      }
+
+      td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+      }
+
+      
+      </style>
+      </head>
+      <body>
+
+      <h2>Kompetensi HSE - Karyawan</h2>
+
+      <table>
+      <tr>
+         
+        <th>Nama</th>
+        <th>Jabatan</th>
+        <th>Nomor Sertifikat</th>
+        <th>Nama Sertifikat</th>
+        <th>Penerbit</th>
+        <th>Aspek</th>
+        <th>Tanggal mulai</th>
+        <th>Tanggal selesai</th>
+
+      </tr>`
+      
+       
+        data?.data?.map((d,j)=>{
+       
+          html = html+   ` <tr>
+             
+            <td >${d?.m_nama}  </td>
+            
+            <td> ${d?.m_jabatan} </td>
+            <td> ${d?.no_sertifikat} </td>
+            <td> ${d?.nama_sertifikat} </td>
+            <td> ${d?.penerbit} </td>
+            <td> ${d?.aspek} </td>
+            <td> ${moment(d?.start_date).format('YYYY-MM-DD')} </td>
+            <td> ${moment(d?.end_date).format('YYYY-MM-DD')} </td>
+           
+          </tr>` 
+        })
+     
+   html = html+`   
+    </table>
+      `
+
+      html=html+`  
+      </body>
+    </html>
+    `
+  let query = `
+  EXEC msdb.dbo.sp_send_dbmail 
+			@profile_name='sysadmin', 
+			@recipients='${data?.email}',
+			@subject='Pengingat jatuh tempo kompetensi', 
+			@body= '${html}',
+			@body_format = 'HTML'
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let datas = await pool.request().query(query);
+       
+      data?.data?.map(async(d,j)=>{
+         await pool.request().query(`
+         update t_kompetensi_legalitas set
+          issend = 'true',
+          updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+          where id = '${d?.id}' 
+         
+         `);
+      })
+      return  {
+        datar:datas?.recordsets[0],
+        data
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
 module.exports = { 
+    sendEmailKompetensiLegalitas,
+    getKompetensiSendmail,
+    sendEmailReminderBangunanPenunjangLegalitas,
+    countBangunanPenunjang,
     getKategoriLegalitas,
     updateKompetensiLegalitas,
     updateBangunanPenunjangLegalitas,
