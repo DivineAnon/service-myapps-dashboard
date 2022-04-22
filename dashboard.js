@@ -3476,10 +3476,13 @@ async function updateKompetensiLegalitas(
  
   try{
       let pool = await sql.connect(configTICKET);
-      let data = await pool.request().query(query);
+      // let data = await pool.request().query(query);
      
       
-      return  {data:data?.recordsets[0] };
+      return  {
+        // data:data?.recordsets[0] 
+        query
+      };
   }catch(error){
       console.log({error})
   }
@@ -3496,14 +3499,10 @@ async function getKategoriLegalitas(
  
   try{
       let pool = await sql.connect(configTICKET);
-      // let data = await pool.request().query(query);
+      let data = await pool.request().query(query);
      
       
-      return  {
-        
-        // data:data?.recordsets[0] 
-        query
-      };
+      return  {data:data?.recordsets[0] };
   }catch(error){
       console.log({error})
   }
