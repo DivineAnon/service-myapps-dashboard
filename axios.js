@@ -10,7 +10,7 @@ const  axios = require('axios');
 // const BASE_LOGIN = "http://localhost:8089/api" //login
 //production
 // export const BASE_LOGIN = 'http://103.247.217.10:8091/api';
-const BASE_INFO = "https://api-dbinfo.cmk.co.id/api"
+const BASE_INFO = "https://api-dbinfo.cmk.co.id/api" 
 const BASE_HRD = "https://api-dbhrd.cmk.co.id/api"
 const BASE_CMK = "https://api-dbcmk.cmk.co.id/api"
 const BASE_TICKET = "https://api-dbticket.cmk.co.id/api"
