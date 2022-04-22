@@ -3464,10 +3464,10 @@ async function updateKompetensiLegalitas(
    end_date = '${end}', 
    aspek = '${aspek}',  
    `
-  //  if(a){
-  //    query = query+` doc = '${doc}',` 
+   if(a){
+     query = query+` doc = '${doc}',` 
     
-  //  }
+   }
    query = query+` issend = '${issend}',
   updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
   
@@ -3476,14 +3476,10 @@ async function updateKompetensiLegalitas(
  
   try{
       let pool = await sql.connect(configTICKET);
-      // let data = await pool.request().query(query);
+      let data = await pool.request().query(query);
      
       
-      return  {
-        // data:data?.recordsets[0]
-        id,nik,no_sertif,nama_sertif,
-        penerbit,start,end,aspek,issend,doc,a
-       };
+      return  {data:data?.recordsets[0] };
   }catch(error){
       console.log({error})
   }
