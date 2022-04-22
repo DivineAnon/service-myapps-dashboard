@@ -1002,24 +1002,24 @@ router.route('/update-kompetensi-legalitas').post(uploadKompentensi.single('file
   if(request?.body?.name_file!=='null'){
    name ='./uploads/kompetensi/'+request?.body?.name_file
   }
-  // if(pdf){
+  if(pdf){
     
-  //   a = true
-  //   if(request?.body?.name_file!=='null'){
-  //    fs.unlinkSync(name)
-  //   }
-  //   fs.rename('./uploads/kompetensi/'+pdf?.filename, `./uploads/kompetensi/${pdf_name}`, function(err) {
-  //     if ( err ) console.log('ERROR: ' + err);
-  //   })
-  // }else{
-  //   a= false
-  // }
+    a = true
+    if(request?.body?.name_file!=='null'){
+     fs.unlinkSync(name)
+    }
+    fs.rename('./uploads/kompetensi/'+pdf?.filename, `./uploads/kompetensi/${pdf_name}`, function(err) {
+      if ( err ) console.log('ERROR: ' + err);
+    })
+  }else{
+    a= false
+  }
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.updateKompetensiLegalitas( id,nik,no_sertif,nama_sertif,
       penerbit,start,end,aspek,issend,pdf_name,a
       ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data,a});
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
