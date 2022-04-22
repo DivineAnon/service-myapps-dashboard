@@ -899,7 +899,7 @@ router.route('/insert-bangunan-penunjang-legalitas').post(uploadBangunanPenunjan
     dashboard.insertBangunanPenunjangLegalitas( nama,kategori,izin,
       penerbit,start,end,keterangan,pdf_name
       ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data,s:__dirname});
+      response.json({status:'Succsess',message:'Succsess fetch data',data });
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
