@@ -843,42 +843,7 @@ router.route('/select-kategori-legalitas').post((request, response) => {
   }
 })
 
-// router.route('/insert-image-visit-sq').post(uploadVisitSq.single('image'),(request, response) => {
-//   let token = request.headers.authorization 
-//   let id = request.body?.id
-//   let old = request.body?.old
-//   let insert = ''
-//   let foto_name = `${moment(new Date()).format('YYYY-MM-DD-HH-mm-ss')}_${id}.jpg`
-//   const image =  request.file;
-//   if(old===''){
-//     insert = foto_name
-//   }else{
-//     insert = old+','+foto_name
-//   }
-  
-//   fs.rename('./uploads/visit-sq/'+image?.filename, `./uploads/visit-sq/${foto_name}`, function(err) {
-//     if ( err ) console.log('ERROR: ' + err);
-//   })
-//   try {
-//     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-   
-//     dashboard.insertImageVisit(
-//       id,insert
-//       ).then((data) => {
-//       response.json({status:'Succsess',message:'Succsess fetch data',data ,insert });
-//     })
-//   } catch(err) {
-//     if(err?.name==='TokenExpiredError'){
-      
-//       response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
-//     }else{
-      
-//       response.status(500).json({ error: 'Server Error',message:'Invalid token' });
-      
-//     }
-
-//   }
-// })
+ 
 router.route('/insert-bangunan-penunjang-legalitas').post(uploadBangunanPenunjang.single('files'),(request, response) => {
   let token = request.headers.authorization 
   let nama = request.body?.nama
@@ -927,6 +892,7 @@ router.route('/update-bangunan-penunjang-legalitas').post(uploadBangunanPenunjan
   const pdf =  request.file;
   let pdf_name = `${moment(new Date()).format('YYYY-MM-DD-HH-mm-ss')}_doc_bangunan_penunjang.pdf`
   let name 
+  let a = false
   if(request?.body?.name_file!=='null'){
    name ='./uploads/bangunan-penunjang/'+request?.body?.name_file
   }
@@ -985,7 +951,7 @@ router.route('/get-bangunan-penunjang-legalitas').post((request, response) => {
 
   }
 })
-router.route('/insert-kompetensi-legalitas').post((request, response) => {
+router.route('/insert-kompetensi-legalitas').post(uploadKompentensi.single('files'),(request, response) => {
   let token = request.headers.authorization 
   let nik = request.body?.nik
   let no_sertif = request.body?.no_sertif
@@ -994,10 +960,15 @@ router.route('/insert-kompetensi-legalitas').post((request, response) => {
   let start = request.body?.start
   let end = request.body?.end
   let aspek = request.body?.aspek
+  const pdf =  request.file;
+  let pdf_name = `${moment(new Date()).format('YYYY-MM-DD-HH-mm-ss')}_doc_kompetensi.pdf`
+  fs.rename('./uploads/kompetensi/'+pdf?.filename, `./uploads/kompetensi/${pdf_name}`, function(err) {
+    if ( err ) console.log('ERROR: ' + err);
+  })
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.insertKompetensiLegalitas( nik,no_sertif,nama_sertif,
-      penerbit,start,end,aspek
+      penerbit,start,end,aspek,pdf_name
       ).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
@@ -1013,7 +984,7 @@ router.route('/insert-kompetensi-legalitas').post((request, response) => {
 
   }
 })
-router.route('/update-kompetensi-legalitas').post((request, response) => {
+router.route('/update-kompetensi-legalitas').post(uploadKompentensi.single('files'),(request, response) => {
   let token = request.headers.authorization 
   let nik = request.body?.nik
   let no_sertif = request.body?.no_sertif
@@ -1024,10 +995,29 @@ router.route('/update-kompetensi-legalitas').post((request, response) => {
   let aspek = request.body?.aspek
   let id = request.body?.id
   let issend = request.body?.issend
+  const pdf =  request.file;
+  let pdf_name = `${moment(new Date()).format('YYYY-MM-DD-HH-mm-ss')}_doc_kompetensi.pdf`
+  let name 
+  let a = false
+  if(request?.body?.name_file!=='null'){
+   name ='./uploads/kompetensi/'+request?.body?.name_file
+  }
+  if(pdf){
+    
+    a = true
+    if(request?.body?.name_file!=='null'){
+     fs.unlinkSync(name)
+    }
+    fs.rename('./uploads/kompetensi/'+pdf?.filename, `./uploads/kompetensi/${pdf_name}`, function(err) {
+      if ( err ) console.log('ERROR: ' + err);
+    })
+  }else{
+    a= false
+  }
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.updateKompetensiLegalitas( id,nik,no_sertif,nama_sertif,
-      penerbit,start,end,aspek,issend
+      penerbit,start,end,aspek,issend,pdf_name,a
       ).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })

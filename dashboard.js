@@ -3246,7 +3246,8 @@ if(search!==''){
       return  {
         // query,query1,first,limit
         data:data?.recordsets[0],
-        tot:tot.recordsets[0][0]['tot']
+        tot:tot.recordsets[0][0]['tot'],
+        path:axs.PATH_TICKET+'/uploads/kompetensi/'
       };
   }catch(error){
       console.log({error})
@@ -3399,7 +3400,7 @@ async function updateBangunanPenunjangLegalitas(
 }
 async function insertKompetensiLegalitas( 
   nik,no_sertif,nama_sertif,
-      penerbit,start,end,aspek
+      penerbit,start,end,aspek,doc
   ) {
      
   let query = `
@@ -3414,7 +3415,8 @@ async function insertKompetensiLegalitas(
    aspek,  
    created_at, 
    updated_at,
-   issend 
+   issend,
+   doc 
     
  )
   values (
@@ -3427,7 +3429,8 @@ async function insertKompetensiLegalitas(
   '${aspek}',
   '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
   '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
-  'false' 
+  'false',
+  '${doc}' 
   )
 
   ` 
@@ -3447,7 +3450,7 @@ async function insertKompetensiLegalitas(
 }
 async function updateKompetensiLegalitas( 
   id,nik,no_sertif,nama_sertif,
-  penerbit,start,end,aspek,issend
+  penerbit,start,end,aspek,issend,doc,a
   ) {
      
   let query = `
@@ -3460,8 +3463,12 @@ async function updateKompetensiLegalitas(
    start_date = '${start}', 
    end_date = '${end}', 
    aspek = '${aspek}',  
+   `
+   if(a){
+     query = query+` doc = '${doc}',` 
     
-   issend = '${issend}',
+   }
+   query = query+` issend = '${issend}',
   updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
   
   where 	id = '${id}'
