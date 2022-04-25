@@ -5,6 +5,7 @@ var  express = require('express');
 var  bodyParser = require('body-parser');
 var  cors = require('cors');
 var  moment = require('moment');
+var internetAvailable = require("internet-available");
 var  app = express();
 var  router = express.Router();
 const multer = require('multer');
@@ -26,10 +27,26 @@ app.use(
 );
 
 router.use((request, response, next) => {
-  console.log('middleware');
-  response.header('Access-Control-Allow-Origin', '*');
-  response.header('Authorization');
-  next();
+  // console.log('middleware');
+  // response.header('Access-Control-Allow-Origin', '*');
+  // response.header('Authorization');
+  // next();
+  internetAvailable({
+    // Provide maximum execution time for the verification
+    timeout: 10000,
+    // If it tries 5 times and it fails, then it will throw no internet
+    retries: 5
+  }).then(() => {
+    console.log('middleware');
+    response.header('Access-Control-Allow-Origin', '*');
+    response.header('Authorization');
+    next();
+    console.log('internet')
+  }).catch(() => {
+    console.log('no internet')
+    response.status(503).json({ status: 'Connection error !',message:'Please check your connection' });
+   
+  })
 });
 
 

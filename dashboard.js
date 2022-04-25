@@ -3166,7 +3166,8 @@ async function listBangunanPenunjangLegalitas(
     query = query+` and a.id_kategori = '${kategori}'`
   }
   if(status!==''){
-    query = query+` and a.end_date ${status==='expired'?'<=':'>='} '${moment(new Date()).format('YYYY-MM-DD')+' 00:00:00'}'`
+    query = query+` and a.end_date ${status==='expired'?'<=':'>='} '${moment(new Date()).format('YYYY-MM-DD')+' 00:00:00'}'
+    ${status==='expired'?'':"OR a.end_date ='1995-12-19 00:00:00'"}`
   }
   query = query+` 
     ) as awek
