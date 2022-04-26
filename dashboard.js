@@ -606,7 +606,7 @@ async function getListUnit() {
 async function getHistoryTiket(no) {
   let query = `  
   select 
-     
+  a.id_history ,
     convert(
       varchar(10), 
       a.m_tglpekerjaan ,
@@ -644,6 +644,7 @@ left join t_task_new d on b.m_nomor = c.m_nomor
 left join dbcmk.dbo.msstore_new e on e.m_kode COLLATE DATABASE_DEFAULT = c.m_kode COLLATE DATABASE_DEFAULT
 where a.m_nomortask = '${no}'
 group by 
+a.id_history ,
  b.m_status_pic ,
   b.m_doing_by  ,
   b.m_done_by  ,
@@ -655,6 +656,7 @@ group by
 a.m_tglpekerjaan,
 b.m_start_pic ,
 a.m_nomortask
+order by a.id_history asc
    `
 let querypic = `
 select a.m_nomor,a.m_pic,b.m_nama from t_task_pic_detail a
@@ -3206,8 +3208,8 @@ async function listBangunanPenunjangLegalitas(
     query = query+` and a.id_kategori = '${kategori}'`
   }
   if(status!==''){
-    query = query+` and a.end_date ${status==='expired'?'<=':'>='} '${moment(new Date()).format('YYYY-MM-DD')+' 00:00:00'}'
-    ${status==='expired'?"and a.end_date !='1995-12-19 00:00:00'":"OR a.end_date ='1995-12-19 00:00:00'"}`
+    query = query+` and (a.end_date ${status==='expired'?'<=':'>='} '${moment(new Date()).format('YYYY-MM-DD')+' 00:00:00'}'
+    ${status==='expired'?"and a.end_date !='1995-12-19 00:00:00'":"OR a.end_date ='1995-12-19 00:00:00')"}`
   }
   query = query+` 
     ) as awek
