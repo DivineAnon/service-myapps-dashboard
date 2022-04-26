@@ -2193,6 +2193,50 @@ router.route('/kompetensi-send-mail').post((request, response) => {
 
   }
 })
+router.route('/set-status-pic-task').post((request, response) => {
+  let token = request.headers.authorization 
+  let id = request.body?.id
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.insertEntrySetPicHistory( id).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/set-detail-pic-task').post((request, response) => {
+  let token = request.headers.authorization 
+  let id = request.body?.id
+  let pic = request.body?.pic
+  let m_shift = request.body?.m_shift
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.insertEntrySetPicDetail(id,pic,m_shift).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
 var  port = process.env.PORT || 9010;
 app.listen(port);
 console.log('Order API is runnning at ' + port);

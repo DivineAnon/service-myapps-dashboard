@@ -1226,7 +1226,47 @@ async function insertEntryRequesHistory(id
       console.log({error})
   }
 }
-
+async function insertEntrySetPicHistory(id 
+  ) {
+  let query = `
+  insert into t_task_history ( m_nomortask, m_tglpekerjaan, 
+  m_statustask)
+  values ('${id}', '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+    'SETPIC')
+  ` 
+  let query1 = `
+  update 	t_task_pic_new 
+  set 
+  m_start_pic = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}', 
+  m_status_pic = 'SETPIC'
+  where 	m_kode = '${id}'
+ 
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      let d = await pool.request().query(query1);
+      return  {data:login.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function insertEntrySetPicDetail(id,pic,m_shift 
+  ) {
+  let query = `
+  insert into t_task_pic_detail ( m_nomor, m_pic, 
+  m_shift)
+  values ('${id}', '${pic}',
+    '${m_shift}')
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      return  {data:login.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
 async function updateEntryRequestList(id,kategori,subkategori,
   ket,foto_name,qty,fpp,img ) {
   let query = `
@@ -3771,6 +3811,8 @@ async function sendEmailKompetensiLegalitas(
   }
 }
 module.exports = { 
+    insertEntrySetPicHistory,
+    insertEntrySetPicDetail,
     sendEmailKompetensiLegalitas,
     getKompetensiSendmail,
     sendEmailReminderBangunanPenunjangLegalitas,
