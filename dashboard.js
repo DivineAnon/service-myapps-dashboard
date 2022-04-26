@@ -1857,7 +1857,7 @@ async function listSelectTypeQuestionSq(
   let query = `
   select  TOP 5  m_nama as label, id as value from
   t_type_kuesioner  where m_nama like '%${search}%'
-  where enable = 'true'
+  and enable = 'true'
   ` 
  
   try{
