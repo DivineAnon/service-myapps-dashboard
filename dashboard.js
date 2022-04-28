@@ -1137,7 +1137,7 @@ async function getGenerateEntryRequest(unit) {
       let inc = 0
       let temp = ''
       if (max === ''||max===null){
-        no = '0000' ;
+        no = '0001' ;
       }else{
         inc = parseInt(max)+1
         temp = '0000'+ inc.toString()
@@ -1253,6 +1253,174 @@ async function insertEntrySetPicHistory(id
       console.log({error})
   }
 }
+async function insertFotoFollowUp(id,name 
+  ) {
+  let query = `
+  update 	t_task_pic_new 
+  set 
+  m_foto2 = '${name}' 
+   
+  where 	m_kode = '${id}'
+  ` 
+   
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query); 
+      return  {data:login.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function deleteFollowUp(id 
+  ) {
+  let query1 = `
+    delete  t_task_review where m_nomor = '${id}'
+  ` 
+  let query2 = `
+    delete  t_task_pic_new where m_nomor = '${id}'
+  ` 
+  let query3 = `
+    delete  t_task_new where m_nomor = '${id}'
+  ` 
+  let query4 = `
+    delete   t_task_pic_detail  where m_nomor like '%${id}%'
+  ` 
+  let query5 = `
+    delete  t_task_history  where m_nomortask like '%${id}%'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query1); 
+      let data2 = await pool.request().query(query2); 
+      let data3 = await pool.request().query(query3); 
+      let data4 = await pool.request().query(query4); 
+      let data5 = await pool.request().query(query5); 
+      return  {data:data.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function insertEntrySetStatusTask(id,status,user
+  ) {
+  let query = `
+  insert into t_task_history ( m_nomortask, m_tglpekerjaan, 
+  m_statustask)
+  values ('${id}', '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+    '${status}')
+  ` 
+  let query1 = `
+  update 	t_task_pic_new 
+  set `
+  if(status==='PREPAREITEM'){
+    query1 = query1+` m_tgl_itempreparation = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}', `
+  }
+  if(status==='ONTHEWAY'){
+    query1 = query1+` m_tgl_shop = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}', `
+  }
+  if(status==='DOING'){
+    query1 = query1+` m_doing_time = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}', `
+    query1 = query1+` m_isdoing = '1', `
+    query1 = query1+` m_doing_by = '${user}', `
+  }
+  if(status==='DONE'){
+    query1 = query1+` m_done_time = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}', `
+    
+    query1 = query1+` m_done_by = '${user}', `
+  }
+  
+  query1 = query1+` m_status_pic = '${status}'
+  where 	m_kode = '${id}'
+ 
+  ` 
+  let query2 = `
+  update 	t_task_new 
+  set `
+ 
+  query2 = query2+` m_status = '${status}'`
+  
+  query2 = query2+` 
+  where 	m_nomor = '${id?.split('-')[0]}'
+ 
+  ` 
+  let query3 =  `
+  select COUNT(*) as row from t_task_pic_new where m_nomor ='${id?.split('-')[0]}'
+  ` 
+  let query4 =  `
+  select COUNT(*) as row from t_task_pic_new where m_nomor ='${id?.split('-')[0]}'
+  and m_status_pic = '${status}'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      let d = await pool.request().query(query1);
+      let a
+      let b
+      let c
+      if(status==='DOING'){
+        a = await pool.request().query(query2);
+      }
+      if(status==='DONE'){
+        b = await pool.request().query(query3);
+        c = await pool.request().query(query4);
+        if((b?.recordsets[0][0]['row'])===c?.recordsets[0][0]['row']){
+          a = await pool.request().query(query2);
+        }
+      }
+      return  {data:login.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function approveTicketing(user,id) {
+  let query = `
+  update 	t_task_pic_new 
+  set  
+  m_status_pic = 'APPROVE',
+  m_approve_time = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+  m_approve_by = '${user}'
+  where 	m_kode = '${id}'
+  ` 
+  let query2 = `
+  insert into t_task_history (m_nomortask, m_tglpekerjaan, m_statustask) 
+  values ('${id}', '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+  'APPROVE')
+
+  `
+  let query5 = `
+  update 	t_task_new 
+  set `
+ 
+  query5 = query5+` m_status = 'APPROVE'`
+  
+  query5 = query5+` 
+  where 	m_nomor = '${id?.split('-')[0]}'
+ 
+  ` 
+  let query3 =  `
+  select COUNT(*) as row from t_task_pic_new where m_nomor ='${id?.split('-')[0]}'
+  ` 
+  let query4 =  `
+  select COUNT(*) as row from t_task_pic_new where m_nomor ='${id?.split('-')[0]}'
+  and m_status_pic = 'APPROVE'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let data2 = await pool.request().query(query2);
+      let a  
+       
+      let b = await pool.request().query(query3);
+      let c = await pool.request().query(query4);
+        if((b?.recordsets[0][0]['row'])===c?.recordsets[0][0]['row']){
+          a = await pool.request().query(query5);
+        }
+      
+      return  {data:data.recordsets[0],data2:data2.recordsets[0] };
+  }catch(error){
+      console.log({error})
+  }
+}
+
 async function insertEntrySetPicDetail(id,pic,m_shift 
   ) {
   let query = `
@@ -1429,30 +1597,6 @@ async function getGenerateEntryRequestList(unit) {
       }
       let code = unit+'-'+no
       return  {code,inc };
-  }catch(error){
-      console.log({error})
-  }
-}
-async function approveTicketing(user,id) {
-  let query = `
-  update 	t_task_pic_new 
-  set  
-  m_status_pic = 'APPROVE',
-  m_approve_time = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
-  m_approve_by = '${user}'
-  where 	m_kode = '${id}'
-  ` 
-  let query2 = `
-  insert into t_task_history (m_nomortask, m_tanggalpekerjaan, m_statustask) 
-  values ('${id}', '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
-  'APPROVE')
-
-  `
-  try{
-      let pool = await sql.connect(configTICKET);
-      let data = await pool.request().query(query);
-      let data2 = await pool.request().query(query2);
-      return  {data:data.recordsets[0],data2:data2.recordsets[0] };
   }catch(error){
       console.log({error})
   }
@@ -3814,6 +3958,9 @@ async function sendEmailKompetensiLegalitas(
   }
 }
 module.exports = { 
+    deleteFollowUp,
+    insertFotoFollowUp,
+    insertEntrySetStatusTask,
     insertEntrySetPicHistory,
     insertEntrySetPicDetail,
     sendEmailKompetensiLegalitas,

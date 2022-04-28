@@ -895,6 +895,80 @@ router.route('/insert-bangunan-penunjang-legalitas').post(uploadBangunanPenunjan
 
   }
 })
+router.route('/insert-update-gambar2-follow-up').post(upload.single('image'),(request, response) => {
+  let token = request.headers.authorization 
+  let id = request.body?.id
+  let name = './uploads/entry-request/'+request?.body?.name
+  const image =  request.file;
+  let foto_name = `${id}_m_foto2_${Date.now()}.jpg`
+ try{
+    fs.unlinkSync(name)
+    
+  }catch(e){
+  
+}
+ 
+fs.rename('./uploads/entry-request/'+image?.filename, `./uploads/entry-request/${foto_name}`, function(err) {
+  if ( err ) console.log('ERROR: ' + err);
+})
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.insertFotoFollowUp(id,foto_name
+      ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data });
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/delete-follow-up').post((request, response) => {
+  let token = request.headers.authorization 
+  let id = request.body?.id
+  let datax = request.body?.data
+  // let name = './uploads/entry-request/'+request?.body?.name
+  // let name2 = './uploads/entry-request/'+request?.body?.name2
+  // response.status(200).json({ error: 'Server Error',message:'Invalid token',datax });
+ datax?.map((d)=>{
+  try{
+    fs.unlinkSync('./uploads/entry-request/'+d?.imageName)
+    
+  }catch(e){
+  
+}
+try{
+  fs.unlinkSync('./uploads/entry-request/'+d?.imageName2)
+  
+}catch(e){
+
+}
+ })
+ 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.deleteFollowUp(id 
+      ).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data });
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
 router.route('/update-bangunan-penunjang-legalitas').post(uploadBangunanPenunjang.single('files'),(request, response) => {
   let token = request.headers.authorization 
   let id = request.body?.id
@@ -2223,6 +2297,28 @@ router.route('/set-detail-pic-task').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.insertEntrySetPicDetail(id,pic,m_shift).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/set-task-progress').post((request, response) => {
+  let token = request.headers.authorization 
+  let id = request.body?.id
+  let status = request.body?.status 
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.insertEntrySetStatusTask(id,status,decoded?.data[0]?.loginid,).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
