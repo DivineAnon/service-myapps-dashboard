@@ -1511,11 +1511,11 @@ router.route('/insert-entry-request-list').post(upload.single('image'),(request,
   let id = request.body?.id
   let kategori = request.body?.kategori
   let subkategori = request.body?.subkategori
-  let ket = request.body?.ket
+  let ket = request.body?.ket===''?null:request.body?.ket
   let m_nomor = request.body?.m_nomor
   let foto_name = `${m_nomor}_${no}.jpg`
   let qty = request.body?.qty
-  let fpp = request.body?.fpp
+  let fpp = request.body?.fpp===''?null:request.body?.fpp
   const image =  request.file;
  
   fs.rename('./uploads/entry-request/'+image?.filename, `./uploads/entry-request/${foto_name}`, function(err) {

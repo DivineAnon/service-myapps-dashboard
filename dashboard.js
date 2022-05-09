@@ -1441,11 +1441,28 @@ async function updateEntryRequestList(id,kategori,subkategori,
   ket,foto_name,qty,fpp,img ) {
   let query = `
   update 	t_task_pic_new 
-  set  m_kodekategori = '${kategori}', 
-  m_kodesub = '${subkategori}', 
-  m_keterangan = '${ket}', 
-  m_qty = '${qty}',
-  m_nofpp = '${fpp}'`
+  set 
+`
+  if( kategori!==''){
+    query = query+`   m_kodekategori = '${kategori}',  ` 
+   
+  }
+  if( subkategori!==''){
+    query = query+` m_kodesub = '${subkategori}',  ` 
+   
+  }
+  if( ket!==''){
+    query = query+`  m_keterangan = '${ket}',  ` 
+   
+  }
+  if( qty!==''){
+    query = query+` m_qty = '${qty}', ` 
+   
+  }
+  if( fpp!==''){
+    query = query+`   m_nofpp = '${fpp}' ` 
+   
+  }
   if(img){
     query = query+` , m_foto1 = '${foto_name}' ` 
    
@@ -1458,7 +1475,7 @@ async function updateEntryRequestList(id,kategori,subkategori,
       let pool = await sql.connect(configTICKET);
       let login = await pool.request().query(query);
      
-      return  {data:login.recordsets[0],img};
+      return  {data:login.recordsets[0] };
   }catch(error){
       console.log({error})
   }
