@@ -3303,6 +3303,60 @@ async function insertBudget(
       console.log({error})
   }
 }
+async function notification(token) {
+  query = `SELECT COUNT(*) as jumlah, m_nomor,
+  DATEDIFF(dd, m_tgl_pekerjaan, GETDATE()) as bedahari
+  from t_task_pic_new
+  where (m_status_pic != 'SETPIC' AND m_status_pic != 'DOING' and m_status_pic != 'DONE' and m_status_pic != 'APPROVE')
+  GROUP by m_tgl_pekerjaan, m_nomor`
+  let query1 = `SELECT COUNT(*) as jumlah, m_nomor,
+  DATEDIFF(dd, m_start_pic, GETDATE()) as bedahari
+from t_task_pic_new
+where (m_status_pic != 'DOING' and m_status_pic != 'DONE' and m_status_pic != 'APPROVE') AND (m_start_pic IS NOT NULL OR m_start_pic != '1900-01-01 00:00:00')
+GROUP by m_nomor, DATEDIFF(dd, m_start_pic, GETDATE())`
+  try{
+      let pool = await sql.connect(configTICKET);
+      // let reset = await pool.request().query(`exec sp_notif '${userlogin}' `);
+     let res  = await axs.NET("POST", 
+     `${axs.BASE_LOGIN}/notification-portal`, {
+      
+     },token)
+     let dataQuery = await pool.request().query(query);
+     let dataQuery1 = await pool.request().query(query1); 
+     let notif1 = res?.data?.data
+     let notif2 = dataQuery.recordsets[0]
+     let notif3 = dataQuery1.recordsets[0]
+
+      return  {notif1,notif2,notif3};
+  }catch(error){
+      console.log(error);
+  }
+}
+async function notificationDetailEntryRequest(kode) {
+  query = `select m_nomor as nomor, convert(
+    varchar(10), 
+    m_tgl_pekerjaan, 
+    105
+) as tanggal_mulai,
+m_keterangan
+from t_task_pic_new where m_nomor = '${kode}' and (m_status_pic != 'SETPIC' 
+AND m_status_pic != 'DOING' and m_status_pic != 'DONE' 
+and m_status_pic != 'APPROVE')`
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      // let reset = await pool.request().query(`exec sp_notif '${userlogin}' `);
+   
+     let dataQuery = await pool.request().query(query);
+ 
+     let data = dataQuery?.recordsets[0]
+   
+
+      return  {data};
+  }catch(error){
+      console.log(error);
+  }
+}
 async function listKategoriLegalitas( 
   page,limit,search
   ) {
@@ -3975,6 +4029,8 @@ async function sendEmailKompetensiLegalitas(
   }
 }
 module.exports = { 
+    notificationDetailEntryRequest,
+    notification,
     deleteFollowUp,
     insertFotoFollowUp,
     insertEntrySetStatusTask,
