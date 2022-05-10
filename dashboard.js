@@ -2593,10 +2593,23 @@ async function getDataVisitDetail(
   id
   ) {
     // join dbcmk.dbo.msstore_new b on b.m_kode COLLATE DATABASE_DEFAULT = a.store COLLATE DATABASE_DEFAULT
+  // let query = `
+  // select  a.*,b.m_nama from t_visit_sq2  a 
+  // join dbcmk.dbo.msmaster b on b.m_kode COLLATE DATABASE_DEFAULT = a.store COLLATE DATABASE_DEFAULT
+  // where a.id = '${id}'
+
+  // ` 
   let query = `
-  select  a.*,b.m_nama from t_visit_sq2  a 
-  join dbcmk.dbo.msmaster b on b.m_kode COLLATE DATABASE_DEFAULT = a.store COLLATE DATABASE_DEFAULT
-  where a.id = '${id}'
+  select d.*,(e.brand+ ' - ' +e.mall) as m_nama,f.m_nama as jr_nama from t_visit_sq2 d
+join (SELECT a.m_kode as m_kode, b.m_nama as brand, c.m_nama as mall FROM dbcmk.dbo.msstore_new a
+		join dbcmk.dbo.msmaster b on a.m_brand = b.m_kode
+		join dbcmk.dbo.msmaster c on a.m_mall = c.m_kode
+		WHERE 
+		b.m_type = 'BRAND' AND c.m_type = 'MALL')
+
+e on e.m_kode COLLATE DATABASE_DEFAULT = d.store COLLATE DATABASE_DEFAULT
+join dbhrd.dbo.mskaryawan f on f.m_nik = d.jr 
+ where d.id = '${id}'
 
   ` 
  
@@ -3087,7 +3100,28 @@ async function sendEmailApprovedSQVisit(
       <body>
 
       <h2>Visit store report ${visit?.data?.m_nama}</h2>
-
+      <small>${visit?.data?.created_at.split('T')[0]}</small>
+      <br/>
+      <br/>
+      <p>Nama JR : ${visit?.data?.jr_nama}</p>`
+      html = html+  `
+      <div style="display: flex;flex-direction: row;">
+      <p>Tim SQ :</p> 
+      <ul style="margin-left:-20px">
+      `
+      JSON.parse(visit?.data?.tim_sq).map((d)=>{
+        html = html+  `
+        <li>
+          ${d.label}
+        </li>
+        `
+      })
+     
+      html = html+  `
+      </ul>
+      </div>
+      `
+      html = html+  `
       <table>
         <tr>
            
@@ -3191,6 +3225,7 @@ async function sendEmailApprovedSQVisit(
       console.log({error})
   }
 }
+
 async function listBudget( 
   page,limit,search
   ) {
