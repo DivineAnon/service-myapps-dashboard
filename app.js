@@ -251,7 +251,7 @@ router.route('/notification-detail').post((request, response) => {
   let kode = request.body?.kode
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.notificationDetailEntryRequest(kode).then((data) => {
+    dashboard.notification(kode).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {
@@ -1209,13 +1209,13 @@ router.route('/detail-follow-up/:id').post((request, response) => {
 
   }
 })
-router.route('/get-list-pic').get((request, response) => {
+router.route('/get-list-pic/:kode').get((request, response) => {
   let token = request.headers.authorization 
-   
+  let kode = request.params?.kode
   
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.searchPicName().then((data) => {
+    dashboard.searchPicName(kode).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {

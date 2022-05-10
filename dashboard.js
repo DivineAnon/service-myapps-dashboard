@@ -909,7 +909,33 @@ async function getExportFollowUp(start,end,unit,dep,m_nomor,store,area) {
   try{
       let pool = await sql.connect(configTICKET);
       let data = await pool.request().query(query);
-      return  {data:data.recordsets[0]};
+      let array = [];
+      data.recordsets[0].map((d,i)=>{
+        array.push({
+          no:i+1,
+          nomor_ticket:d?.nomor_ticket===null||d?.nomor_ticket===''?'-':d?.nomor_ticket,
+          tanggal_ticket:d?.tanggal_ticket===null||d?.tanggal_ticket===''?'-':d?.tanggal_ticket,
+          divisi: d?.divisi===null||d?.divisi===''?'-':d?.divisi,
+          departemen:d?.departemen===null||d?.departemen===''?'-':d?.departemen,
+          nama: d?.nama===null||d?.nama===''?'-':d?.nama,
+          unit_support: d?.unit_support===null||d?.unit_support===''?'-':d?.unit_support,
+          lokasi: d?.lokasi===null||d?.lokasi===''?'-':d?.lokasi,
+          kode_toko: d?.kode_toko===null||d?.kode_toko===''?'-':d?.kode_toko,
+          kategori: d?.kategori===null||d?.kategori===''?'-':d?.kategori,
+          subkategori: d?.subkategori===null||d?.subkategori===''?'-':d?.subkategori,
+          quantity: d?.quantity===null||d?.quantity===''?'-':d?.quantity,
+          tanggal_set_pic: d?.tanggal_set_pic===null||d?.tanggal_set_pic===''?'-':d?.tanggal_set_pic,
+          tanggal_response: d?.tanggal_response===null||d?.tanggal_response===''?'-':d?.tanggal_response,
+          tanggal_selesai: d?.tanggal_selesai===null||d?.tanggal_selesai===''?'-':d?.tanggal_selesai,
+          tanggal_approve: d?.tanggal_approve===null||d?.tanggal_approve===''?'-':d?.tanggal_approve,
+          m_status_pic: d?.m_status_pic===null||d?.m_status_pic===''?'-':d?.m_status_pic,
+        
+          no_fpp: d?.no_fpp===null||d?.no_fpp===''?'-':d?.no_fpp
+         
+          // kode: d?.kode===null||d?.kode===''?'-':d?.kode,
+         })
+      })
+      return  {data:array,d:data.recordsets[0]};
   }catch(error){
       console.log({error})
   }
@@ -1621,10 +1647,11 @@ async function getGenerateEntryRequestList(unit) {
 
 async function detailFollowUp(id) {
   let query = `
-  select a.*,b.m_topic as kategori,c.m_topic as sub from t_task_pic_new a
+  select a.*,b.m_topic as kategori,c.m_topic as sub,d.m_kodeunit from t_task_pic_new a
   LEFT join mskategorisupport b on a.m_kodekategori = b.m_kodekategori
   LEFT join mssubkategorisupport c on a.m_kodesub = c.m_kodesub 
-  WHERE m_nomor = '${id}'`
+  LEFT join t_task_new d on a.m_nomor = d.m_nomor
+  WHERE a.m_nomor = '${id}'`
    
   let query2 = `
   select a.m_nomor,a.m_pic,a.m_shift,b.m_namapic from t_task_pic_detail a
@@ -1670,7 +1697,7 @@ async function detailFollowUp(id) {
           subname:d?.sub,
           kategoriname:d?.kategori,
           pic:array2,
-           
+           m_kodeunit:d?.m_kodeunit
         })
          array2=[]
        
@@ -1789,10 +1816,12 @@ async function setDetailPic(id,m_pic,shift
       console.log({error})
   }
 }
-async function searchPicName( 
+async function searchPicName( kode
   ) {
   let query = `
-  select m_namapic as label, m_nik as value from mspicsupport order by m_namapic asc
+  select m_namapic as label, m_nik as value from mspicsupport
+  where m_kodeunit = '${kode}'
+  order by m_namapic asc
 
   ` 
   
