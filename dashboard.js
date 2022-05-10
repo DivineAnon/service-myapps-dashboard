@@ -3129,7 +3129,7 @@ async function sendEmailApprovedSQVisit(
         // html = html+ `<img src="https://api-dbticket.cmk.co.id/uploads/visit-sq/${images[0]}" alt="Girl in a jacket" width="300" height="300">`
       // }
       
-      html = html+`<h2 style="margin-top:10px">Not To SM</h2>
+      html = html+`<h2 style="margin-top:10px">Note To SM</h2>
 
       <table>
         <tr>
