@@ -3343,7 +3343,7 @@ async function notification(token) {
   DATEDIFF(dd, m_tgl_pekerjaan, GETDATE()) as bedahari
   from t_task_pic_new
   where (m_status_pic != 'SETPIC' AND m_status_pic != 'DOING' and m_status_pic != 'DONE' and m_status_pic != 'APPROVE')
-  GROUP by m_tgl_pekerjaan, m_nomor`
+  GROUP by DATEDIFF(dd, m_tgl_pekerjaan, GETDATE()), m_nomor`
   let query1 = `SELECT COUNT(*) as jumlah, m_nomor,
   DATEDIFF(dd, m_start_pic, GETDATE()) as bedahari
 from t_task_pic_new
