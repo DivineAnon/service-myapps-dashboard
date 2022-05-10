@@ -251,7 +251,7 @@ router.route('/notification-detail').post((request, response) => {
   let kode = request.body?.kode
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.notification(kode).then((data) => {
+    dashboard.notificationDetailEntryRequest(kode).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {

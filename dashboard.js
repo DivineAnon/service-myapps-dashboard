@@ -3334,14 +3334,14 @@ GROUP by m_nomor, DATEDIFF(dd, m_start_pic, GETDATE())`
 }
 async function notificationDetailEntryRequest(kode) {
   query = `select m_nomor as nomor, convert(
-    varchar(10), 
-    m_tgl_pekerjaan, 
-    105
-) as tanggal_mulai,
-m_keterangan
-from t_task_pic_new where m_nomor = '${kode}' and (m_status_pic != 'SETPIC' 
-AND m_status_pic != 'DOING' and m_status_pic != 'DONE' 
-and m_status_pic != 'APPROVE')`
+      varchar(10), 
+      m_tgl_pekerjaan, 
+      105
+  ) as tanggal_mulai,
+  m_keterangan
+  from t_task_pic_new where m_nomor = '${kode}' and (m_status_pic != 'SETPIC' 
+  AND m_status_pic != 'DOING' and m_status_pic != 'DONE' 
+  and m_status_pic != 'APPROVE')`
  
   try{
       let pool = await sql.connect(configTICKET);
