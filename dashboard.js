@@ -716,6 +716,7 @@ async function getExportFollowUp(start,end,unit,dep,m_nomor,store,area) {
 		e.m_unit as unit_support,
 		a.m_kode2 as lokasi,
 		a.m_kode as kode_toko,
+    a.m_kota,
 		g.m_topic as kategori,
 		'' as subkategori,
 		f.m_qty as quantity,
@@ -761,7 +762,13 @@ async function getExportFollowUp(start,end,unit,dep,m_nomor,store,area) {
 		108
 		) as jam_set_pic,
 		f.m_kode as kode,
-		f.m_status_pic
+		f.m_status_pic,
+    i.m_nama as pic_name,
+    
+    i.m_nomor as task_id,
+    j.m_rating,
+    j.m_review,
+    j.m_kode_review
 		from t_task_new a
 		join dbhrd.dbo.mskaryawan b on a.m_requestby = b.m_nik
 		join dbhrd.dbo.msdepartemen c on b.m_departemen = c.m_iddept
@@ -769,7 +776,11 @@ async function getExportFollowUp(start,end,unit,dep,m_nomor,store,area) {
 		join msunitsupport e on a.m_kodeunit = e.m_kodeunit 
 		join t_task_pic_new f on a.m_nomor = f.m_nomor
 		join mskategorisupport g on f.m_kodekategori = g.m_kodekategori 
-		where (a.m_tanggal between '${start}' and '${end}' ) and a.m_kodeunit = '${unit}'`
+    join (select z.*,bs.m_nama from t_task_pic_detail z
+      join dbhrd.dbo.mskaryawan bs on z.m_pic = bs.m_nik	) i on i.m_nomor = f.m_kode
+    join (select v.*,bx.m_nama from t_task_review v
+      join dbhrd.dbo.mskaryawan bx on v.m_review_user = bx.m_nik	) j on j.m_kode_task = f.m_kode
+		where (convert(varchar(10),a.m_tanggal,103) between '${moment(start).format()}' and '${moment(end).format('DD/MM/YYYY')}' ) and a.m_kodeunit = '${unit}'`
   }else if(unit === '02'){
     query =`select 
     a.m_nomor as nomor_ticket,
@@ -825,7 +836,14 @@ async function getExportFollowUp(start,end,unit,dep,m_nomor,store,area) {
     108
     ) as jam_set_pic,
     f.m_kode as kode,
-    f.m_status_pic
+    a.m_kota,
+    f.m_status_pic,
+    i.m_nama as pic_name,
+    
+    i.m_nomor as task_id,
+    j.m_rating,
+    j.m_review,
+    j.m_kode_review
     from t_task_new a
     join dbhrd.dbo.mskaryawan b on a.m_requestby = b.m_nik
     join dbhrd.dbo.msdepartemen c on b.m_departemen = c.m_iddept
@@ -834,7 +852,11 @@ async function getExportFollowUp(start,end,unit,dep,m_nomor,store,area) {
     join t_task_pic_new f on a.m_nomor = f.m_nomor
     join mskategorisupport g on f.m_kodekategori = g.m_kodekategori 
     join mssubkategorisupport h on f.m_kodesub = h.m_kodesub 	
-    where (a.m_tanggal between '${start}' and '${end}' ) and a.m_kodeunit = '02'`
+    join (select z.*,bs.m_nama from t_task_pic_detail z
+      join dbhrd.dbo.mskaryawan bs on z.m_pic = bs.m_nik	) i on i.m_nomor = f.m_kode
+    join (select v.*,bx.m_nama from t_task_review v
+      join dbhrd.dbo.mskaryawan bx on v.m_review_user = bx.m_nik	) j on j.m_kode_task = f.m_kode
+    where (convert(varchar(10),a.m_tanggal,103) between '${moment(start).format('DD/MM/YYYY')}' and '${moment(end).format('DD/MM/YYYY')}' ) and a.m_kodeunit = '02'`
   }else{
     query =`select 
 		a.m_nomor as nomor_ticket,
@@ -870,7 +892,13 @@ async function getExportFollowUp(start,end,unit,dep,m_nomor,store,area) {
 		103
 		) as tanggal_set_pic,
 		f.m_kode as kode,
-		f.m_status_pic
+		f.m_status_pic,
+    i.m_nama as pic_name,
+    a.m_kota,
+    i.m_nomor as task_id,
+    j.m_rating,
+    j.m_review,
+    j.m_kode_review
 		from t_task_new a
 		join dbhrd.dbo.mskaryawan b on a.m_requestby = b.m_nik
 		join dbhrd.dbo.msdepartemen c on b.m_departemen = c.m_iddept
@@ -879,7 +907,11 @@ async function getExportFollowUp(start,end,unit,dep,m_nomor,store,area) {
 		join t_task_pic_new f on a.m_nomor = f.m_nomor
 		join mskategorisupport g on f.m_kodekategori = g.m_kodekategori 
 		join mssubkategorisupport h on f.m_kodesub = h.m_kodesub 	
-		where (a.m_tanggal between '${start}' and '${end}' )`
+    join (select z.*,bs.m_nama from t_task_pic_detail z
+      join dbhrd.dbo.mskaryawan bs on z.m_pic = bs.m_nik	) i on i.m_nomor = f.m_kode
+    join (select v.*,bx.m_nama from t_task_review v
+      join dbhrd.dbo.mskaryawan bx on v.m_review_user = bx.m_nik	) j on j.m_kode_task = f.m_kode
+		where (convert(varchar(10),a.m_tanggal,103) between '${moment(start).format('DD/MM/YYYY')}' and '${moment(end).format('DD/MM/YYYY')}' )`
   }
   if (dep !== '' )
 	{ 	query = query+` and case when 
@@ -910,32 +942,47 @@ async function getExportFollowUp(start,end,unit,dep,m_nomor,store,area) {
       let pool = await sql.connect(configTICKET);
       let data = await pool.request().query(query);
       let array = [];
-      data.recordsets[0].map((d,i)=>{
+      let dats = data.recordsets[0]
+      let tmp_pic = ''
+      dats.map((d,i)=>{
+        idx = array.findIndex(v => v.task_id == d?.task_id)
+        if(idx>=0){
+          tmp_pic = array[idx]['pic_name']
+          array[idx]['pic_name'] = tmp_pic+','+d?.pic_name
+          tmp_pic = ''
+        }
+        else{
+       
         array.push({
           no:i+1,
-          nomor_ticket:d?.nomor_ticket===null||d?.nomor_ticket===''?'-':d?.nomor_ticket,
-          tanggal_ticket:d?.tanggal_ticket===null||d?.tanggal_ticket===''?'-':d?.tanggal_ticket,
-          divisi: d?.divisi===null||d?.divisi===''?'-':d?.divisi,
-          departemen:d?.departemen===null||d?.departemen===''?'-':d?.departemen,
-          nama: d?.nama===null||d?.nama===''?'-':d?.nama,
-          unit_support: d?.unit_support===null||d?.unit_support===''?'-':d?.unit_support,
-          lokasi: d?.lokasi===null||d?.lokasi===''?'-':d?.lokasi,
-          kode_toko: d?.kode_toko===null||d?.kode_toko===''?'-':d?.kode_toko,
-          kategori: d?.kategori===null||d?.kategori===''?'-':d?.kategori,
-          subkategori: d?.subkategori===null||d?.subkategori===''?'-':d?.subkategori,
-          quantity: d?.quantity===null||d?.quantity===''?'-':d?.quantity,
-          tanggal_set_pic: d?.tanggal_set_pic===null||d?.tanggal_set_pic===''?'-':d?.tanggal_set_pic,
-          tanggal_response: d?.tanggal_response===null||d?.tanggal_response===''?'-':d?.tanggal_response,
-          tanggal_selesai: d?.tanggal_selesai===null||d?.tanggal_selesai===''?'-':d?.tanggal_selesai,
-          tanggal_approve: d?.tanggal_approve===null||d?.tanggal_approve===''?'-':d?.tanggal_approve,
-          m_status_pic: d?.m_status_pic===null||d?.m_status_pic===''?'-':d?.m_status_pic,
-        
-          no_fpp: d?.no_fpp===null||d?.no_fpp===''?'-':d?.no_fpp
-         
+          nomor_ticket:d?.nomor_ticket==='null'||d?.nomor_ticket===null||d?.nomor_ticket===''?'-':d?.nomor_ticket,
+          tanggal_ticket:d?.tanggal_ticket==='null'||d?.tanggal_ticket===null||d?.tanggal_ticket===''?'-':d?.tanggal_ticket,
+          divisi: d?.divisi==='null'||d?.divisi===null||d?.divisi===''?'-':d?.divisi,
+          departemen:d?.departemen==='null'||d?.departemen===null||d?.departemen===''?'-':d?.departemen,
+          nama: d?.nama==='null'||d?.nama===null||d?.nama===''?'-':d?.nama,
+          unit_support: d?.unit_support==='null'|| d?.unit_support===null||d?.unit_support===''?'-':d?.unit_support,
+          lokasi: d?.lokasi==='null'||d?.lokasi===null||d?.lokasi===''?'-':d?.lokasi,
+          kode_toko: d?.kode_toko==='null'||d?.kode_toko===null||d?.kode_toko===''?'-':d?.kode_toko,
+          kategori: d?.kategori==='null'||d?.kategori===null||d?.kategori===''?'-':d?.kategori,
+          subkategori: d?.subkategori==='null'||d?.subkategori===null||d?.subkategori===''?'-':d?.subkategori,
+          quantity: d?.quantity==='null'||d?.quantity===null||d?.quantity===''?'-':d?.quantity,
+          tanggal_set_pic: d?.tanggal_set_pic==='null'||d?.tanggal_set_pic===null||d?.tanggal_set_pic===''?'-':d?.tanggal_set_pic,
+          tanggal_response: d?.tanggal_response==='null'||d?.tanggal_response===null||d?.tanggal_response===''?'-':d?.tanggal_response,
+          tanggal_selesai: d?.tanggal_selesai==='null'||d?.tanggal_selesai===null||d?.tanggal_selesai===''?'-':d?.tanggal_selesai,
+          tanggal_approve: d?.tanggal_approve==='null'||d?.tanggal_approve===null||d?.tanggal_approve===''?'-':d?.tanggal_approve,
+          m_status_pic: d?.m_status_pic==='null'||d?.m_status_pic===null||d?.m_status_pic===''?'-':d?.m_status_pic,
+          kota : d?.m_kota==='null'||d?.m_kota===null||d?.m_kota===''?'-':d?.m_kota==='undefined'?'JAKARTA':d?.m_kota,
+          no_fpp: d?.no_fpp==='null'||d?.no_fpp===null||d?.no_fpp===''?'-':d?.no_fpp,
+          pic_name: d?.pic_name==='null'||d?.pic_name===null||d?.pic_name===''?'-':d?.pic_name,
+          task_id: d?.task_id==='null'||d?.task_id===null||d?.pic_name===''?'-':d?.task_id,
+          rating:d?.m_rating==='null'||d?.m_rating===null||d?.m_rating===''?'-':d?.m_rating,
+          ket_rating:d?.m_review==='null'||d?.m_review===null||d?.m_review===''?'-':d?.m_review
           // kode: d?.kode===null||d?.kode===''?'-':d?.kode,
          })
+        }
       })
-      return  {data:array,d:data.recordsets[0]};
+      
+      return  {data:array};
   }catch(error){
       console.log({error})
   }
@@ -1000,7 +1047,13 @@ async function getExportFollowUpPIC(start,end,unit,dep,m_nomor,store,area) {
 		108
 		) as jam_set_pic,
 		f.m_kode as kode,
-		f.m_status_pic
+		f.m_status_pic,
+    i.m_nama as pic_name,
+    a.m_kota,
+    i.m_nomor as task_id,
+    j.m_rating,
+    j.m_review,
+    j.m_kode_review
 		from t_task_new a
 		join dbhrd.dbo.mskaryawan b on a.m_requestby = b.m_nik
 		join dbhrd.dbo.msdepartemen c on b.m_departemen = c.m_iddept
@@ -1008,7 +1061,11 @@ async function getExportFollowUpPIC(start,end,unit,dep,m_nomor,store,area) {
 		join msunitsupport e on a.m_kodeunit = e.m_kodeunit 
 		join t_task_pic_new f on a.m_nomor = f.m_nomor
 		join mskategorisupport g on f.m_kodekategori = g.m_kodekategori 
-		where (a.m_tanggal between '${start}' and '${end}' ) 
+    join (select z.*,bs.m_nama from t_task_pic_detail z
+      join dbhrd.dbo.mskaryawan bs on z.m_pic = bs.m_nik	) i on i.m_nomor = f.m_kode
+    join (select v.*,bx.m_nama from t_task_review v
+      join dbhrd.dbo.mskaryawan bx on v.m_review_user = bx.m_nik	) j on j.m_kode_task = f.m_kode
+		where (convert(varchar(10),a.m_tanggal,103) between '${moment(start).format('DD/MM/YYYY')}' and '${moment(end).format('DD/MM/YYYY')}' ) 
     and a.m_kodeunit = '${unit}'`;
 	} 
   else if(unit === '02'){
@@ -1068,7 +1125,12 @@ async function getExportFollowUpPIC(start,end,unit,dep,m_nomor,store,area) {
 			) as jam_set_pic,
 			f.m_kode as kode,
 			f.m_status_pic,
-			j.m_nama as pic
+      i.m_nama as pic_name,
+      a.m_kota,
+      i.m_nomor as task_id,
+      j.m_rating,
+      j.m_review,
+      j.m_kode_review
 			from t_task_new a
 			join dbhrd.dbo.mskaryawan b on a.m_requestby = b.m_nik
 			join dbhrd.dbo.msdepartemen c on b.m_departemen = c.m_iddept
@@ -1078,8 +1140,12 @@ async function getExportFollowUpPIC(start,end,unit,dep,m_nomor,store,area) {
 			join mskategorisupport g on f.m_kodekategori = g.m_kodekategori 
 			join mssubkategorisupport h on f.m_kodesub = h.m_kodesub 
 			join t_task_pic_detail i on f.m_kode = i.m_nomor 
-			join dbhrd.dbo.mskaryawan j on i.m_pic = j.m_nik	
-			where (a.m_tanggal between '${start}' and '${end}' ) and a.m_kodeunit = '02'`
+			 
+      join (select z.*,bs.m_nama from t_task_pic_detail z
+        join dbhrd.dbo.mskaryawan bs on z.m_pic = bs.m_nik	) i on i.m_nomor = f.m_kode
+      join (select v.*,bx.m_nama from t_task_review v
+        join dbhrd.dbo.mskaryawan bx on v.m_review_user = bx.m_nik	) j on j.m_kode_task = f.m_kode
+			where (convert(varchar(10),a.m_tanggal,103) between '${moment(start).format('DD/MM/YYYY')}' and '${moment(end).format('DD/MM/YYYY')}' ) and a.m_kodeunit = '02'`
       }
       else{
         query = `select 
@@ -1116,7 +1182,13 @@ async function getExportFollowUpPIC(start,end,unit,dep,m_nomor,store,area) {
 		103
 		) as tanggal_set_pic,
 		f.m_kode as kode,
-		f.m_status_pic 
+		f.m_status_pic,
+    i.m_nama as pic_name,
+    a.m_kota,
+    i.m_nomor as task_id,
+    j.m_rating,
+    j.m_review,
+    j.m_kode_review 
 		from t_task_new a  
 		join dbhrd.dbo.mskaryawan b on a.m_requestby = b.m_nik
 		join dbhrd.dbo.msdepartemen c on b.m_departemen = c.m_iddept
@@ -1125,7 +1197,11 @@ async function getExportFollowUpPIC(start,end,unit,dep,m_nomor,store,area) {
 		join t_task_pic_new f on a.m_nomor = f.m_nomor
 		join mskategorisupport g on f.m_kodekategori = g.m_kodekategori
     join mssubkategorisupport h on f.m_kodesub = h.m_kodesub 
-		where (a.m_tanggal between '${start}' and '${end}' )`
+    join (select z.*,bs.m_nama from t_task_pic_detail z
+      join dbhrd.dbo.mskaryawan bs on z.m_pic = bs.m_nik	) i on i.m_nomor = f.m_kode
+    join (select v.*,bx.m_nama from t_task_review v
+      join dbhrd.dbo.mskaryawan bx on v.m_review_user = bx.m_nik	) j on j.m_kode_task = f.m_kode
+		where (convert(varchar(10),a.m_tanggal,103) between '${moment(start).format('DD/MM/YYYY')}' and '${moment(end).format('DD/MM/YYYY')}' )`
       }
       if (( dep !== '' ) )
 	{ 	query= query+` and case when (a.m_divisi IS 
@@ -1145,7 +1221,48 @@ async function getExportFollowUpPIC(start,end,unit,dep,m_nomor,store,area) {
   try{
       let pool = await sql.connect(configTICKET);
       let data = await pool.request().query(query);
-      return  {data:data?.recordsets[0]};
+      let array = [];
+      let dats = data.recordsets[0]
+      let tmp_pic = ''
+      dats.map((d,i)=>{
+        idx = array.findIndex(v => v.task_id == d?.task_id)
+        if(idx>=0){
+          tmp_pic = array[idx]['pic_name']
+          array[idx]['pic_name'] = tmp_pic+','+d?.pic_name
+          tmp_pic = ''
+        }
+        else{
+       
+        array.push({
+          no:i+1,
+          nomor_ticket:d?.nomor_ticket==='null'||d?.nomor_ticket===null||d?.nomor_ticket===''?'-':d?.nomor_ticket,
+          tanggal_ticket:d?.tanggal_ticket==='null'||d?.tanggal_ticket===null||d?.tanggal_ticket===''?'-':d?.tanggal_ticket,
+          divisi: d?.divisi==='null'||d?.divisi===null||d?.divisi===''?'-':d?.divisi,
+          departemen:d?.departemen==='null'||d?.departemen===null||d?.departemen===''?'-':d?.departemen,
+          nama: d?.nama==='null'||d?.nama===null||d?.nama===''?'-':d?.nama,
+          unit_support: d?.unit_support==='null'|| d?.unit_support===null||d?.unit_support===''?'-':d?.unit_support,
+          lokasi: d?.lokasi==='null'||d?.lokasi===null||d?.lokasi===''?'-':d?.lokasi,
+          kode_toko: d?.kode_toko==='null'||d?.kode_toko===null||d?.kode_toko===''?'-':d?.kode_toko,
+          kategori: d?.kategori==='null'||d?.kategori===null||d?.kategori===''?'-':d?.kategori,
+          subkategori: d?.subkategori==='null'||d?.subkategori===null||d?.subkategori===''?'-':d?.subkategori,
+          quantity: d?.quantity==='null'||d?.quantity===null||d?.quantity===''?'-':d?.quantity,
+          tanggal_set_pic: d?.tanggal_set_pic==='null'||d?.tanggal_set_pic===null||d?.tanggal_set_pic===''?'-':d?.tanggal_set_pic,
+          tanggal_response: d?.tanggal_response==='null'||d?.tanggal_response===null||d?.tanggal_response===''?'-':d?.tanggal_response,
+          tanggal_selesai: d?.tanggal_selesai==='null'||d?.tanggal_selesai===null||d?.tanggal_selesai===''?'-':d?.tanggal_selesai,
+          tanggal_approve: d?.tanggal_approve==='null'||d?.tanggal_approve===null||d?.tanggal_approve===''?'-':d?.tanggal_approve,
+          m_status_pic: d?.m_status_pic==='null'||d?.m_status_pic===null||d?.m_status_pic===''?'-':d?.m_status_pic,
+          kota : d?.m_kota==='null'||d?.m_kota===null||d?.m_kota===''?'-':d?.m_kota==='undefined'?'JAKARTA':d?.m_kota,
+          no_fpp: d?.no_fpp==='null'||d?.no_fpp===null||d?.no_fpp===''?'-':d?.no_fpp,
+          pic_name: d?.pic_name==='null'||d?.pic_name===null||d?.pic_name===''?'-':d?.pic_name,
+          task_id: d?.task_id==='null'||d?.task_id===null||d?.pic_name===''?'-':d?.task_id,
+          rating:d?.m_rating==='null'||d?.m_rating===null||d?.m_rating===''?'-':d?.m_rating,
+          ket_rating:d?.m_review==='null'||d?.m_review===null||d?.m_review===''?'-':d?.m_review
+          // kode: d?.kode===null||d?.kode===''?'-':d?.kode,
+         })
+        }
+      })
+      
+      return  {data:array};
   }catch(error){
       console.log({error})
   }
