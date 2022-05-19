@@ -2028,12 +2028,13 @@ router.route('/insert-image-visit-sq').post(uploadVisitSq.single('image'),(reque
   let id = request.body?.id
   let old = request.body?.old
   let insert = ''
-  let foto_name = `${moment(new Date()).format('YYYY-MM-DD-HH-mm-ss')}_${id}.jpg`
+  let foto_name = request.body?.foto_name!=''?request.body?.foto_name:`${moment(new Date()).format('YYYY-MM-DD-HH-mm-ss')}_${id}.jpg`
   const image =  request.file;
+  
   if(old===''){
     insert = foto_name
   }else{
-    insert = old+','+foto_name
+    insert =request.body?.foto_name!=''?old:old+','+foto_name
   }
   
   fs.rename('./uploads/visit-sq/'+image?.filename, `./uploads/visit-sq/${foto_name}`, function(err) {
