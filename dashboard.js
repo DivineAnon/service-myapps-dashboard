@@ -4218,11 +4218,14 @@ async function deleteVisitSq(id
   let query2 = `
     delete  t_jawaban_visit where id_visit = '${id}'
   ` 
-
+  let query3 = `
+  delete  t_note_to_pusat_kuesioner where id_visit = '${id}'
+` 
   try{
       let pool = await sql.connect(configTICKET);
       let data = await pool.request().query(query1); 
       let data2 = await pool.request().query(query2); 
+      let data3 = await pool.request().query(query3); 
       return  {data:data.recordsets[0]};
   }catch(error){
       console.log({error})
