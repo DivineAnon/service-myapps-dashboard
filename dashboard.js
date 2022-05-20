@@ -4209,8 +4209,28 @@ async function sendEmailKompetensiLegalitas(
       console.log({error})
   }
 }
+
+async function deleteVisitSq(id 
+  ) {
+  let query1 = `
+    delete  t_visit_sq2 where id = '${id}'
+  ` 
+  let query2 = `
+    delete  t_jawaban_visit where id_visit = '${id}'
+  ` 
+
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query1); 
+      let data2 = await pool.request().query(query2); 
+      return  {data:data.recordsets[0]};
+  }catch(error){
+      console.log({error})
+  }
+}
 module.exports = { 
     notificationDetailEntryRequest,
+    deleteVisitSq,
     notification,
     deleteFollowUp,
     insertFotoFollowUp,

@@ -853,6 +853,26 @@ router.route('/update-kategori-legalitas').post((request, response) => {
 
   }
 })
+router.route('/delete-visit-sq').post((request, response) => {
+  let token = request.headers.authorization 
+  let id = request.body?.id
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.deleteVisitSq(id).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
 router.route('/get-kategori-legalitas').post((request, response) => {
   let token = request.headers.authorization 
   let page = request.body?.page
