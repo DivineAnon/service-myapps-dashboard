@@ -2489,7 +2489,7 @@ async function addVisitSq(
   '${user}',
   '${store}',
   '',
-  'UNCOMPLEATE',
+  'UNCOMPLETE',
   '${tim_sq}',
   
   '${jr}',
