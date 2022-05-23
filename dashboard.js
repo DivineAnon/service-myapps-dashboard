@@ -2745,20 +2745,33 @@ async function getDataVisitDetail(
   // where a.id = '${id}'
 
   // ` 
-  let query = `
-  select d.*,(e.brand+ ' - ' +e.mall) as m_nama,f.m_nama as jr_nama from t_visit_sq2 d
+//   let query = `
+//   select d.*,(e.brand+ ' - ' +e.mall) as m_nama,f.m_nama as jr_nama from t_visit_sq2 d
+// join (SELECT a.m_kode as m_kode, b.m_nama as brand, c.m_nama as mall FROM dbcmk.dbo.msstore_new a
+// 		join dbcmk.dbo.msmaster b on a.m_brand = b.m_kode
+// 		join dbcmk.dbo.msmaster c on a.m_mall = c.m_kode
+// 		WHERE 
+// 		b.m_type = 'BRAND' AND c.m_type = 'MALL')
+
+// e on e.m_kode COLLATE DATABASE_DEFAULT = d.store COLLATE DATABASE_DEFAULT
+// join dbhrd.dbo.mskaryawan f on f.m_nik = d.jr 
+//  where d.id = '${id}'
+
+//   ` 
+let query = `
+select d.*,(e.brand+ ' - ' +e.mall) as m_nama,f.m_nama as jr_nama from t_visit_sq2 d
 join (SELECT a.m_kode as m_kode, b.m_nama as brand, c.m_nama as mall FROM dbcmk.dbo.msstore_new a
-		join dbcmk.dbo.msmaster b on a.m_brand = b.m_kode
-		join dbcmk.dbo.msmaster c on a.m_mall = c.m_kode
-		WHERE 
-		b.m_type = 'BRAND' AND c.m_type = 'MALL')
+ 
+  join (select* from dbcmk.dbo.msmaster where m_type = 'BRAND' ) b on a.m_brand = b.m_kode
+  join (select* from dbcmk.dbo.msmaster where m_type = 'MALL') c on a.m_mall = c.m_kode
+  WHERE 
+  b.m_type = 'BRAND' AND c.m_type = 'MALL')
 
 e on e.m_kode COLLATE DATABASE_DEFAULT = d.store COLLATE DATABASE_DEFAULT
 join dbhrd.dbo.mskaryawan f on f.m_nik = d.jr 
- where d.id = '${id}'
+where d.id = '${id}'
 
-  ` 
- 
+` 
   try{
       let pool = await sql.connect(configTICKET);
       let data = await pool.request().query(query);
@@ -3016,11 +3029,22 @@ async function lineChartDataSQVisit(
   if(location!==''){
     query2 = query2+` and d.m_kode = '${location}'`
   }
+  // let query3 =`
+  // select a.id,SUM(b.bobot) as value, a.created_at as label from t_visit_sq2 a
+  // join t_history_visit b on b.id_visit = a.id
+  //  join dbcmk.dbo.msstore_new c on c.m_kode COLLATE DATABASE_DEFAULT = a.store COLLATE DATABASE_DEFAULT
+  // where b.m_jawaban = 'true'
+  // and a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
+  // `
   let query3 =`
-  select a.id,SUM(b.bobot) as value, a.created_at as label from t_visit_sq2 a
-  join t_history_visit b on b.id_visit = a.id
+  select a.id,SUM(b.bobot) as value, a.created_at as label 
+   ,( d.m_nama+ ' - ' + e.m_nama) as m_nama
+   from t_visit_sq2 a
+   join t_history_visit b on b.id_visit = a.id
    join dbcmk.dbo.msstore_new c on c.m_kode COLLATE DATABASE_DEFAULT = a.store COLLATE DATABASE_DEFAULT
-  where b.m_jawaban = 'true'
+   join (select* from dbcmk.dbo.msmaster where m_type = 'BRAND' ) d on c.m_brand  = d.m_kode 
+   join (select* from dbcmk.dbo.msmaster where m_type = 'MALL') e on c.m_mall = e.m_kode
+   where b.m_jawaban = 'true'    
   and a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
   `
   if(brand!==''){
@@ -3030,7 +3054,7 @@ async function lineChartDataSQVisit(
     query3 = query3+` and c.m_kode = '${location}'`
   }
   query3 =query3+` 
-  group by  a.id,a.created_at order by a.created_at asc
+  group by  a.id,a.created_at,d.m_nama,e.m_nama order by a.created_at asc
   `
   try{
       let pool = await sql.connect(configTICKET);
@@ -3073,7 +3097,9 @@ async function lineChartDataSQVisit(
       })
       dats3?.map((d)=>{
         array3?.push({ 
-          id:d?.id,value:d?.value,label:d?.label
+          id:d?.id,
+          value:d?.value,
+          label:d?.m_nama +' '+ moment(d?.label).format('DD/MM')
         })
       })
       return  {
