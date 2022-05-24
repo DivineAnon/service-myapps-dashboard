@@ -3146,14 +3146,24 @@ async function detailBarCharSQ(
   ) {
     let last = limit*page
     let first = last - (limit-1)
+    
+  //   select ROW_NUMBER() OVER 
+  //       (ORDER BY a.created_at desc) as row,a.m_note,a.m_tanggapan,a.created_at,b.m_name,c.type,e.m_nama as store from t_note_to_pusat_kuesioner a
+  // left join t_kategori_kuesioner2 b on a.kategori = b.id
+  // left join t_visit_sq2 c on a.id_visit = c.id
+  // left join dbcmk.dbo.msstore_new d on d.m_kode COLLATE DATABASE_DEFAULT = c.store COLLATE DATABASE_DEFAULT
+  // left join dbcmk.dbo.msmaster e on e.m_kode COLLATE DATABASE_DEFAULT = d.m_mall COLLATE DATABASE_DEFAULT
   let query = `
   select * from (
+    
     select ROW_NUMBER() OVER 
-        (ORDER BY a.created_at desc) as row,a.m_note,a.m_tanggapan,a.created_at,b.m_name,c.type,e.m_nama as store from t_note_to_pusat_kuesioner a
-  left join t_kategori_kuesioner2 b on a.kategori = b.id
-  left join t_visit_sq2 c on a.id_visit = c.id
-  left join dbcmk.dbo.msstore_new d on d.m_kode COLLATE DATABASE_DEFAULT = c.store COLLATE DATABASE_DEFAULT
-  left join dbcmk.dbo.msmaster e on e.m_kode COLLATE DATABASE_DEFAULT = d.m_mall COLLATE DATABASE_DEFAULT
+    (ORDER BY a.created_at desc) as row,a.id,a.m_note,a.m_tanggapan,a.created_at,b.m_name,c.type,
+    e.m_nama as store,d.m_city from t_note_to_pusat_kuesioner a
+left join t_kategori_kuesioner2 b on a.kategori = b.id
+left join t_visit_sq2 c on a.id_visit = c.id
+left join dbcmk.dbo.msstore_new d on d.m_kode COLLATE DATABASE_DEFAULT = c.store COLLATE DATABASE_DEFAULT
+left join (select * from dbcmk.dbo.msmaster where m_type='MALL') e on e.m_kode COLLATE DATABASE_DEFAULT = d.m_mall COLLATE DATABASE_DEFAULT
+
   where b.m_name = '${nama}'
   and a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
   ) awek`
