@@ -2379,7 +2379,7 @@ router.route('/set-task-progress').post((request, response) => {
   
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.insertEntrySetStatusTask(id,status,decoded?.data[0]?.loginid,).then((data) => {
+    dashboard.insertEntrySetStatusTask(id,status,decoded?.data[0]?.loginid).then((data) => {
       response.json({status:'Succsess',message:'Succsess fetch data',data});
     })
   } catch(err) {

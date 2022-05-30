@@ -1957,6 +1957,7 @@ async function listAddQuestionsSq(
     let last = limit*page
     let first = last - (limit-1)
     let src =false
+    let src1 =false
   let query = `
   select*from(
     select ROW_NUMBER() OVER 
@@ -1990,14 +1991,14 @@ async function listAddQuestionsSq(
     `
     if(search1 !==''){
       query1 = query1 + ` where a.m_pernyataan like '%${search1}%' `
-      src = true
+      src1 = true
     }
     if(search2 !==''){
-      query1 = query1 + ` ${src?'and':'where'} a.m_feedback like '%${search2}%' `
-      src = true
+      query1 = query1 + ` ${src1?'and':'where'} a.m_feedback like '%${search2}%' `
+      src1 = true
     }
     if(type !==''){
-      query1 = query1 + ` ${src?'and':'where'} a.id_type = ${type} `
+      query1 = query1 + ` ${src1?'and':'where'} a.id_type = ${type} `
     
     }
     query1 = query1+`  
@@ -2009,7 +2010,7 @@ async function listAddQuestionsSq(
       
       return  {
         data:data?.recordsets[0],
-        
+        // query1,
         tot:tot.recordsets[0][0]['tot']
         // query,page,limit,search1,search2,type
       };
