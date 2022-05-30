@@ -3159,12 +3159,12 @@ async function detailBarCharSQ(
     
     select ROW_NUMBER() OVER 
     (ORDER BY a.created_at desc) as row,a.id,a.m_note,a.m_tanggapan,a.created_at,b.m_name,c.type,
-    e.m_nama as store,d.m_city from t_note_to_pusat_kuesioner a
-left join t_kategori_kuesioner2 b on a.kategori = b.id
-left join t_visit_sq2 c on a.id_visit = c.id
-left join dbcmk.dbo.msstore_new d on d.m_kode COLLATE DATABASE_DEFAULT = c.store COLLATE DATABASE_DEFAULT
-left join (select * from dbcmk.dbo.msmaster where m_type='MALL') e on e.m_kode COLLATE DATABASE_DEFAULT = d.m_mall COLLATE DATABASE_DEFAULT
-
+    e.m_nama as store,d.m_city,f.m_nama as brand from t_note_to_pusat_kuesioner a
+    left join t_kategori_kuesioner2 b on a.kategori = b.id
+    left join t_visit_sq2 c on a.id_visit = c.id
+    left join dbcmk.dbo.msstore_new d on d.m_kode COLLATE DATABASE_DEFAULT = c.store COLLATE DATABASE_DEFAULT
+    left join (select * from dbcmk.dbo.msmaster where m_type='MALL') e on e.m_kode COLLATE DATABASE_DEFAULT = d.m_mall COLLATE DATABASE_DEFAULT
+    left join (select * from dbcmk.dbo.msmaster where m_type='BRAND') f on f.m_kode COLLATE DATABASE_DEFAULT = d.m_brand COLLATE DATABASE_DEFAULT
   where b.m_name = '${nama}'
   and a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
   ) awek`
@@ -3522,16 +3522,80 @@ async function insertBudget(
   }
 }
 async function notification(token) {
-  query = `SELECT COUNT(*) as jumlah, m_nomor,
-  DATEDIFF(dd, m_tgl_pekerjaan, GETDATE()) as bedahari
-  from t_task_pic_new
-  where (m_status_pic != 'SETPIC' AND m_status_pic != 'DOING' and m_status_pic != 'DONE' and m_status_pic != 'APPROVE')
-  GROUP by DATEDIFF(dd, m_tgl_pekerjaan, GETDATE()), m_nomor`
-  let query1 = `SELECT COUNT(*) as jumlah, m_nomor,
-  DATEDIFF(dd, m_start_pic, GETDATE()) as bedahari
-from t_task_pic_new
-where (m_status_pic != 'DOING' and m_status_pic != 'DONE' and m_status_pic != 'APPROVE') AND (m_start_pic IS NOT NULL OR m_start_pic != '1900-01-01 00:00:00')
-GROUP by m_nomor, DATEDIFF(dd, m_start_pic, GETDATE())`
+//   let query = `SELECT COUNT(*) as jumlah, m_nomor,
+//   DATEDIFF(dd, m_tgl_pekerjaan, GETDATE()) as bedahari
+//   from t_task_pic_new
+//   where (m_status_pic != 'SETPIC' AND m_status_pic != 'DOING' and m_status_pic != 'DONE' and m_status_pic != 'APPROVE')
+//   GROUP by DATEDIFF(dd, m_tgl_pekerjaan, GETDATE()), m_nomor`
+//   let query1 = `SELECT COUNT(*) as jumlah, m_nomor,
+//   DATEDIFF(dd, m_start_pic, GETDATE()) as bedahari
+// from t_task_pic_new
+// where (m_status_pic != 'DOING' and m_status_pic != 'DONE' and m_status_pic != 'APPROVE') AND (m_start_pic IS NOT NULL OR m_start_pic != '1900-01-01 00:00:00')
+// GROUP by m_nomor, DATEDIFF(dd, m_start_pic, GETDATE())`
+let queryBusdevDoing = `
+SELECT COUNT(*) as jumlah, a.m_nomor,
+DATEDIFF(dd, a.m_start_pic, GETDATE()) as bedahari
+from t_task_pic_new a
+left join t_task_new b on a.m_nomor = b.m_nomor
+where (a.m_status_pic != 'DOING' and a.m_status_pic != 'DONE' and a.m_status_pic != 'APPROVE') AND (a.m_start_pic IS NOT NULL OR a.m_start_pic != '1900-01-01 00:00:00')
+and b.m_kodeunit = '02'
+GROUP by a.m_nomor, DATEDIFF(dd, a.m_start_pic, GETDATE())
+`
+let queryBusdevPic = `
+SELECT COUNT(*) as jumlah, a.m_nomor,
+  DATEDIFF(dd, a.m_tgl_pekerjaan, GETDATE()) as bedahari
+  from t_task_pic_new a
+  left join t_task_new b on a.m_nomor = b.m_nomor 
+  where (a.m_status_pic != 'SETPIC' AND a.m_status_pic != 'DOING' and a.m_status_pic != 'DONE' and a.m_status_pic != 'APPROVE')
+  and b.m_kodeunit = '02'
+  GROUP by DATEDIFF(dd, a.m_tgl_pekerjaan, GETDATE()), a.m_nomor
+`
+let queryHCMPic = `
+SELECT COUNT(*) as jumlah, a.m_nomor,
+DATEDIFF(dd, a.m_tgl_pekerjaan, GETDATE()) as bedahari
+from t_task_pic_new a
+left join t_task_new b on b.m_nomor = a.m_nomor
+where (a.m_status_pic != 'SETPIC' AND a.m_status_pic != 'DOING' and a.m_status_pic != 'DONE' and a.m_status_pic != 'APPROVE')
+AND b.m_kodeunit = '03'
+GROUP by DATEDIFF(dd, a.m_tgl_pekerjaan, GETDATE()) , a.m_nomor
+`
+let queryITPic = `
+SELECT COUNT(*) as jumlah, a.m_nomor,
+DATEDIFF(dd, a.m_tgl_pekerjaan, GETDATE()) as bedahari
+from t_task_pic_new a
+left join t_task_new b on b.m_nomor = a.m_nomor
+where (a.m_status_pic != 'SETPIC' AND a.m_status_pic != 'DOING' and a.m_status_pic != 'DONE' and a.m_status_pic != 'APPROVE')
+AND (b.m_kodeunit = '07' OR b.m_kodeunit = '04')
+GROUP by DATEDIFF(dd, a.m_tgl_pekerjaan, GETDATE()) , a.m_nomor
+`
+
+let queryIAPic = `
+SELECT COUNT(*) as jumlah, a.m_nomor,
+DATEDIFF(dd, a.m_tgl_pekerjaan, GETDATE()) as bedahari
+from t_task_pic_new a
+left join t_task_new b on b.m_nomor = a.m_nomor
+where (a.m_status_pic != 'SETPIC' AND a.m_status_pic != 'DOING' and a.m_status_pic != 'DONE' and a.m_status_pic != 'APPROVE')
+AND b.m_kodeunit = '05'
+GROUP by DATEDIFF(dd, a.m_tgl_pekerjaan, GETDATE()) , a.m_nomor
+`
+let queryQMSPic = `
+SELECT COUNT(*) as jumlah, a.m_nomor,
+DATEDIFF(dd, a.m_tgl_pekerjaan, GETDATE()) as bedahari
+from t_task_pic_new a
+left join t_task_new b on b.m_nomor = a.m_nomor
+where (a.m_status_pic != 'SETPIC' AND a.m_status_pic != 'DOING' and a.m_status_pic != 'DONE' and a.m_status_pic != 'APPROVE')
+AND b.m_kodeunit = '06'
+GROUP by DATEDIFF(dd, a.m_tgl_pekerjaan, GETDATE()) , a.m_nomor
+`
+let queryHRRPic = `
+SELECT COUNT(*) as jumlah, a.m_nomor,
+DATEDIFF(dd, a.m_tgl_pekerjaan, GETDATE()) as bedahari
+from t_task_pic_new a
+left join t_task_new b on b.m_nomor = a.m_nomor
+where (a.m_status_pic != 'SETPIC' AND a.m_status_pic != 'DOING' and a.m_status_pic != 'DONE' and a.m_status_pic != 'APPROVE')
+AND b.m_kodeunit = '08'
+GROUP by DATEDIFF(dd, a.m_tgl_pekerjaan, GETDATE()) , a.m_nomor
+`
   try{
       let pool = await sql.connect(configTICKET);
       // let reset = await pool.request().query(`exec sp_notif '${userlogin}' `);
@@ -3539,19 +3603,38 @@ GROUP by m_nomor, DATEDIFF(dd, m_start_pic, GETDATE())`
      `${axs.BASE_LOGIN}/notification-portal`, {
       
      },token)
-     let dataQuery = await pool.request().query(query);
-     let dataQuery1 = await pool.request().query(query1); 
-     let notif1 = res?.data?.data
-     let notif2 = dataQuery.recordsets[0]
-     let notif3 = dataQuery1.recordsets[0]
+     let dataQueryBusdevDoing = await pool.request().query(queryBusdevDoing);
+     let dataQueryBusdevPic = await pool.request().query(queryBusdevPic);
+     let dataQueryHCMvPic = await pool.request().query(queryHCMPic);
+     let dataQueryITPic = await pool.request().query(queryITPic);
+     let dataQueryIAPic = await pool.request().query(queryIAPic);
+     let dataQueryQMSPic = await pool.request().query(queryQMSPic);
+     let dataQueryHRRPic = await pool.request().query(queryHRRPic);
+    //  let dataQuery = await pool.request().query(query);
+    //  let dataQuery1 = await pool.request().query(query1); 
+    //  let notif1 = res?.data?.data
+     let notifPortal = res?.data?.data
+    //  let notif2 = dataQuery.recordsets[0]
+    //  let notif3 = dataQuery1.recordsets[0]
+    
+    return  {
+      notifPortal,
+      notifBusdevDoing:dataQueryBusdevDoing?.recordsets[0],
+      notifBusdevPic:dataQueryBusdevPic?.recordsets[0],
+      notifHMCPic:dataQueryHCMvPic?.recordsets[0],
+      notifITPic:dataQueryITPic?.recordsets[0],
+      notifIAPic:dataQueryIAPic?.recordsets[0],
+      notifQMSPic:dataQueryQMSPic?.recordsets[0],
+      notifHRRPic:dataQueryHRRPic?.recordsets[0]
 
-      return  {notif1,notif2,notif3};
+    };
+      // return  {notif1,notif2,notif3};
   }catch(error){
       console.log(error);
   }
 }
 async function notificationDetailEntryRequest(kode) {
-  query = `select m_nomor as nomor, convert(
+  let query = `select m_nomor as nomor, convert(
       varchar(10), 
       m_tgl_pekerjaan, 
       105
