@@ -226,6 +226,29 @@ router.route('/send-email-sq-visit').post((request, response) => {
 
   }
 })
+router.route('/send-email-sq-call').post((request, response) => {
+  let token = request.headers.authorization 
+  let email = request.body?.email
+  
+  let datas = request.body?.data
+  let visit = request.body?.visit
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.sendEmailApprovedSQCall(email,datas,visit).then((data) => {
+      response.json({status:'Succsess',message:'Succsess fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
 router.route('/notification').post((request, response) => {
   let token = request.headers.authorization 
  

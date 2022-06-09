@@ -3408,7 +3408,119 @@ async function sendEmailApprovedSQVisit(
       console.log({error})
   }
 }
+async function sendEmailApprovedSQCall( 
+  email,data,visit
+  ) {
+    // @recipients='rafi.assidiq@centralmegakencana.com',
+    let images = visit?.data?.image_visit?.split(',')
+    let html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+      <style>
+      table {
+        font-family: arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+      }
 
+      td, th {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 8px;
+      }
+
+      
+      </style>
+      </head>
+      <body>
+
+      <h2>Visit store report ${visit?.data?.m_nama}</h2>
+      <small>${visit?.data?.created_at.split('T')[0]}</small>
+      <br/>
+      <br/>
+      <p>Penerima : ${visit?.data?.jr_nama}</p>`
+      html = html+  `
+      <div style="display: flex;flex-direction: row;">
+      <p>Penelepon : ${JSON.parse(visit?.data?.tim_sq)[0]?.label}</p> 
+     
+      `
+      // JSON.parse(visit?.data?.tim_sq).map((d)=>{
+      //   html = html+  `
+      //   <li>
+      //     ${d.label}
+      //   </li>
+      //   `
+      // })
+     
+      html = html+  `
+      
+      </div>
+      `
+     
+      // for(let i;images.length>i;i++){
+        // html = html+ `<img src="https://api-dbticket.cmk.co.id/uploads/visit-sq/${images[0]}" alt="Girl in a jacket" width="300" height="300">`
+      // }
+      
+      html = html+`<h2 style="margin-top:10px">Current issues</h2>
+
+      <table>
+        <tr>
+           
+          <th>Keterangan</th>
+          <th>Tanggapan</th>
+          <th>Kategori</th>
+           
+        </tr>`
+        
+         
+          data?.map((d,j)=>{
+            
+            html = html+   ` <tr>
+               
+              <td >${d?.m_note}  </td>
+              
+              <td>
+              ${d?.m_tanggapan}
+              </td>
+              <td>
+              ${d?.kategori?.label}
+              </td>
+            </tr>`
+          })
+       
+     html = html+`   
+      </table>
+      `  
+     
+      html=html+`  
+      </body>
+    </html>
+
+
+    `
+  let query = `
+  EXEC msdb.dbo.sp_send_dbmail 
+			@profile_name='sysadmin', 
+			@recipients='${email}',
+			@subject='Call store report', 
+			@body= '${html}',
+			@body_format = 'HTML'
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let datas = await pool.request().query(query);
+     
+      
+      return  {
+        data:datas?.recordsets[0]
+        
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
 async function listBudget( 
   page,limit,search
   ) {
@@ -4377,6 +4489,7 @@ module.exports = {
     insertBudget,
     listBudget,
     sendEmailApprovedSQVisit,
+    sendEmailApprovedSQCall,
     getReviesVisitExport,
     detailBarCharSQ,
     barCharKuesionerSQ,
