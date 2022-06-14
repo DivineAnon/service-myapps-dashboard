@@ -3435,7 +3435,7 @@ async function sendEmailApprovedSQCall(
       </head>
       <body>
 
-      <h2>Visit store report ${visit?.data?.m_nama}</h2>
+      <h2>Call store report ${visit?.data?.m_nama}</h2>
       <small>${visit?.data?.created_at.split('T')[0]}</small>
       <br/>
       <br/>
