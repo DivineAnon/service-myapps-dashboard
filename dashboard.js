@@ -3715,6 +3715,18 @@ GROUP by DATEDIFF(dd, a.m_tgl_pekerjaan, GETDATE()) , a.m_nomor
      `${axs.BASE_LOGIN}/notification-portal`, {
       
      },token)
+     let res2  = await axs.NET("POST", 
+     `${axs.BASE_BUDGET}/notif-approve-atasan`, {
+      
+     },token)
+     let res3  = await axs.NET("POST", 
+     `${axs.BASE_BUDGET}/notif-approve-pemilik`, {
+      
+     },token)
+     let res4  = await axs.NET("POST", 
+     `${axs.BASE_BUDGET}/notif-approve-kasir`, {
+      
+     },token)
      let dataQueryBusdevDoing = await pool.request().query(queryBusdevDoing);
      let dataQueryBusdevPic = await pool.request().query(queryBusdevPic);
      let dataQueryHCMvPic = await pool.request().query(queryHCMPic);
@@ -3726,11 +3738,17 @@ GROUP by DATEDIFF(dd, a.m_tgl_pekerjaan, GETDATE()) , a.m_nomor
     //  let dataQuery1 = await pool.request().query(query1); 
     //  let notif1 = res?.data?.data
      let notifPortal = res?.data?.data
+     let notifBudgetApprovalAtasan = res2?.data?.data?.data
+     let notifBudgetApprovalPemilik = res3?.data?.data?.data
+     let notifBudgetApprovalkasir = res4?.data?.data?.data
     //  let notif2 = dataQuery.recordsets[0]
     //  let notif3 = dataQuery1.recordsets[0]
     
     return  {
       notifPortal,
+      notifBudgetApprovalAtasan,
+      notifBudgetApprovalPemilik,
+      notifBudgetApprovalkasir,
       notifBusdevDoing:dataQueryBusdevDoing?.recordsets[0],
       notifBusdevPic:dataQueryBusdevPic?.recordsets[0],
       notifHMCPic:dataQueryHCMvPic?.recordsets[0],
