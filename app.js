@@ -2200,12 +2200,12 @@ router.route('/bar-char-sq').post((request, response) => {
   let token = request.headers.authorization 
   let start = request.body?.start
   let end = request.body?.end
- 
+  let status = request.body?.status
     
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.barCharKuesionerSQ(
-      start,end
+      start,end,status
     ).then((data) => {
       response.json({status:'Succsess',message:'Succsess save data',data});
     })

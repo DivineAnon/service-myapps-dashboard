@@ -3119,16 +3119,25 @@ async function lineChartDataSQVisit(
   }
 }
 async function barCharKuesionerSQ( 
-  start,end
+  start,end,status
   ) {
      
+  // let query = `
+  // select b.m_name as label,count(b.m_name) as value  from t_note_to_pusat_kuesioner a
+  // left join t_kategori_kuesioner2 b on b.id = a.kategori
+  // where a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
+  // group by b.m_name
+  // ` 
   let query = `
-  select b.m_name as label,count(b.m_name) as value  from t_note_to_pusat_kuesioner a
+  select b.m_name as label,count(b.m_name) as value  
+  from t_note_to_pusat_kuesioner a
   left join t_kategori_kuesioner2 b on b.id = a.kategori
+  left join t_visit_sq2 c on a.id_visit = c.id
   where a.created_at between '${start} 00:00:01' and '${end} 23:59:59'
+  and c.type LIKE '%${status}%'
   group by b.m_name
+
   ` 
- 
   try{
       let pool = await sql.connect(configTICKET);
       let data = await pool.request().query(query);
