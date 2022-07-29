@@ -4490,7 +4490,28 @@ async function deleteVisitSq(id
       console.log({error})
   }
 }
+async function changeFpp( 
+  id
+  ) {
+     
+  let query = `
+  update dbalat.dbo.t_reqpurch_app set 
+  m_nik = '220657'
+  where m_nomor = '${id}' and m_nik = '130408'
+  ` 
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+     
+      
+      return  {data:data?.recordsets[0] };
+  }catch(error){
+      console.log({error})
+  }
+}
 module.exports = { 
+    changeFpp,
     notificationDetailEntryRequest,
     deleteVisitSq,
     notification,

@@ -2417,6 +2417,26 @@ router.route('/set-task-progress').post((request, response) => {
 
   }
 })
+router.route('/change-fpp/:id').get((request, response) => {
+  let id = request.params.id
+  
+  try {
+    
+    dashboard.changeFpp(id).then((data) => {
+      response.json({status:'Succsess',message:'Succsess change '+id});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
 var  port = process.env.PORT || 9010;
 app.listen(port);
 console.log('Order API is runnning at ' + port);
