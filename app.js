@@ -2066,30 +2066,32 @@ router.route('/get-visit-detail/:id').get((request, response) => {
 })
 
  
-router.route('/insert-image-visit-sq').post(uploadVisitSq.single('image'),(request, response) => {
+router.route('/insert-image-visit-sq').post(
+  // uploadVisitSq.single('image'),
+  (request, response) => {
   let token = request.headers.authorization 
   let id = request.body?.id
   let old = request.body?.old
   let insert = ''
-  let foto_name = request.body?.foto_name!=''?request.body?.foto_name:`${moment(new Date()).format('YYYY-MM-DD-HH-mm-ss')}_${id}.jpg`
-  const image =  request.file;
+  let foto_name = request.body?.file
+  // const image =  request.file;
   
   if(old===''){
     insert = foto_name
   }else{
-    insert =request.body?.foto_name!=''?old:old+','+foto_name
+    insert =old+','+foto_name
   }
   
-  fs.rename('./uploads/visit-sq/'+image?.filename, `./uploads/visit-sq/${foto_name}`, function(err) {
-    if ( err ) console.log('ERROR: ' + err);
-  })
+  // fs.rename('./uploads/visit-sq/'+image?.filename, `./uploads/visit-sq/${foto_name}`, function(err) {
+  //   if ( err ) console.log('ERROR: ' + err);
+  // })
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
    
     dashboard.insertImageVisit(
       id,insert
       ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data ,insert });
+      response.json({status:'Succsess',message:'Succsess fetch data',data ,insert,foto_name });
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -2128,7 +2130,7 @@ router.route('/delete-upload-visit-sq').post((req, res) => {
 
   
   try {
-    fs.unlinkSync(name)
+    // fs.unlinkSync(name)
     dashboard.insertImageVisit(
       id,insert
       ).then((data) => {

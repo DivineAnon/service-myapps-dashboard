@@ -1962,7 +1962,7 @@ async function listAddQuestionsSq(
   select*from(
     select ROW_NUMBER() OVER 
           (ORDER BY a.id asc) as row
-        ,a.*,UPPER(b.m_nama) from t_kuesioner_visit  a
+        ,a.*,UPPER(b.m_nama) as m_nama from t_kuesioner_visit  a
         left join t_type_kuesioner b on a.id_type=b.id
     `
     if(search1 !==''){
@@ -1986,7 +1986,7 @@ async function listAddQuestionsSq(
   select count(*) as tot from(
     select ROW_NUMBER() OVER 
           (ORDER BY a.id asc) as row
-        ,a.*,UPPER(b.m_nama) from t_kuesioner_visit  a
+        ,a.*,UPPER(b.m_nama) as m_nama from t_kuesioner_visit  a
         left join t_type_kuesioner b on a.id_type=b.id
     `
     if(search1 !==''){
@@ -2010,7 +2010,7 @@ async function listAddQuestionsSq(
       
       return  {
         data:data?.recordsets[0],
-        // query1,
+        // query1,query
         tot:tot.recordsets[0][0]['tot']
         // query,page,limit,search1,search2,type
       };
@@ -2519,7 +2519,7 @@ async function setKuesioner(
   ) {
     
   let query = `
-  select a.id,a.id_type, a.m_pernyataan,a.m_feedback,a.bobot,UPPER(b.m_nama) from t_kuesioner_visit a
+  select a.id,a.id_type, a.m_pernyataan,a.m_feedback,a.bobot,UPPER(b.m_nama) as m_nama from t_kuesioner_visit a
   left join t_type_kuesioner b on a.id_type = b.id
   where a.enable = 'true'
   order by a.id asc
@@ -2999,7 +2999,7 @@ async function lineChartDataSQVisit(
     query = query+` and d.m_kode = '${location}'`
   }
   let query1 =`
-  select SUM(a.bobot) as bobot,a.id_type,c.created_at,UPPER(b.m_nama) 
+  select SUM(a.bobot) as bobot,a.id_type,c.created_at,UPPER(b.m_nama) as m_nama
   from t_history_visit a
   left join t_type_kuesioner b on b.id = a.id_type 
   left join t_visit_sq2 c on a.id_visit=c.id
