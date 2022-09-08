@@ -92,7 +92,7 @@ router.route('/todo-list').get((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.getDataToDoList(decoded?.data[0]?.loginid).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -113,7 +113,7 @@ router.route('/todo-list-monitoring').get((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.getMonitoring(decoded?.data[0]?.loginid).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     
@@ -143,7 +143,7 @@ router.route('/follow-up').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.getFollow( st,start,end,lokasi,city,unit,search,limit,page).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -164,7 +164,7 @@ router.route('/finish-follow-up').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.getSelesaiFollowUp( m_number).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -189,7 +189,7 @@ router.route('/get-list-question-sq').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.listAddQuestionsSq( page,limit,search1,search2,type).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -212,7 +212,7 @@ router.route('/send-email-sq-visit').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.sendEmailApprovedSQVisit(email,type,datas,visit).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -235,7 +235,7 @@ router.route('/send-email-sq-call').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.sendEmailApprovedSQCall(email,datas,visit).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -255,7 +255,7 @@ router.route('/notification').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.notification(token).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -275,7 +275,7 @@ router.route('/notification-detail').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.notificationDetailEntryRequest(kode).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -299,7 +299,7 @@ router.route('/add-question-sq').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.AddQuestionSq(id_type,pernyataan,feedback,bobot).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -324,7 +324,7 @@ router.route('/update-question-sq').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.updateQuestionSq(id,id_type,pernyataan,feedback,bobot).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -346,7 +346,7 @@ router.route('/togel-kuesioner-sq').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.togelQuestionSq(id,st).then((data) => {
-      response.json({status:'Succsess',message:'Succsess change status',data});
+      response.json({status:'Success',message:'Success change status',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -367,7 +367,7 @@ router.route('/delete-question-sq').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.deleteQuestionSq(id).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -389,7 +389,7 @@ router.route('/get-list-type-sq').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.listAddTypeQuestionSq(page,limit,search).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -426,7 +426,7 @@ router.route('/add-type-sq').post(
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.addTypeQuestionSq(nama.toLowerCase(),color).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -465,7 +465,7 @@ router.route('/update-type-sq').post(
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.updateTypeQuestionSq(id,nama.toLowerCase(),color).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -486,7 +486,7 @@ router.route('/delete-type-sq').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.deleteTypeQuestionSq(id).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -508,7 +508,7 @@ router.route('/togel-type-sq').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.togelTypeQuestionSq(id,st).then((data) => {
-      response.json({status:'Succsess',message:'Succsess change status',data});
+      response.json({status:'Success',message:'Success change status',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -529,7 +529,7 @@ router.route('/select-type-sq').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.listSelectTypeQuestionSq(nama).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -551,7 +551,7 @@ router.route('/get-list-kategori-sq').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.listAddKategoriQuestionSq(page,limit,search).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -587,7 +587,7 @@ router.route('/add-kategori-sq').post(
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.addKategoriQuestionSq(nama.toLowerCase()).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -624,7 +624,7 @@ router.route('/update-kategori-sq').post(
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.updateKategoriQuestionSq(id,nama.toLowerCase()).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -645,7 +645,7 @@ router.route('/delete-kategori-sq').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.deleteKategoriQuestionSq(id).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -667,7 +667,7 @@ router.route('/togel-kategori-sq').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.togelKategoriQuestionSq(id,st).then((data) => {
-      response.json({status:'Succsess',message:'Succsess change status',data});
+      response.json({status:'Success',message:'Success change status',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -688,7 +688,7 @@ router.route('/select-kategori-sq').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.listSelectKategoriQuestionSq(nama).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -710,7 +710,7 @@ router.route('/set-pic').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.setPIC(id).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -734,7 +734,7 @@ router.route('/set-pic-detail').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.getSelesaiFollowUp(id,m_pic,shift).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -755,7 +755,7 @@ router.route('/taks-history').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.insertEntryRequesHistory( m_number).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -776,7 +776,7 @@ router.route('/taks-approve').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.approveTicketing(decoded?.data[0]?.loginid,id).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -797,7 +797,7 @@ router.route('/insert-budget').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.insertBudget(nik,decoded?.data[0]?.loginid,nominal).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -819,7 +819,7 @@ router.route('/get-budget').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.listBudget(page,limit,search).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -840,7 +840,7 @@ router.route('/insert-kategori-legalitas').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.insertKategoriLegalitas( nama,type).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -862,7 +862,7 @@ router.route('/update-kategori-legalitas').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.updateKategoriLegalitas(id,nama,type).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -882,7 +882,7 @@ router.route('/delete-visit-sq').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.deleteVisitSq(id).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -904,7 +904,7 @@ router.route('/get-kategori-legalitas').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.listKategoriLegalitas(page,limit,search).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -928,7 +928,7 @@ router.route('/select-kategori-legalitas').post((request, response) => {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.getKategoriLegalitas( nama,type
       ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -964,7 +964,7 @@ router.route('/insert-bangunan-penunjang-legalitas').post(uploadBangunanPenunjan
     dashboard.insertBangunanPenunjangLegalitas(nama,kategori,izin,
       penerbit,start,end,keterangan,pdf_name
       ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data });
+      response.json({status:'Success',message:'Success fetch data',data });
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -998,7 +998,7 @@ fs.rename('./uploads/entry-request/'+image?.filename, `./uploads/entry-request/$
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.insertFotoFollowUp(id,foto_name
       ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data });
+      response.json({status:'Success',message:'Success fetch data',data });
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1038,7 +1038,7 @@ try{
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.deleteFollowUp(id 
       ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data });
+      response.json({status:'Success',message:'Success fetch data',data });
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1087,7 +1087,7 @@ router.route('/update-bangunan-penunjang-legalitas').post(uploadBangunanPenunjan
     dashboard.updateBangunanPenunjangLegalitas( id,nama,kategori,izin,
       penerbit,start,end,keterangan,issend,pdf_name,a
       ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1112,7 +1112,7 @@ router.route('/get-bangunan-penunjang-legalitas').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.listBangunanPenunjangLegalitas(page,limit,search,type,kategori,status).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1145,7 +1145,7 @@ router.route('/insert-kompetensi-legalitas').post(uploadKompentensi.single('file
     dashboard.insertKompetensiLegalitas( nik,no_sertif,nama_sertif,
       penerbit,start,end,aspek,pdf_name
       ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1194,7 +1194,7 @@ router.route('/update-kompetensi-legalitas').post(uploadKompentensi.single('file
     dashboard.updateKompetensiLegalitas( id,nik,no_sertif,nama_sertif,
       penerbit,start,end,aspek,issend,pdf_name,a
       ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1217,7 +1217,7 @@ router.route('/get-kompetensi-legalitas').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.listKompetensiLegalitas(page,limit,search,status).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1238,7 +1238,7 @@ router.route('/detail-follow-up/:id').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.detailFollowUp(id).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1259,7 +1259,7 @@ router.route('/get-list-pic/:kode').get((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.searchPicName(kode).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1281,7 +1281,7 @@ router.route('/get-unit-filter').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.getListUnit().then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1303,7 +1303,7 @@ router.route('/check-stock-pic').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.checkStockTaskPIC(id,st).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1327,7 +1327,7 @@ router.route('/insert-scoring').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.insertScoring(decoded?.data[0]?.loginid,kode,nomor,m_rating,review).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1349,7 +1349,7 @@ router.route('/progress-ticketing/:no').get((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.getHistoryTiket(no).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1370,7 +1370,7 @@ router.route('/get-kategori-filter').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.getKategoriSupport(unit).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1391,7 +1391,7 @@ router.route('/get-subkategori-filter').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.getSubKategoriSupport(kategori).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1419,7 +1419,7 @@ router.route('/entry-request').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.getDataEntry(decoded?.data[0],start,end,dep,div,sub,st,unit,limit,page ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data,decoded:decoded?.data[0]});
+      response.json({status:'Success',message:'Success fetch data',data,decoded:decoded?.data[0]});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1446,7 +1446,7 @@ router.route('/export-follow-up').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.getExportFollowUp(start,end,unit,dep,m_nomor,store,area).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data });
+      response.json({status:'Success',message:'Success fetch data',data });
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1473,7 +1473,7 @@ router.route('/export-follow-up-pic').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.getExportFollowUpPIC(start,end,unit,dep,m_nomor,store,area).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data });
+      response.json({status:'Success',message:'Success fetch data',data });
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1496,7 +1496,7 @@ router.route('/generate-entry-request').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.getGenerateEntryRequest(unit).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data });
+      response.json({status:'Success',message:'Success fetch data',data });
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1519,7 +1519,7 @@ router.route('/detail-entry-request').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.detailEntryRequest(no).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data });
+      response.json({status:'Success',message:'Success fetch data',data });
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1544,15 +1544,15 @@ router.route('/test-upload').post( upload.single('image'),(req, res) => {
   fs.rename('./uploads/entry-request/'+image?.filename, './uploads/entry-request/'+'a.jpg', function(err) {
     if ( err ) console.log('ERROR: ' + err);
   })
-  res.json({status:'Succsess',message:'Succsess fetch data',image,data,img:image?.filename});
+  res.json({status:'Success',message:'Success fetch data',image,data,img:image?.filename});
 })
 router.route('/delete-upload').post((req, res) => {
   let name = './uploads/entry-request/'+req?.body?.name
   try {
     fs.unlinkSync(name)
-    res.json({status:'Succsess',message:'Succsess fetch data',name  });
+    res.json({status:'Success',message:'Success fetch data',name  });
   } catch(err) {
-    res.json({status:'Error',message:'Succsess fetch data',err,name  });
+    res.json({status:'Error',message:'Success fetch data',err,name  });
     
   }
   
@@ -1573,7 +1573,7 @@ router.route('/insert-entry-request').post((request, response) => {
  
     dashboard.insertEntryRequest(decoded?.data[0]?.loginid,no,unit,
       div,dep,store,city,lokasi).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data });
+      response.json({status:'Success',message:'Success fetch data',data });
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1610,7 +1610,7 @@ router.route('/insert-entry-request-list').post(upload.single('image'),(request,
     dashboard.insertEntryRequestList(id,
       kategori,subkategori,ket,foto_name,no,m_nomor,
       qty,fpp).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data  });
+      response.json({status:'Success',message:'Success fetch data',data  });
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1635,7 +1635,7 @@ router.route('/update-entry-request').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.updateEntryRequest(no,unit,m_kode,m_kode2,m_kota).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data });
+      response.json({status:'Success',message:'Success fetch data',data });
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1689,7 +1689,7 @@ router.route('/update-entry-request-list').post(upload.single('image'),(request,
       fpp,
       a
       ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data,image, a });
+      response.json({status:'Success',message:'Success fetch data',data,image, a });
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1709,11 +1709,11 @@ router.route('/delete-entry-request-list').post((req, res) => {
   try {
     fs.unlinkSync(name)
     dashboard.deleteEntryRequestList(id).then((data) => {
-      res.json({status:'Succsess',message:'Succsess fetch data',data });
+      res.json({status:'Success',message:'Success fetch data',data });
     })
     
   } catch(err) {
-    res.json({status:'Error',message:'Succsess fetch data',err,name  });
+    res.json({status:'Error',message:'Success fetch data',err,name  });
     
   }
   
@@ -1724,11 +1724,11 @@ router.route('/check-entry-request-list').post((req, res) => {
   try {
    
     dashboard.checkEntryRequestList(id).then((data) => {
-      res.json({status:'Succsess',message:'Succsess fetch data',data });
+      res.json({status:'Success',message:'Success fetch data',data });
     })
     
   } catch(err) {
-    res.json({status:'Error',message:'Succsess fetch data',err,name  });
+    res.json({status:'Error',message:'Success fetch data',err,name  });
     
   }
   
@@ -1739,11 +1739,11 @@ router.route('/generate-entry-request-list').post((req, res) => {
   try {
    
     dashboard.getGenerateEntryRequestList(id).then((data) => {
-      res.json({status:'Succsess',message:'Succsess fetch data',data });
+      res.json({status:'Success',message:'Success fetch data',data });
     })
     
   } catch(err) {
-    res.json({status:'Error',message:'Succsess fetch data',err,name  });
+    res.json({status:'Error',message:'Success fetch data',err,name  });
     
   }
   
@@ -1767,7 +1767,7 @@ router.route('/add-visit').post((request, response) => {
       type,
       date
     ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1790,7 +1790,7 @@ router.route('/get-kuesioner/:visit').get((request, response) => {
     dashboard.setKuesioner(
      visit
     ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1813,7 +1813,7 @@ router.route('/get-kategori-kuesioner').get((request, response) => {
     dashboard.selectKategoriKuesioner(
     
     ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1847,7 +1847,7 @@ router.route('/insert-update-jawaban').post((request, response) => {
       bobot,
       id_kuesioner,
       id_visit).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1884,7 +1884,7 @@ router.route('/insert-history-jawaban').post((request, response) => {
       bobot,
       jwb, 
       decoded?.data[0]?.loginid).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1910,7 +1910,7 @@ router.route('/line-chart-sq-visit').post((request, response) => {
     dashboard.lineChartDataSQVisit(
       start,end,brand,location
       ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1935,7 +1935,7 @@ router.route('/get-note-to-pusat/:visit').get((request, response) => {
     dashboard.getDataNoteToPusat(
      visit
     ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1967,7 +1967,7 @@ router.route('/insert-note-to-pusat').post((request, response) => {
       tggp,
       kategori 
       ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess add data',data});
+      response.json({status:'Success',message:'Success add data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -1999,7 +1999,7 @@ router.route('/update-note-to-pusat').post((request, response) => {
       tggp ,
       kategori
       ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess update data',data});
+      response.json({status:'Success',message:'Success update data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -2027,7 +2027,7 @@ router.route('/delete-note-to-pusat').post((request, response) => {
     (
       id
       ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess delete data',data});
+      response.json({status:'Success',message:'Success delete data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -2050,7 +2050,7 @@ router.route('/get-visit-detail/:id').get((request, response) => {
     dashboard.getDataVisitDetail(
       id
     ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -2091,7 +2091,7 @@ router.route('/insert-image-visit-sq').post(
     dashboard.insertImageVisit(
       id,insert
       ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data ,insert,foto_name });
+      response.json({status:'Success',message:'Success fetch data',data ,insert,foto_name });
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -2134,11 +2134,11 @@ router.route('/delete-upload-visit-sq').post((req, res) => {
     dashboard.insertImageVisit(
       id,insert
       ).then((data) => {
-      res.json({status:'Succsess',message:'Succsess delete image',data ,insert });
+      res.json({status:'Success',message:'Success delete image',data ,insert });
     })
    
   } catch(err) {
-    res.json({status:'Error',message:'Succsess fetch data',err,name  });
+    res.json({status:'Error',message:'Success fetch data',err,name  });
     
   }
   
@@ -2158,7 +2158,7 @@ router.route('/get-visit-review').post((request, response) => {
     dashboard.getReviesVisit(
       page,limit,search,store,status,start,end,type
     ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -2184,7 +2184,7 @@ router.route('/set-status-visit').post((request, response) => {
     dashboard.setStatusVisit(
      id,st
     ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess save data',data});
+      response.json({status:'Success',message:'Success save data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -2209,7 +2209,7 @@ router.route('/bar-char-sq').post((request, response) => {
     dashboard.barCharKuesionerSQ(
       start,end,status
     ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess save data',data});
+      response.json({status:'Success',message:'Success save data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -2235,7 +2235,7 @@ router.route('/detail-bar-char-sq').post((request, response) => {
     dashboard.detailBarCharSQ(
       start,end,nama,limit,page
     ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess save data',data});
+      response.json({status:'Success',message:'Success save data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -2263,7 +2263,7 @@ router.route('/get-export-visit-filter').post((request, response) => {
     dashboard.getReviesVisitExport(
       search,store,status,start,end,type
     ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -2282,7 +2282,7 @@ router.route('/get-count-bangunan-penunjang').post((request, response) => {
   try {
  
     dashboard.countBangunanPenunjang( ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -2301,7 +2301,7 @@ router.route('/send-mail-bangunan-penunjang').post((request, response) => {
   try {
  
     dashboard.sendEmailReminderBangunanPenunjangLegalitas(data).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -2320,7 +2320,7 @@ router.route('/kompetensi-user-send-mail').post((request, response) => {
   try {
  
     dashboard.getKompetensiSendmail( ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -2339,7 +2339,7 @@ router.route('/kompetensi-send-mail').post((request, response) => {
   try {
  
     dashboard.sendEmailKompetensiLegalitas(data ).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -2360,7 +2360,7 @@ router.route('/set-status-pic-task').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.insertEntrySetPicHistory( id).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -2383,7 +2383,7 @@ router.route('/set-detail-pic-task').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.insertEntrySetPicDetail(id,pic,m_shift).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -2405,7 +2405,7 @@ router.route('/set-task-progress').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.insertEntrySetStatusTask(id,status,decoded?.data[0]?.loginid).then((data) => {
-      response.json({status:'Succsess',message:'Succsess fetch data',data});
+      response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
@@ -2425,7 +2425,7 @@ router.route('/change-fpp/:id').get((request, response) => {
   try {
     
     dashboard.changeFpp(id).then((data) => {
-      response.json({status:'Succsess',message:'Succsess change '+id});
+      response.json({status:'Success',message:'Success change '+id});
     })
   } catch(err) {
     if(err?.name==='TokenExpiredError'){
