@@ -3386,7 +3386,7 @@ async function sendEmailApprovedSQVisit(
          
         html = html+` 
      
-        <img style="margin:10px;margin-top:10px" src="${visit.path+d}" alt="Girl in a jacket" width="300" height="300">
+        <img style="margin:10px;margin-top:10px" src="${d?.split('/').length>1?axs?.PATH_DOC+d:visit.path+d}" alt="Visit SQ" width="300" height="300">
       `
     })
      

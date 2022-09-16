@@ -18,6 +18,7 @@ const BASE_TICKET = "https://api-dbticket.cmk.co.id/api"
 const PATH_TICKET = "https://api-dbticket.cmk.co.id" //dashboard
 const BASE_LOGIN = "https://api-dbportal.cmk.co.id/api" //login
 const BASE_BUDGET = "https://api-dbbudget.cmk.co.id/api"
+const PATH_DOC = 'https://api-documents.cmk.co.id'
 
 const NET = async (tipe, url, data, token, pin, isMultipart, isStream) => {
  
@@ -67,6 +68,7 @@ const NET = async (tipe, url, data, token, pin, isMultipart, isStream) => {
 
 module.exports = {
   NET,
+  PATH_DOC,
   BASE_INFO,
   BASE_HRD,
   BASE_BUDGET,
