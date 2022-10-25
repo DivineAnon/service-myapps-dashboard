@@ -3398,7 +3398,7 @@ async function sendEmailApprovedSQVisit(
     `
   let query = `
   EXEC msdb.dbo.sp_send_dbmail 
-			@profile_name='sysadmin', 
+			@profile_name='sysadmin-new', 
 			@recipients='${email}',
 			@subject='Visit store report', 
 			@body= '${html}',
@@ -3510,7 +3510,7 @@ async function sendEmailApprovedSQCall(
     `
   let query = `
   EXEC msdb.dbo.sp_send_dbmail 
-			@profile_name='sysadmin', 
+			@profile_name='sysadmin-new', 
 			@recipients='${email}',
 			@subject='Call store report', 
 			@body= '${html}',
@@ -4301,16 +4301,16 @@ async function sendEmailReminderBangunanPenunjangLegalitas(
     `
   let query = `
   EXEC msdb.dbo.sp_send_dbmail 
-			@profile_name='sysadmin', 
-			@recipients='rafi.assidiq@centralmegakencana.com',
+			@profile_name='sysadmin-new', 
+			@recipients='rafi.assidiq@centralmegakencana.co.id',
 			@subject='Pengingat jatuh tempo', 
 			@body= '${html}',
 			@body_format = 'HTML'
   ` 
   let query1 = `
   EXEC msdb.dbo.sp_send_dbmail 
-			@profile_name='sysadmin', 
-			@recipients='lisa.lijanto@centralmegakencana.com',
+			@profile_name='sysadmin-new', 
+			@recipients='lisa.lijanto@centralmegakencana.co.id',
 			@subject='Pengingat jatuh tempo', 
 			@body= '${html}',
 			@body_format = 'HTML'
@@ -4440,7 +4440,7 @@ async function sendEmailKompetensiLegalitas(
     `
   let query = `
   EXEC msdb.dbo.sp_send_dbmail 
-			@profile_name='sysadmin', 
+			@profile_name='sysadmin-new', 
 			@recipients='${data?.email}',
 			@subject='Pengingat jatuh tempo kompetensi', 
 			@body= '${html}',
