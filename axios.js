@@ -2,23 +2,30 @@
 const  axios = require('axios');
 //local
 
-// const BASE_INFO = "http://localhost:8093/api"
-// const BASE_HRD = "http://localhost:8092/api"
-// const BASE_CMK = "http://localhost:8091/api"
-// const BASE_TICKET = "http://localhost:9010/api" //dashboard
-// const PATH_TICKET = "http://localhost:9010"
-// const BASE_BUDGET = "http://localhost:9015/api"
-// const BASE_LOGIN = "http://localhost:8096/api" //login
+ const PATH_DOC = 'http://localhost:8888'
+ const BASE_DOC = 'http://localhost:8888/api'
+ const BASE_MASTER = "http://localhost:9016/api"
+ const BASE_BUDGET = "http://localhost:9015/api"
+ const BASE_INFO = "http://localhost:9014/api"
+ const BASE_HRD = "http://localhost:9013/api"
+ const BASE_CMK = "http://localhost:9011/api"
+ const BASE_TICKET = "http://localhost:9010/api" //dashboard
+ const PATH_TICKET = "http://localhost:9010" //dashboard
+ const BASE_LOGIN = "http://localhost:8096/api" //login
+ const BASE_FRANK = "http://localhost:9050/api" //dashboard
+ const BASE_MONDIAL = "http://localhost:9051/api" //dashboard
+ const BASE_PALACE = "http://localhost:9052/api"//login
+ 
 //production
 // export const BASE_LOGIN = 'http://103.247.217.10:8091/api';
-const BASE_INFO = "https://api-dbinfo.cmk.co.id/api" 
-const BASE_HRD = "https://api-dbhrd.cmk.co.id/api"
-const BASE_CMK = "https://api-dbcmk.cmk.co.id/api"
-const BASE_TICKET = "https://api-dbticket.cmk.co.id/api"
-const PATH_TICKET = "https://api-dbticket.cmk.co.id" //dashboard
-const BASE_LOGIN = "https://api-dbportal.cmk.co.id/api" //login
-const BASE_BUDGET = "https://api-dbbudget.cmk.co.id/api"
-const PATH_DOC = 'https://api-documents.cmk.co.id'
+// const BASE_INFO = "https://api-dbinfo.cmk.co.id/api" 
+// const BASE_HRD = "https://api-dbhrd.cmk.co.id/api"
+// const BASE_CMK = "https://api-dbcmk.cmk.co.id/api"
+// const BASE_TICKET = "https://api-dbticket.cmk.co.id/api"
+// const PATH_TICKET = "https://api-dbticket.cmk.co.id" //dashboard
+// const BASE_LOGIN = "https://api-dbportal.cmk.co.id/api" //login
+// const BASE_BUDGET = "https://api-dbbudget.cmk.co.id/api"
+// const PATH_DOC = 'https://api-documents.cmk.co.id'
 
 const NET = async (tipe, url, data, token, pin, isMultipart, isStream) => {
  
@@ -67,6 +74,11 @@ const NET = async (tipe, url, data, token, pin, isMultipart, isStream) => {
 }
 
 module.exports = {
+  BASE_MASTER,
+ BASE_FRANK,
+ BASE_MONDIAL,
+ BASE_PALACE,
+  BASE_DOC,
   NET,
   PATH_DOC,
   BASE_INFO,

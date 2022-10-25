@@ -4509,8 +4509,324 @@ async function changeFpp(
   }catch(error){
       console.log({error})
   }
+} 
+async function getListStatusTiketing( 
+  page,limit
+  ) {
+    let last = limit*page
+    let first = last - (limit-1) 
+  let query = `
+  select*from(
+    select ROW_NUMBER() OVER 
+          (ORDER BY id asc) as row
+        ,*  from msticket_status  
+    `
+   
+    query = query+`  
+    ) awek
+    
+    where row BETWEEN '${first}' AND '${last}'
+  ` 
+  let query1 = `
+  select count(*) as tot from(
+    select ROW_NUMBER() OVER 
+    (ORDER BY id asc) as row
+  ,*  from msticket_status  
+    `
+    
+    query1 = query1+`  
+    ) awek`
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let tot = await pool.request().query(query1);
+      
+      return  {
+        data:data?.recordsets[0],
+        // query1,query
+        tot:tot.recordsets[0][0]['tot']
+        // query,page,limit,search1,search2,type
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function insertStatusTiketing(name,color,token
+  ) {
+  let query = `
+  insert into msticket_status (name,color)
+  values ('${name}', '${color}')
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-status-tiketing',type:'INSERT',param:JSON.stringify({name,color}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+     }else{
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-status-tiketing',type:'INSERT',param:JSON.stringify({name,color}),apps:'CMK-HELPDESK',status:'gagal'},token)
+     }
+      return  {name,color};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function updateStatusTiketing(id,name,color,token) {
+  let query = `
+    update 	msticket_status 
+		set  name = '${name}', 
+    color = '${color}', 
+    
+    where 	id = '${id}'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-status-tiketing',type:'UPDATE',param:JSON.stringify({id,name,color}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+     }else{
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-status-tiketing',type:'UPDATE',param:JSON.stringify({id,name,color}),apps:'CMK-HELPDESK',status:'gagal'},token)
+     }
+      return  {id,name,color};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function deleteStatusTiketing(id,token) {
+  let query = `
+    delete from 	msticket_status 
+    where 	id = '${id}'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'delete-status-tiketing',type:'DELETE',param:JSON.stringify({id,user}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+     }else{
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'delete-status-tiketing',type:'DELETE',param:JSON.stringify({id,user}),apps:'CMK-HELPDESK',status:'gagal'},token)
+     }
+      return  {id};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function getListCategoriesUser( 
+  page,limit
+  ) {
+    let last = limit*page
+    let first = last - (limit-1) 
+  let query = `
+  select*from(
+    select ROW_NUMBER() OVER 
+          (ORDER BY a.id asc) as row
+        ,a.*,b.m_nama,c.name  from msticket_categories_users  a
+        join dbhrd.dbo.mskaryawan b on a.user_id=b.m_nik
+        join msticket_categories c on a.category_id=c.id
+    `
+   
+    query = query+`  
+    ) awek
+    
+    where row BETWEEN '${first}' AND '${last}'
+  ` 
+  let query1 = `
+  select count(*) as tot from(
+    select ROW_NUMBER() OVER 
+    (ORDER BY a.id asc) as row
+    ,a.*,b.m_nama,c.name   from msticket_categories_users  a
+  join dbhrd.dbo.mskaryawan b on a.user_id=b.m_nik
+  join msticket_categories c on a.category_id=c.id
+    `
+    
+    query1 = query1+`  
+    ) awek`
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let tot = await pool.request().query(query1);
+      
+      return  {
+        data:data?.recordsets[0],
+        // query1,query
+        tot:tot.recordsets[0][0]['tot']
+        // query,page,limit,search1,search2,type
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function insertCategoriesUser(id,user,token) {
+  let query = `
+  insert into msticket_categories_users (categori_id,user_id)
+  values ('${id}', '${user}')
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-categories-user',type:'INSERT',param:JSON.stringify({category_id:id,user_id:user}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+     }else{
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-categories-user',type:'INSERT',param:JSON.stringify({category_id:id,user_id:user}),apps:'CMK-HELPDESK',status:'gagal'},token)
+     }
+      return  {id,user};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function updateCategoriesUser(id,user,token) {
+  let query = `
+    update 	msticket_categories_users 
+		set  categori_id = '${id}' 
+    
+    where 	user_id = '${user}'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-categories-user',type:'UPDATE',param:JSON.stringify({id,user}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+     }else{
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-categories-user',type:'UPDATE',param:JSON.stringify({id,user}),apps:'CMK-HELPDESK',status:'gagal'},token)
+     }
+      return  {id,user};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function deleteCategoriesUser(id,user,token) {
+  let query = `
+    delete from 	msticket_categories_users 
+    where 	categori_id = '${id}' and user_id='${user}'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'delete-categories-user',type:'DELETE',param:JSON.stringify({id,user}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+     }else{
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'delete-categories-user',type:'DELETE',param:JSON.stringify({id,user}),apps:'CMK-HELPDESK',status:'gagal'},token)
+     }
+      return  {id,user};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function getListTiketingCategories( 
+  page,limit
+  ) {
+    let last = limit*page
+    let first = last - (limit-1) 
+  let query = `
+  select*from(
+    select ROW_NUMBER() OVER 
+          (ORDER BY id asc) as row
+        ,*  from msticket_categories  
+    `
+   
+    query = query+`  
+    ) awek
+    
+    where row BETWEEN '${first}' AND '${last}'
+  ` 
+  let query1 = `
+  select count(*) as tot from(
+    select ROW_NUMBER() OVER 
+    (ORDER BY id asc) as row
+  ,*  from msticket_categories  
+    `
+    
+    query1 = query1+`  
+    ) awek`
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let tot = await pool.request().query(query1);
+      
+      return  {
+        data:data?.recordsets[0],
+        // query1,query
+        tot:tot.recordsets[0][0]['tot']
+        // query,page,limit,search1,search2,type
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function insertTiketingCategories(name,color,token
+  ) {
+  let query = `
+  insert into msticket_categories (name,color)
+  values ('${name}', '${color}')
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing-categories',type:'INSERT',param:JSON.stringify({name,color}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+     }else{
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing-categories',type:'INSERT',param:JSON.stringify({name,color}),apps:'CMK-HELPDESK',status:'gagal'},token)
+     }
+      return  {name,color};
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function updateTiketingCategories(id,name,color,token) {
+  let query = `
+    update 	msticket_categories 
+		set  name = '${name}', 
+    color = '${color}', 
+    
+    where 	id = '${id}'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing-categories',type:'UPDATE',param:JSON.stringify({id,name,color}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+     }else{
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing-categories',type:'UPDATE',param:JSON.stringify({id,name,color}),apps:'CMK-HELPDESK',status:'gagal'},token)
+     }
+      return  {id,name,color};
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function deleteCategoriesTiketing(id,token) {
+  let query = `
+    delete from 	msticket_categories
+    where 	id = '${id}'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+         await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'delete-tiketing-categories',type:'DELETE',param:JSON.stringify({id}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+      }else{
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'delete-tiketing-categories',type:'DELETE',param:JSON.stringify({id}),apps:'CMK-HELPDESK',status:'gagal'},token)
+      }
+      return  {id};
+  }catch(error){
+      console.log({error})
+  }
 }
 module.exports = { 
+    getListTiketingCategories,
+    insertTiketingCategories,
+    updateTiketingCategories,
+    deleteCategoriesTiketing,
+    getListCategoriesUser,
+    insertCategoriesUser,
+    updateCategoriesUser,
+    deleteCategoriesUser,
+    getListStatusTiketing,
+    insertStatusTiketing,
+    updateStatusTiketing,
+    deleteStatusTiketing,
     changeFpp,
     notificationDetailEntryRequest,
     deleteVisitSq,
