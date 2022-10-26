@@ -2550,12 +2550,13 @@ router.route('/get-list-categories-user').post((request, response) => {
 })
 router.route('/insert-categories-user').post((request, response) => {
   let token = request.headers.authorization 
-  let id = request.body?.id?request.body?.id:''
+  // let id = request.body?.id?request.body?.id:''
+  let category = request.body?.category?request.body?.category:''
   let user = request.body?.user?request.body?.user:'' 
   
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.insertCategoriesUser(id,user,token).then((data) => {
+    dashboard.insertCategoriesUser(category,user,token).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
@@ -2573,12 +2574,12 @@ router.route('/insert-categories-user').post((request, response) => {
 
 router.route('/update-categories-user').post((request, response) => {
   let token = request.headers.authorization 
-  
+  let category = request.body?.category?request.body?.category:''
   let user = request.body?.user?request.body?.user:'' 
   let id = request.body?.id?request.body?.id:'' 
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.updateCategoriesUser(id,user,token).then((data) => {
+    dashboard.updateCategoriesUser(id,category,user,token).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
@@ -2596,10 +2597,10 @@ router.route('/update-categories-user').post((request, response) => {
 router.route('/delete-categories-user').post((request, response) => {
   let token = request.headers.authorization  
   let id = request.body?.id?request.body?.id:'' 
-  let user = request.body?.user?request.body?.user:'' 
+  
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.deleteCategoriesUser(id,user,token).then((data) => {
+    dashboard.deleteCategoriesUser(id,token).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
@@ -2701,6 +2702,27 @@ router.route('/delete-tiketing-categories').post((request, response) => {
 
   }
 })
+router.route('/select-categories').post((request, response) => {
+  let token = request.headers.authorization  
+  let search = request.body?.search?request.body?.search:'' 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.selectCategories(search).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
 var  port = process.env.PORT || 9010;
 app.listen(port);
 console.log('Order API is runnning at ' + port);
