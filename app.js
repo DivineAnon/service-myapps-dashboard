@@ -2915,7 +2915,7 @@ router.route('/update-tiketing').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.updateTiketing(
-      id,status,subject,content,doc_file,priority,category,agent,token
+      decoded?.data[0],id,status,subject,content,doc_file,priority,category,agent,token
       ).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })

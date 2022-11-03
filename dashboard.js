@@ -4912,14 +4912,14 @@ async function getListChat(
   ,*  from (
 select *  from (
 select *  from msMessageAllApps
-  where  to_user = '220134'  
+  where  to_user = '${user?.nik}'  
   and app = 'CMK-HELPDESK'
   and type = 'chat'
 ) a
   UNION ALL
 select *  from (      
 select *  from msMessageAllApps
-  where  created_by = '220134'  
+  where  created_by = '${user?.nik}'  
   and app = 'CMK-HELPDESK'
   and type = 'chat'
 ) b  
@@ -5201,7 +5201,7 @@ async function insertTiketing(
   }
 }
 async function updateTiketing(
-  id,status,subject,content,doc_file,priority,category,agent,token
+  user,id,status,subject,content,doc_file,priority,category,agent,token
   ) {
   let query = `
   update  msticket set 
@@ -5243,6 +5243,7 @@ async function updateTiketing(
   try{
       let pool = await sql.connect(configTICKET);
       let login = await pool.request().query(query);
+      
       if(status===4||status===5){
         await pool.request().query(query2);
       }
@@ -5251,6 +5252,21 @@ async function updateTiketing(
      }else{
        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing',type:'UPDATE',param:JSON.stringify({id,agent,status,completed_at:status===4||status===5?moment(new Date()).format('YYYY-MM-DD HH:mm:ss'):'',subject,content,doc_file,priority,category}),apps:'CMK-HELPDESK',status:'gagal'},token)
      }
+     let dat = await pool.request().query(`
+      select * from msticket where id = '${id}'
+      `);
+      d=dat?.recordsets[0][0]
+     insertMessageOrChat(
+      user,
+      'REQUEST TASK-'+id+' Updated by : '+user?.nik+'-'+user?.nama,
+      d?.content,
+      'CMK-HELPDESK',
+      '',
+      'message',
+      user?.nik===d?.agent_id?d?.user_id:d?.agent_id,
+      id,
+      token
+      )
       return  {query2,id,agent,status,completed_at:status===4||status===5?moment(new Date()).format('YYYY-MM-DD HH:mm:ss'):'',subject,content,doc_file,priority,category};
   }catch(error){
       console.log({error})
