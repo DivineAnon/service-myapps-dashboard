@@ -4523,10 +4523,11 @@ async function getListStatusTiketing(
     `
    
     query = query+`  
-    ) awek
-    
+    ) awek`
+    if(page!==''||limit!==''){
+    query = query+`  
     where row BETWEEN '${first}' AND '${last}'
-  ` 
+  ` }
   let query1 = `
   select count(*) as tot from(
     select ROW_NUMBER() OVER 
@@ -4729,9 +4730,12 @@ async function getListTiketingCategories(
    
     query = query+`  
     ) awek
-    
+    `
+    if(page!==''||limit!==''){
+    query = query+ `
     where row BETWEEN '${first}' AND '${last}'
   ` 
+}
   let query1 = `
   select count(*) as tot from(
     select ROW_NUMBER() OVER 
@@ -5017,8 +5021,32 @@ async function insertMessageOrChat(
      }else{
        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-chat-message',type:'INSERT',param:JSON.stringify({  user,title,body,app,doc,type,to,keyword,token}),apps:'CMK-HELPDESK',status:'gagal'},token)
      }
-     console.log({  user,title,body,app,doc,type,to,keyword,token})
-      return  {  user,title,body,app,doc,type,to,keyword,token};
+     
+      return  {  user,title,body,app,doc,type,to,keyword};
+  }catch(error){
+      console.log({error})
+  }
+}
+async function readMessageOrChat(
+  user,keyword,token
+  ) {
+  let query = `
+  update msMessageAllApps set 
+    status_read = '1',
+    updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+  where to_user = '${user?.nik}' and keyOfWord = '${keyword}'
+  
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'read-chat-message',type:'INSERT',param:JSON.stringify({ user,keyword}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+     }else{
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'read-chat-message',type:'INSERT',param:JSON.stringify({ user,keyword}),apps:'CMK-HELPDESK',status:'gagal'},token)
+     }
+     
+      return  {  user,keyword};
   }catch(error){
       console.log({error})
   }
@@ -5031,15 +5059,21 @@ async function getListTiketing(
   let query = `
   select*from(
     select ROW_NUMBER() OVER 
-          (ORDER BY a.id asc) as row
-        ,a.*,b.m_nama as user_req, 
-        c.m_nama as user_agent,d.name as category,
-        d.color as color_category 
-        ,e.name as status,e.color as color_status from msticket a
-join dbhrd.dbo.mskaryawan b on a.user_id = b.m_nik
-join dbhrd.dbo.mskaryawan c on a.agent_id = c.m_nik
-join msticket_categories d on a.category_id = d.id
-join msticket_status e on a.status_id = e.id
+    (ORDER BY a.id asc) as row
+      ,a.*,b.m_nama as user_req, 
+      c.m_nama as user_agent,d.name as category,
+      d.color as color_category 
+      ,e.name as status,e.color as color_status 
+    ,f.num
+    from msticket a
+    join dbhrd.dbo.mskaryawan b on a.user_id = b.m_nik
+    join dbhrd.dbo.mskaryawan c on a.agent_id = c.m_nik
+    join msticket_categories d on a.category_id = d.id
+    join msticket_status e on a.status_id = e.id
+    left join (select COUNT(*) as num,keyOfWord from msMessageAllApps
+    where status_read = '0'
+    and to_user = '${user?.nik}'
+    group by keyOfWord) f on a.id = f.keyOfWord
     where  (a.subject like '%${search}%' or a.content like '%${search}%')
     `
    if(isAgent==='0'){
@@ -5062,14 +5096,20 @@ join msticket_status e on a.status_id = e.id
   select count(*) as tot from(
     select ROW_NUMBER() OVER 
     (ORDER BY a.id asc) as row
-  ,a.*,b.m_nama as user_req, 
-  c.m_nama as user_agent,d.name as category,
-  d.color as color_category 
-  ,e.name as status,e.color as color_status from msticket a
-join dbhrd.dbo.mskaryawan b on a.user_id = b.m_nik
-join dbhrd.dbo.mskaryawan c on a.agent_id = c.m_nik
-join msticket_categories d on a.category_id = d.id
-join msticket_status e on a.status_id = e.id
+      ,a.*,b.m_nama as user_req, 
+      c.m_nama as user_agent,d.name as category,
+      d.color as color_category 
+      ,e.name as status,e.color as color_status 
+    ,f.num
+    from msticket a
+    join dbhrd.dbo.mskaryawan b on a.user_id = b.m_nik
+    join dbhrd.dbo.mskaryawan c on a.agent_id = c.m_nik
+    join msticket_categories d on a.category_id = d.id
+    join msticket_status e on a.status_id = e.id
+    join (select COUNT(*) as num,keyOfWord from msMessageAllApps
+    where status_read = '0'
+    and to_user = '${user?.nik}'
+    group by keyOfWord) f on a.id = f.keyOfWord
     where (a.subject like '%${search}%' or a.content like '%${search}%')
     `
     if(isAgent==='0'){
@@ -5187,7 +5227,7 @@ async function updateTiketing(
    
    if(status!==''){
     query = query + `  status_id='${status}',
-    completed_at='${status==='4'||status==='5'?moment(new Date()).format('YYYY-MM-DD HH:mm:ss'):''}',
+    completed_at='${status===4||status===5?moment(new Date()).format('YYYY-MM-DD HH:mm:ss'):''}',
     `
    }
 
@@ -5196,20 +5236,28 @@ async function updateTiketing(
   
   where id= '${id}'
   ` 
+  let query2 = ''
+  if(status===4||status===5){
+     query2 = `delete from msMessageAllApps where keyOfWord = '${id}'`
+   }
   try{
       let pool = await sql.connect(configTICKET);
       let login = await pool.request().query(query);
+      if(status===4||status===5){
+        await pool.request().query(query2);
+      }
       if(login?.recordsets){
-        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing',type:'UPDATE',param:JSON.stringify({id,agent,status,completed_at:status==='4'||status==='5'?moment(new Date()).format('YYYY-MM-DD HH:mm:ss'):'',subject,content,doc_file,priority,category}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing',type:'UPDATE',param:JSON.stringify({id,agent,status,completed_at:status===4||status===5?moment(new Date()).format('YYYY-MM-DD HH:mm:ss'):'',subject,content,doc_file,priority,category}),apps:'CMK-HELPDESK',status:'berhasil'},token)
      }else{
-       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing',type:'UPDATE',param:JSON.stringify({id,agent,status,completed_at:status==='4'||status==='5'?moment(new Date()).format('YYYY-MM-DD HH:mm:ss'):'',subject,content,doc_file,priority,category}),apps:'CMK-HELPDESK',status:'gagal'},token)
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing',type:'UPDATE',param:JSON.stringify({id,agent,status,completed_at:status===4||status===5?moment(new Date()).format('YYYY-MM-DD HH:mm:ss'):'',subject,content,doc_file,priority,category}),apps:'CMK-HELPDESK',status:'gagal'},token)
      }
-      return  {id,agent,status,completed_at:status==='4'||status==='5'?moment(new Date()).format('YYYY-MM-DD HH:mm:ss'):'',subject,content,doc_file,priority,category};
+      return  {query2,id,agent,status,completed_at:status===4||status===5?moment(new Date()).format('YYYY-MM-DD HH:mm:ss'):'',subject,content,doc_file,priority,category};
   }catch(error){
       console.log({error})
   }
 }
 module.exports = { 
+    readMessageOrChat,
     getListChat,
     getListTiketing,
     insertTiketing,

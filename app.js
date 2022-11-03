@@ -2464,8 +2464,8 @@ router.route('/change-fpp/:id').get((request, response) => {
 })
 router.route('/get-list-status-tiketing').post((request, response) => {
   let token = request.headers.authorization 
-  let page = request.body?.page
-  let limit = request.body?.limit 
+  let page = request.body?.page?request.body?.page:""
+  let limit = request.body?.limit?request.body?.limit:"" 
   
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
@@ -2824,6 +2824,28 @@ router.route('/insert-chat-message').post((request, response) => {
 
   }
 })
+
+router.route('/read-chat-message').post((request, response) => {
+  let token = request.headers.authorization  
+ 
+  let keyword = request.body?.keyword?request.body?.keyword:'' 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.readMessageOrChat(decoded?.data[0],keyword,token).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
 router.route('/get-tiketing').post((request, response) => {
   let token = request.headers.authorization  
   let isAgent = request.body?.isAgent?request.body?.isAgent:''
@@ -2851,6 +2873,7 @@ router.route('/get-tiketing').post((request, response) => {
 
   }
 })
+
 router.route('/insert-tiketing').post((request, response) => {
   let token = request.headers.authorization  
   let subject = request.body?.subject?request.body?.subject:''
