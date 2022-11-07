@@ -2809,7 +2809,7 @@ router.route('/insert-chat-message').post((request, response) => {
   let keyword = request.body?.keyword?request.body?.keyword:'' 
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.insertMessageOrChat(decoded?.data[0],title,body,app,doc,type,to,keyword,token).then((data) => {
+    dashboard.insertMessageOrChat(decoded?.data[0]?.nik,title,body,app,doc,type,to,keyword,token).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
@@ -2829,9 +2829,32 @@ router.route('/read-chat-message').post((request, response) => {
   let token = request.headers.authorization  
  
   let keyword = request.body?.keyword?request.body?.keyword:'' 
+  let type = request.body?.type?request.body?.type:'' 
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.readMessageOrChat(decoded?.data[0],keyword,token).then((data) => {
+    dashboard.readMessageOrChat(decoded?.data[0],keyword,type,token).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/get-dashboard-tiketing').post((request, response) => {
+  let token = request.headers.authorization  
+ 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.dashboardTicketing(
+      decoded?.data[0]
+     ).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {

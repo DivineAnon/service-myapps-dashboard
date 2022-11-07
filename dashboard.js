@@ -4847,14 +4847,27 @@ async function getListMessage(
     let last = limit*page
     let first = last - (limit-1) 
   let query = `
-  select*from(
-    select ROW_NUMBER() OVER 
-          (ORDER BY id asc) as row
-        ,*  from msMessageAllApps
+  select
+   
+  *from(
+    select 
+    `
+        if(page===''&&limit!==''){
+          query += `TOP ${limit}`
+        }
+        query +=  ` 
+    ROW_NUMBER() OVER 
+          (ORDER BY id desc) as row
+        ,*
+        
+        from msMessageAllApps
         where  to_user = '${user?.nik}'  
         and app = '${app}'
         and type = '${type}'
     `
+    if(page===''&&limit!==''){
+      query += `and status_read = '0'`
+    }
    if(search!==''){
     query= query+` and title like '%${search}%' or body like '%${search}%'`
    }
@@ -4864,19 +4877,28 @@ async function getListMessage(
     query = query+`  
     ) awek
     `
-    if(page!==''||limit!==''){
+    if(page!==''&&limit!==''){
     query = query+`     
     where row BETWEEN '${first}' AND '${last}'
   ` }
   let query1 = `
   select count(*) as tot from(
-    select ROW_NUMBER() OVER 
-          (ORDER BY id asc) as row
-        ,*  from msMessageAllApps
+    select 
+    `
+        // if(page===''&&limit!==''){
+        //   query1 += `TOP ${limit}`
+        // }
+        query1 +=  `
+    ROW_NUMBER() OVER 
+          (ORDER BY id desc) as row
+        , *  from msMessageAllApps
         where  to_user = '${user?.nik}'  
         and app = '${app}'
         and type = '${type}'
     `
+    if(page===''&&limit!==''){
+      query1 += `and status_read = '0'`
+    }
     if(search!==''){
       query1= query1+` and title like '%${search}%' or body like '%${search}%'`
      }
@@ -4892,7 +4914,8 @@ async function getListMessage(
       
       return  {
         data:data?.recordsets[0],
-        // query1,query
+        // query1,
+        // query,
         tot:tot.recordsets[0][0]['tot']
         // query,page,limit,search1,search2,type
       };
@@ -4900,6 +4923,7 @@ async function getListMessage(
       console.log({error})
   }
 }
+
 async function getListChat( 
   user,search,page,limit,app,type,keyword
   ) {
@@ -5000,7 +5024,7 @@ async function insertMessageOrChat(
     
     )
   values (
-    '${user?.nik}', 
+    '${user}', 
     '${title}',
     '${body}', 
     '${app}',
@@ -5028,15 +5052,21 @@ async function insertMessageOrChat(
   }
 }
 async function readMessageOrChat(
-  user,keyword,token
+  user,keyword,type,token
   ) {
   let query = `
   update msMessageAllApps set 
     status_read = '1',
     updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
-  where to_user = '${user?.nik}' and keyOfWord = '${keyword}'
-  
-  ` 
+    `
+  if(type!=='chat'){
+    query += ` where id=${keyword}`
+  }else{
+    query +=`
+    where to_user = '${user?.nik}' and keyOfWord = '${keyword}' and type = '${type}'
+    
+    ` 
+  }
   try{
       let pool = await sql.connect(configTICKET);
       let login = await pool.request().query(query);
@@ -5072,6 +5102,7 @@ async function getListTiketing(
     join msticket_status e on a.status_id = e.id
     left join (select COUNT(*) as num,keyOfWord from msMessageAllApps
     where status_read = '0'
+    and type='chat'
     and to_user = '${user?.nik}'
     group by keyOfWord) f on a.id = f.keyOfWord
     where  (a.subject like '%${search}%' or a.content like '%${search}%')
@@ -5106,8 +5137,9 @@ async function getListTiketing(
     join dbhrd.dbo.mskaryawan c on a.agent_id = c.m_nik
     join msticket_categories d on a.category_id = d.id
     join msticket_status e on a.status_id = e.id
-    join (select COUNT(*) as num,keyOfWord from msMessageAllApps
+    left join (select COUNT(*) as num,keyOfWord from msMessageAllApps
     where status_read = '0'
+    and type='chat'
     and to_user = '${user?.nik}'
     group by keyOfWord) f on a.id = f.keyOfWord
     where (a.subject like '%${search}%' or a.content like '%${search}%')
@@ -5132,7 +5164,8 @@ async function getListTiketing(
       
       return  {
         data:data?.recordsets[0],
-        // query1,query
+        // query1,
+        // ,query
      
         tot:tot.recordsets[0][0]['tot']
         // query,page,limit,search1,search2,type
@@ -5180,7 +5213,7 @@ async function insertTiketing(
       `);
       id=dat?.recordsets[0][0]['id']
       insertMessageOrChat(
-        user,
+        user?.nik,
         'REQUEST TASK-'+id+' created by : '+user?.nik+'-'+user?.nama,
         content,
         'CMK-HELPDESK',
@@ -5190,6 +5223,17 @@ async function insertTiketing(
         id,
         token
         )
+        insertMessageOrChat(
+          agent,
+          'REQUEST TASK-'+id+' created by : '+user?.nik+'-'+user?.nama,
+          content,
+          'CMK-HELPDESK',
+          '',
+          'message',
+          user?.nik,
+          id,
+          token
+          )
       if(login?.recordsets){
         await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing',type:'INSERT',param:JSON.stringify({user:user?.nik,agent,subject,content,doc_file,priority,category}),apps:'CMK-HELPDESK',status:'berhasil'},token)
      }else{
@@ -5257,22 +5301,193 @@ async function updateTiketing(
       `);
       d=dat?.recordsets[0][0]
      insertMessageOrChat(
-      user,
-      'REQUEST TASK-'+id+' Updated by : '+user?.nik+'-'+user?.nama,
+      user?.nik,
+      'REQUEST TASK-'+id+' Send by : '+user?.nik+'-'+user?.nama,
       d?.content,
       'CMK-HELPDESK',
       '',
       'message',
-      user?.nik===d?.agent_id?d?.user_id:d?.agent_id,
+      user?.nik===d?.agent_id?.toString()?d?.user_id:d?.agent_id,
       id,
       token
       )
+      insertMessageOrChat(
+        user?.nik===d?.agent_id.toString()?d?.user_id:d?.agent_id,
+        'REQUEST TASK-'+id+' Send by : '+user?.nik+'-'+user?.nama,
+        d?.content,
+        'CMK-HELPDESK',
+        '',
+        'message',
+        user?.nik,
+        id,
+        token
+        )
       return  {query2,id,agent,status,completed_at:status===4||status===5?moment(new Date()).format('YYYY-MM-DD HH:mm:ss'):'',subject,content,doc_file,priority,category};
   }catch(error){
       console.log({error})
   }
 }
+async function dashboardTicketing( 
+  user
+  ) { 
+  let query1 = `
+  select b.name, 
+  CASE
+  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
+  ELSE 0
+  END
+  as tot from msticket a
+  left join msticket_status b on a.status_id = b.id
+  where a.agent_id='${user?.nik}' and a.status_id = '1'
+  group by b.name
+
+  `
+  let query2 = `
+  select b.name, 
+  CASE
+  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
+  ELSE 0
+  END
+  as tot from msticket a
+  left join msticket_status b on a.status_id = b.id
+  where a.agent_id='${user?.nik}' and a.status_id = '2'
+  group by b.name
+  `
+  let query3 = `
+  select b.name, 
+  CASE
+  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
+  ELSE 0
+  END
+  as tot from msticket a
+  left join msticket_status b on a.status_id = b.id
+  where a.agent_id='${user?.nik}' and a.status_id = '3'
+  group by b.name
+  `
+  let query4 = `
+  select b.name, 
+  CASE
+  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
+  ELSE 0
+  END
+  as tot from msticket a
+  left join msticket_status b on a.status_id = b.id
+  where a.agent_id='${user?.nik}' and a.status_id = '4'
+  group by b.name
+  `
+  let query5 = `
+  select b.name, 
+  CASE
+  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
+  ELSE 0
+  END
+  as tot from msticket a
+  left join msticket_status b on a.status_id = b.id
+  where a.agent_id='${user?.nik}' and a.status_id = '5'
+  group by b.name
+  `
+  let query6 = `
+  select b.name, 
+  CASE
+  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
+  ELSE 0
+  END
+  as tot from msticket a
+  left join msticket_status b on a.status_id = b.id
+  where a.user_id='${user?.nik}' and a.status_id = '1'
+  group by b.name
+  `
+  let query7 = `
+  select b.name, 
+  CASE
+  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
+  ELSE 0
+  END
+  as tot from msticket a
+  left join msticket_status b on a.status_id = b.id
+  where a.user_id='${user?.nik}' and a.status_id = '2'
+  group by b.name
+  `
+  let query8 = `
+  select b.name, 
+  CASE
+  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
+  ELSE 0
+  END
+  as tot from msticket a
+  left join msticket_status b on a.status_id = b.id
+  where a.user_id='${user?.nik}' and a.status_id = '3'
+  group by b.name
+  `
+  let query9 = `
+  select b.name, 
+  CASE
+  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
+  ELSE 0
+  END
+  as tot from msticket a
+  left join msticket_status b on a.status_id = b.id
+  where a.user_id='${user?.nik}' and a.status_id = '4'
+  group by b.name
+  `
+  let query10 = `
+  select b.name, 
+  CASE
+  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
+  ELSE 0
+  END
+  as tot from msticket a
+  left join msticket_status b on a.status_id = b.id
+  where a.user_id='${user?.nik}' and a.status_id = '5'
+  group by b.name
+  `
+  let query11 = `
+  select COUNT(*) as tot from msMessageAllApps 
+  where to_user = '${user?.nik}' and status_read='0'
+  and type = 'chat'
+  `
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data1 = await pool.request().query(query1);
+      let data2 = await pool.request().query(query2);
+      let data3 = await pool.request().query(query3);
+      let data4 = await pool.request().query(query4);
+      let data5 = await pool.request().query(query5);
+      let data6 = await pool.request().query(query6);
+      let data7 = await pool.request().query(query7);
+      let data8 = await pool.request().query(query8);
+      let data9 = await pool.request().query(query9);
+      let data10 = await pool.request().query(query10);
+      let data11 = await pool.request().query(query11);
+      
+      let agent = [
+        {name:'REQUEST',tot:data1?.recordsets[0]?.length>0?data1?.recordsets[0][0]['tot']:0},
+        {name:'ONPROGRESS',tot:data2?.recordsets[0]?.length>0?data2?.recordsets[0][0]['tot']:0},
+        {name:'DONE',tot:data3?.recordsets[0]?.length>0?data3?.recordsets[0][0]['tot']:0},
+        {name:'REJECT',tot:data4?.recordsets[0]?.length>0?data4?.recordsets[0][0]['tot']:0},
+        {name:'FINISH',tot:data5?.recordsets[0]?.length>0?data5?.recordsets[0][0]['tot']:0}
+      ]
+      let user = [
+        {name:'REQUEST',tot:data6?.recordsets[0]?.length>0?data6?.recordsets[0][0]['tot']:0},
+        {name:'ONPROGRESS',tot:data7?.recordsets[0]?.length>0?data7?.recordsets[0][0]['tot']:0},
+        {name:'DONE',tot:data8?.recordsets[0]?.length>0?data8?.recordsets[0][0]['tot']:0},
+        {name:'REJECT',tot:data9?.recordsets[0]?.length>0?data9?.recordsets[0][0]['tot']:0},
+        {name:'FINISH',tot:data10?.recordsets[0]?.length>0?data10?.recordsets[0][0]['tot']:0}
+      ]
+      
+      
+      return  {
+        data:{agent,user,chat:data11?.recordsets[0]?.length>0?data11?.recordsets[0][0]['tot']:0}
+        
+       
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
 module.exports = { 
+    dashboardTicketing,
     readMessageOrChat,
     getListChat,
     getListTiketing,
