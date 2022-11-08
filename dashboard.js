@@ -2846,7 +2846,7 @@ async function getReviesVisit(
         a.type,
         d.bobot,
         e.bobot as bobot2,
-        b.m_nama as store, c.m_nama from t_visit_sq2 a
+        b.m_nama as store, c.m_nama,c.m_nik from t_visit_sq2 a
     left join dbcmk.dbo.msstore b on b.m_kode COLLATE DATABASE_DEFAULT = a.store COLLATE DATABASE_DEFAULT
     left join dbhrd.dbo.mskaryawan c on c.m_nik COLLATE DATABASE_DEFAULT = a.created_by COLLATE DATABASE_DEFAULT
     left join (select id_visit,SUM(m_bobot) as bobot  from t_jawaban_visit
@@ -2861,7 +2861,7 @@ async function getReviesVisit(
     select ROW_NUMBER() OVER 
         (ORDER BY a.id desc) as row,a.id,a.status_kuesioner,a.created_at,
         d.bobot,
-        e.bobot as bobot2,b.m_nama as store, c.m_nama from t_visit_sq2 a
+        e.bobot as bobot2,b.m_nama as store, c.m_nama,c.m_nik from t_visit_sq2 a
     left join dbcmk.dbo.msstore b on b.m_kode COLLATE DATABASE_DEFAULT = a.store COLLATE DATABASE_DEFAULT
     left join dbhrd.dbo.mskaryawan c on c.m_nik COLLATE DATABASE_DEFAULT = a.created_by COLLATE DATABASE_DEFAULT
     left join (select id_visit,SUM(m_bobot) as bobot  from t_jawaban_visit
