@@ -2874,7 +2874,7 @@ async function getReviesVisit(
 
     if(start?.length>0&&end.length>0){
       
-    query = query+` where ( a.created_at >= '${start} 00:00:01' and  a.created_at <= '${end} 23:59:59' )`
+    query = query+` where ( a.created_at >= '${start}' and  a.created_at <= '${end}' )`
     query2 =query2+` where (  a.created_at >= '${start}' and  a.created_at <= '${end}' )`
     isWhere = true
     }
@@ -2913,7 +2913,7 @@ async function getReviesVisit(
       return  {
         data:data?.recordsets[0],
         tot:tot.recordsets[0][0]['tot']
-        // query,query2
+        // ,query,query2
        };
   }catch(error){
       console.log({error})
