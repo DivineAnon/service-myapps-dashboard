@@ -2551,8 +2551,8 @@ router.route('/delete-status-tiketing').post((request, response) => {
 })
 router.route('/get-list-categories-user').post((request, response) => {
   let token = request.headers.authorization 
-  let page = request.body?.page
-  let limit = request.body?.limit 
+  let page = request.body?.page?request.body?.page:''
+  let limit = request.body?.limit?request.body?.limit:'' 
   
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
@@ -2640,8 +2640,8 @@ router.route('/delete-categories-user').post((request, response) => {
 })
 router.route('/get-list-tiketing-categories').post((request, response) => {
   let token = request.headers.authorization 
-  let page = request.body?.page
-  let limit = request.body?.limit 
+  let page = request.body?.page?request.body?.page:''
+  let limit = request.body?.limit?request.body?.limit:'' 
   
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
@@ -2875,12 +2875,13 @@ router.route('/get-tiketing').post((request, response) => {
   let search = request.body?.search?request.body?.search:''
   let priority = request.body?.priority?request.body?.priority:'' 
   let category = request.body?.category?request.body?.category:'' 
+  let status = request.body?.status?request.body?.status:'' 
   let page = request.body?.page?request.body?.page:''
   let limit = request.body?.limit?request.body?.limit:''
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.getListTiketing(
-      decoded?.data[0],isAgent,priority,category,search,page,limit
+      decoded?.data[0],isAgent,priority,category,search,page,limit,status
      ).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })

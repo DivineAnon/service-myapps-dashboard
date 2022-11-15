@@ -4517,14 +4517,25 @@ async function getListStatusTiketing(
     let first = last - (limit-1) 
   let query = `
   select*from(
-    select ROW_NUMBER() OVER 
+    select 
+    `
+    if(page!==''&&limit!==''){
+      query = query+`ROW_NUMBER() OVER 
           (ORDER BY id asc) as row
-        ,*  from msticket_status  
+        ,* 
+        `
+    }else{
+      query = query+`id as value, name as label,color
+    
+    `
+    }
+    query = query+`  
+        from msticket_status  
     `
    
     query = query+`  
     ) awek`
-    if(page!==''||limit!==''){
+    if(page!==''&&limit!==''){
     query = query+`  
     where row BETWEEN '${first}' AND '${last}'
   ` }
@@ -4722,16 +4733,27 @@ async function getListTiketingCategories(
     let last = limit*page
     let first = last - (limit-1) 
   let query = `
-  select*from(
-    select ROW_NUMBER() OVER 
+  select*from( 
+    select
+    `
+    if(page!==''&&limit!==''){
+      query = query+`ROW_NUMBER() OVER 
           (ORDER BY id asc) as row
-        ,*  from msticket_categories  
+        ,* 
+        `
+    }else{
+      query = query+`id as value, name as label
+    
+    `
+    }
+    query = query+`
+        from msticket_categories  
     `
    
     query = query+`  
     ) awek
     `
-    if(page!==''||limit!==''){
+    if(page!==''&&limit!==''){
     query = query+ `
     where row BETWEEN '${first}' AND '${last}'
   ` 
@@ -4846,6 +4868,15 @@ async function getListMessage(
   ) {
     let last = limit*page
     let first = last - (limit-1) 
+    
+  let query0 = `select COUNT(*) as tot from msMessageAllApps a
+  left join msticket b on b.id = a.keyOfWord
+  where a.to_user = '${user?.nik}' and a.status_read='0' and b.agent_id = '${user?.nik}' 
+  and a.type = 'chat'`
+  let query01 = `select COUNT(*) as tot from msMessageAllApps a
+  left join msticket b on b.id = a.keyOfWord
+  where a.to_user = '${user?.nik}' and a.status_read='0' and b.user_id = '${user?.nik}' 
+  and a.type = 'chat'`
   let query = `
   select
    
@@ -4911,11 +4942,15 @@ async function getListMessage(
       let pool = await sql.connect(configTICKET);
       let data = await pool.request().query(query);
       let tot = await pool.request().query(query1);
+      let totAgent = await pool.request().query(query0);
+      let totUser = await pool.request().query(query01);
       
       return  {
         data:data?.recordsets[0],
         // query1,
         // query,
+        totAgent:totAgent.recordsets[0][0]['tot'],
+        totUser:totUser.recordsets[0][0]['tot'],
         tot:tot.recordsets[0][0]['tot']
         // query,page,limit,search1,search2,type
       };
@@ -5082,7 +5117,7 @@ async function readMessageOrChat(
   }
 }
 async function getListTiketing( 
-  user,isAgent,priority,category,search,page,limit
+  user,isAgent,priority,category,search,page,limit,status
   ) {
     let last = limit*page
     let first = last - (limit-1) 
@@ -5117,6 +5152,9 @@ async function getListTiketing(
    }
    if(category!==''){
     query= query+` and a.category_id = '${category}'`
+   }
+   if(status!==''){
+    query= query+` and a.status_id = '${status}'`
    }
     query = query+`  
     ) awek
@@ -5155,6 +5193,9 @@ async function getListTiketing(
      if(category!==''){
       query1= query1+` and a.category_id = '${category}'`
      }
+     if(status!==''){
+      query1= query1+` and a.status_id = '${status}'`
+     }
     query1 = query1+`  
     ) awek`
   try{
@@ -5165,8 +5206,9 @@ async function getListTiketing(
       return  {
         data:data?.recordsets[0],
         // query1,
-        // ,query
-     
+        // ,
+        // query,
+        // status,
         tot:tot.recordsets[0][0]['tot']
         // query,page,limit,search1,search2,type
       };
@@ -5486,6 +5528,7 @@ async function dashboardTicketing(
       console.log({error})
   }
 }
+
 module.exports = { 
     dashboardTicketing,
     readMessageOrChat,
