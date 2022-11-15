@@ -5326,6 +5326,7 @@ async function updateTiketing(
   if(status===4||status===5){
      query2 = `delete from msMessageAllApps where keyOfWord = '${id}'`
    }
+   let query3 = `select * from msticket_status where id=${status}`
   try{
       let pool = await sql.connect(configTICKET);
       let login = await pool.request().query(query);
@@ -5341,10 +5342,11 @@ async function updateTiketing(
      let dat = await pool.request().query(`
       select * from msticket where id = '${id}'
       `);
+      let dats = await pool.request().query(query3);
       d=dat?.recordsets[0][0]
      insertMessageOrChat(
       user?.nik,
-      'REQUEST TASK-'+id+' Send by : '+user?.nik+'-'+user?.nama,
+      dats?.recordsets[0][0]['name']+' TASK-'+id+' Send by : '+user?.nik+'-'+user?.nama,
       d?.content,
       'CMK-HELPDESK',
       '',
@@ -5355,7 +5357,7 @@ async function updateTiketing(
       )
       insertMessageOrChat(
         user?.nik===d?.agent_id.toString()?d?.user_id:d?.agent_id,
-        'REQUEST TASK-'+id+' Send by : '+user?.nik+'-'+user?.nama,
+        dats?.recordsets[0][0]['name']+' TASK-'+id+' Send by : '+user?.nik+'-'+user?.nama,
         d?.content,
         'CMK-HELPDESK',
         '',
