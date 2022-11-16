@@ -3055,8 +3055,9 @@ async function lineChartDataSQVisit(
     query3 = query3+` and c.m_kode = '${location}'`
   }
   query3 =query3+` 
-  group by  a.id,a.created_at,d.m_nama,e.m_nama order by a.created_at asc
+  group by  a.id,a.created_at,d.m_nama,e.m_nama order by SUM(b.bobot) desc
   `
+   
   try{
       let pool = await sql.connect(configTICKET);
       let data = await pool.request().query(query);
@@ -3070,6 +3071,7 @@ async function lineChartDataSQVisit(
       let array = [];
       let array2 = [];
       let array3 = [];
+      let array4 = [];
       let isData = null
       let rdclr = ''
       dats.map((d)=>{
@@ -3103,9 +3105,18 @@ async function lineChartDataSQVisit(
           label:d?.m_nama +' '+ moment(d?.label).format('DD/MM')
         })
       })
+      dats3?.map((d)=>{
+        array4?.push({ 
+          id:d?.id,
+          value:d?.value,
+          label:d?.m_nama,
+          created_at:moment(d?.label).format('YYYY-MM-DD')
+        })
+      })
       return  {
         data:array,
         bar:array3,
+        rank:array4,
          kategori:array2
         // query3,
         // query2,
@@ -3118,6 +3129,7 @@ async function lineChartDataSQVisit(
       console.log({error})
   }
 }
+
 async function barCharKuesionerSQ( 
   start,end,status
   ) {
