@@ -4795,31 +4795,33 @@ async function getListTiketingCategories(
   }
 }
 
-async function insertTiketingCategories(name,color,token
+async function insertTiketingCategories(name,color,sub_divisi,dept,token
   ) {
   let query = `
   insert into msticket_categories (name,color)
-  values ('${name}', '${color}')
+  values ('${name}', '${color}', '${sub_divisi}','${dept}')
   ` 
   try{
       let pool = await sql.connect(configTICKET);
       let login = await pool.request().query(query);
       if(login?.recordsets){
-        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing-categories',type:'INSERT',param:JSON.stringify({name,color}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing-categories',type:'INSERT',param:JSON.stringify({name,color,sub_divisi,dept}),apps:'CMK-HELPDESK',status:'berhasil'},token)
      }else{
        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing-categories',type:'INSERT',param:JSON.stringify({name,color}),apps:'CMK-HELPDESK',status:'gagal'},token)
      }
-      return  {name,color};
+      return  {name,color,sub_divisi,dept};
   }catch(error){
       console.log({error})
   }
 }
 
-async function updateTiketingCategories(id,name,color,token) {
+async function updateTiketingCategories(id,name,color,sub_divisi,dept,token) {
   let query = `
     update 	msticket_categories 
 		set  name = '${name}', 
-    color = '${color}'
+    color = '${color}',
+    sub_divisi = '${sub_divisi}',
+    dept = '${dept}'
     
     where 	id = '${id}'
   ` 
@@ -4827,9 +4829,9 @@ async function updateTiketingCategories(id,name,color,token) {
       let pool = await sql.connect(configTICKET);
       let login = await pool.request().query(query);
       if(login?.recordsets){
-        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing-categories',type:'UPDATE',param:JSON.stringify({id,name,color}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing-categories',type:'UPDATE',param:JSON.stringify({id,name,color,sub_divisi,dept}),apps:'CMK-HELPDESK',status:'berhasil'},token)
      }else{
-       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing-categories',type:'UPDATE',param:JSON.stringify({id,name,color}),apps:'CMK-HELPDESK',status:'gagal'},token)
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing-categories',type:'UPDATE',param:JSON.stringify({id,name,color,sub_divisi,dept}),apps:'CMK-HELPDESK',status:'gagal'},token)
      }
       return  {id,name,color};
   }catch(error){

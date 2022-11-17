@@ -2664,10 +2664,11 @@ router.route('/insert-tiketing-categories').post((request, response) => {
   let token = request.headers.authorization 
   let name = request.body?.name?request.body?.name:''
   let color = request.body?.color?request.body?.color:'' 
-  
+  let sub_divisi = request.body?.sub_divisi?request.body?.sub_divisi:'' 
+  let dept = request.body?.color?request.body?.dept:'' 
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.insertTiketingCategories(name,color,token).then((data) => {
+    dashboard.insertTiketingCategories(name,color,sub_divisi,dept,token).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
@@ -2688,9 +2689,11 @@ router.route('/update-tiketing-categories').post((request, response) => {
   let name = request.body?.name?request.body?.name:''
   let color = request.body?.color?request.body?.color:'' 
   let id = request.body?.id?request.body?.id:'' 
+  let sub_divisi = request.body?.sub_divisi?request.body?.sub_divisi:'' 
+  let dept = request.body?.color?request.body?.dept:'' 
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.updateTiketingCategories(id,name,color,token).then((data) => {
+    dashboard.updateTiketingCategories(id,name,color,sub_divisi,dept,token).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
