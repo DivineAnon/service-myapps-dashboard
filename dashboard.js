@@ -4877,6 +4877,149 @@ async function selectCategories(
       console.log({error})
   }
 }
+
+async function getListTiketingSubCategories( 
+  page,limit
+  ) {
+    let last = limit*page
+    let first = last - (limit-1) 
+  let query = `
+  select*from( 
+    select
+    `
+    if(page!==''&&limit!==''){
+      query = query+`ROW_NUMBER() OVER 
+          (ORDER BY id asc) as row
+        ,* 
+        `
+    }else{
+      query = query+`id as value, name as label
+    
+    `
+    }
+    query = query+`
+        from msticket_subcategories  
+    `
+   
+    query = query+`  
+    ) awek
+    `
+    if(page!==''&&limit!==''){
+    query = query+ `
+    where row BETWEEN '${first}' AND '${last}'
+  ` 
+}
+  let query1 = `
+  select count(*) as tot from(
+    select ROW_NUMBER() OVER 
+    (ORDER BY id asc) as row
+  ,*  from msticket_subcategories  
+    `
+    
+    query1 = query1+`  
+    ) awek`
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let tot = await pool.request().query(query1);
+      
+      return  {
+        data:data?.recordsets[0],
+        // query1,query
+        tot:tot.recordsets[0][0]['tot']
+        // query,page,limit,search1,search2,type
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function insertSubTiketingCategories(name,color,id_category,token
+  ) {
+  let query = `
+  insert into msticket_subcategories (name,color,id_category,created_at,updated_at)
+  values ('${name}', '${color}', '${id_category}','${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+  '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}')
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing-subcategories',type:'INSERT',param:JSON.stringify({name,color,id_category}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+     }else{
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing-subcategories',type:'INSERT',param:JSON.stringify({name,color,id_category}),apps:'CMK-HELPDESK',status:'gagal'},token)
+     }
+      return  {name,color,sub_divisi,dept};
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function updateSubTiketingCategories(id,name,color,id_category,token) {
+  let query = `
+    update 	msticket_subcategories 
+		set  name = '${name}', 
+    color = '${color}',
+    id_category = '${id_category}',
+    updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+    where 	id = '${id}'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing-subcategories',type:'UPDATE',param:JSON.stringify({id,name,color,id_category}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+     }else{
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing-subcategories',type:'UPDATE',param:JSON.stringify({id,name,color,id_category}),apps:'CMK-HELPDESK',status:'gagal'},token)
+     }
+      return  {id,name,color};
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function deleteSubCategoriesTiketing(id,token) {
+  let query = `
+    delete from 	msticket_subcategories
+    where 	id = '${id}'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+         await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'delete-tiketing-subcategories',type:'DELETE',param:JSON.stringify({id}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+      }else{
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'delete-tiketing-subcategories',type:'DELETE',param:JSON.stringify({id}),apps:'CMK-HELPDESK',status:'gagal'},token)
+      }
+      return  {id};
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function selectSubCategories( 
+  search,category
+  ) {
+      let query = `SELECT top 5 id as value,name as label FROM msticket_subcategories
+      where   name LIKE '%${search}%' `
+      if(category!==''){
+        query += ` and id_category = '${category}'`
+      }
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+ 
+      let dats = data?.recordsets[0]
+     
+      return  {
+        data:dats
+        // query
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
 async function getListMessage( 
   user,search,page,limit,app,type,keyword
   ) {
@@ -5546,6 +5689,11 @@ async function dashboardTicketing(
 }
 
 module.exports = { 
+    getListTiketingSubCategories,
+    insertSubTiketingCategories,
+    updateSubTiketingCategories,
+    deleteSubCategoriesTiketing,
+    selectSubCategories,
     dashboardTicketing,
     readMessageOrChat,
     getListChat,

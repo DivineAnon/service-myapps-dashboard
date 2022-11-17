@@ -2958,6 +2958,119 @@ router.route('/update-tiketing').post((request, response) => {
 
   }
 })
+
+router.route('/get-list-tiketing-subcategories').post((request, response) => {
+  let token = request.headers.authorization 
+  let page = request.body?.page?request.body?.page:''
+  let limit = request.body?.limit?request.body?.limit:'' 
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.getListTiketingSubCategories(page,limit).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/insert-tiketing-subcategories').post((request, response) => {
+  let token = request.headers.authorization 
+  let name = request.body?.name?request.body?.name:''
+  let color = request.body?.color?request.body?.color:'' 
+  let id_category = request.body?.id_category?request.body?.id_category:'' 
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.insertSubTiketingCategories(name,color,id_category,token).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
+router.route('/update-tiketing-categories').post((request, response) => {
+  let token = request.headers.authorization 
+  let name = request.body?.name?request.body?.name:''
+  let color = request.body?.color?request.body?.color:'' 
+  let id = request.body?.id?request.body?.id:'' 
+  let id_category = request.body?.id_category?request.body?.id_category:'' 
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.updateSubTiketingCategories(id,name,color,id_category,token).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/delete-tiketing-categories').post((request, response) => {
+  let token = request.headers.authorization  
+  let id = request.body?.id?request.body?.id:'' 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.deleteSubCategoriesTiketing(id,token).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/select-subcategories').post((request, response) => {
+  let token = request.headers.authorization  
+  let search = request.body?.search?request.body?.search:'' 
+  let category = request.body?.category?request.body?.category:'' 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.selectSubCategories(search,category).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
 var  port = process.env.PORT || 9010;
 app.listen(port);
 console.log('Order API is runnning at ' + port);
