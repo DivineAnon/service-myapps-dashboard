@@ -2488,10 +2488,10 @@ router.route('/insert-status-tiketing').post((request, response) => {
   let token = request.headers.authorization 
   let name = request.body?.name?request.body?.name:''
   let color = request.body?.color?request.body?.color:'' 
-  
+  let m_type = request.body?.m_type?request.body?.m_type:'' 
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.insertStatusTiketing(name,color,token).then((data) => {
+    dashboard.insertStatusTiketing(name,color,m_type,token).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
@@ -2511,10 +2511,12 @@ router.route('/update-status-tiketing').post((request, response) => {
   let token = request.headers.authorization 
   let name = request.body?.name?request.body?.name:''
   let color = request.body?.color?request.body?.color:'' 
+  let m_type = request.body?.m_type?request.body?.m_type:'' 
+  
   let id = request.body?.id?request.body?.id:'' 
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.updateStatusTiketing(id,name,color,token).then((data) => {
+    dashboard.updateStatusTiketing(id,name,color,m_type,token).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
@@ -2664,11 +2666,11 @@ router.route('/insert-tiketing-categories').post((request, response) => {
   let token = request.headers.authorization 
   let name = request.body?.name?request.body?.name:''
   let color = request.body?.color?request.body?.color:'' 
-  let sub_divisi = request.body?.sub_divisi?request.body?.sub_divisi:'' 
-  let dept = request.body?.color?request.body?.dept:'' 
+  let id_unit_bisnis = request.body?.id_unit_bisnis?request.body?.id_unit_bisnis:'' 
+  
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.insertTiketingCategories(name,color,sub_divisi,dept,token).then((data) => {
+    dashboard.insertTiketingCategories(name,color,id_unit_bisnis,token).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
@@ -2689,11 +2691,11 @@ router.route('/update-tiketing-categories').post((request, response) => {
   let name = request.body?.name?request.body?.name:''
   let color = request.body?.color?request.body?.color:'' 
   let id = request.body?.id?request.body?.id:'' 
-  let sub_divisi = request.body?.sub_divisi?request.body?.sub_divisi:'' 
-  let dept = request.body?.color?request.body?.dept:'' 
+  let id_unit_bisnis = request.body?.id_unit_bisnis?request.body?.id_unit_bisnis:'' 
+  
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.updateTiketingCategories(id,name,color,sub_divisi,dept,token).then((data) => {
+    dashboard.updateTiketingCategories(id,name,color,id_unit_bisnis,token).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
@@ -2734,6 +2736,124 @@ router.route('/select-categories').post((request, response) => {
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.selectCategories(search).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/get-list-unit-bisnis').post((request, response) => {
+  let token = request.headers.authorization 
+  let page = request.body?.page?request.body?.page:''
+  let limit = request.body?.limit?request.body?.limit:'' 
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.getListUnitBisnis(page,limit).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
+router.route('/insert-unit-bisnis').post((request, response) => {
+  let token = request.headers.authorization 
+  let m_cabang = request.body?.m_cabang?request.body?.m_cabang:''
+  let m_div = request.body?.m_div?request.body?.m_div:'' 
+  let m_subdiv = request.body?.m_subdiv?request.body?.m_subdiv:'' 
+  let m_dept = request.body?.m_dept?request.body?.m_dept:'' 
+  let m_unit = request.body?.m_unit?request.body?.m_unit:'' 
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.insertUnitBisnis(m_cabang,m_div,m_subdiv,m_dept,m_unit,token).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
+router.route('/update-unit-bisnis').post((request, response) => {
+  let token = request.headers.authorization 
+  
+  let id = request.body?.id?request.body?.id:'' 
+  let m_cabang = request.body?.m_cabang?request.body?.m_cabang:''
+  let m_div = request.body?.m_div?request.body?.m_div:'' 
+  let m_subdiv = request.body?.m_subdiv?request.body?.m_subdiv:'' 
+  let m_dept = request.body?.m_dept?request.body?.m_dept:'' 
+  let m_unit = request.body?.m_unit?request.body?.m_unit:'' 
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.updateUnitBisnis(id,m_cabang,m_div,m_subdiv,m_dept,m_unit,token).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
+router.route('/delete-unit-bisnis').post((request, response) => {
+  let token = request.headers.authorization  
+  let id = request.body?.id?request.body?.id:'' 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.deleteUnitBisnis(id,token).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
+router.route('/select-unit-bisnis').post((request, response) => {
+  let token = request.headers.authorization  
+  let search = request.body?.search?request.body?.search:'' 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.selectUnitBisnis(search).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
@@ -3005,7 +3125,7 @@ router.route('/insert-tiketing-subcategories').post((request, response) => {
   }
 })
 
-router.route('/update-tiketing-categories').post((request, response) => {
+router.route('/update-tiketing-subcategories').post((request, response) => {
   let token = request.headers.authorization 
   let name = request.body?.name?request.body?.name:''
   let color = request.body?.color?request.body?.color:'' 
@@ -3029,7 +3149,7 @@ router.route('/update-tiketing-categories').post((request, response) => {
 
   }
 })
-router.route('/delete-tiketing-categories').post((request, response) => {
+router.route('/delete-tiketing-subcategories').post((request, response) => {
   let token = request.headers.authorization  
   let id = request.body?.id?request.body?.id:'' 
   try {

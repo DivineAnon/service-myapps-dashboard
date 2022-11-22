@@ -4576,43 +4576,43 @@ async function getListStatusTiketing(
   }
 }
 
-async function insertStatusTiketing(name,color,token
+async function insertStatusTiketing(name,color,m_type,token
   ) {
   let query = `
-  insert into msticket_status (name,color)
-  values ('${name}', '${color}')
+  insert into msticket_status (name,color,m_type)
+  values ('${name}', '${color}', '${m_type}')
   ` 
   try{
       let pool = await sql.connect(configTICKET);
       let login = await pool.request().query(query);
       if(login?.recordsets){
-        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-status-tiketing',type:'INSERT',param:JSON.stringify({name,color}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-status-tiketing',type:'INSERT',param:JSON.stringify({name,color,m_type}),apps:'CMK-HELPDESK',status:'berhasil'},token)
      }else{
-       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-status-tiketing',type:'INSERT',param:JSON.stringify({name,color}),apps:'CMK-HELPDESK',status:'gagal'},token)
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-status-tiketing',type:'INSERT',param:JSON.stringify({name,color,m_type}),apps:'CMK-HELPDESK',status:'gagal'},token)
      }
-      return  {name,color};
+      return  {name,color,m_type};
   }catch(error){
       console.log({error})
   }
 }
 
-async function updateStatusTiketing(id,name,color,token) {
+async function updateStatusTiketing(id,name,color,m_type,token) {
   let query = `
     update 	msticket_status 
 		set  name = '${name}', 
-    color = '${color}' 
-    
+    color = '${color}', 
+    m_type = '${m_type}'
     where 	id = '${id}'
   ` 
   try{
       let pool = await sql.connect(configTICKET);
       let login = await pool.request().query(query);
       if(login?.recordsets){
-        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-status-tiketing',type:'UPDATE',param:JSON.stringify({id,name,color}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-status-tiketing',type:'UPDATE',param:JSON.stringify({id,name,color,m_type}),apps:'CMK-HELPDESK',status:'berhasil'},token)
      }else{
-       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-status-tiketing',type:'UPDATE',param:JSON.stringify({id,name,color}),apps:'CMK-HELPDESK',status:'gagal'},token)
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-status-tiketing',type:'UPDATE',param:JSON.stringify({id,name,color,m_type}),apps:'CMK-HELPDESK',status:'gagal'},token)
      }
-      return  {id,name,color};
+      return  {id,name,color,m_type};
   }catch(error){
       console.log({error})
   }
@@ -4750,16 +4750,18 @@ async function getListTiketingCategories(
     `
     if(page!==''&&limit!==''){
       query = query+`ROW_NUMBER() OVER 
-          (ORDER BY id asc) as row
-        ,* 
+          (ORDER BY a.id asc) as row
+        ,a.* ,c.m_subdivisi
         `
     }else{
-      query = query+`id as value, name as label
+      query = query+`a.id as value, name as label
     
     `
     }
     query = query+`
-        from msticket_categories  
+        from msticket_categories  a
+        left join msticket_unit_bisnis b on a.id_unit_bisnis = b.id
+        left join dbhrd.dbo.mssubdivisi c on c.m_idsubdiv = b.m_unit
     `
    
     query = query+`  
@@ -4773,8 +4775,11 @@ async function getListTiketingCategories(
   let query1 = `
   select count(*) as tot from(
     select ROW_NUMBER() OVER 
-    (ORDER BY id asc) as row
-  ,*  from msticket_categories  
+    (ORDER BY a.id asc) as row
+        ,a.* ,c.m_subdivisi
+         from msticket_categories a
+         left join msticket_unit_bisnis b on a.id_unit_bisnis = b.id
+         left join dbhrd.dbo.mssubdivisi c on c.m_idsubdiv = b.m_unit
     `
     
     query1 = query1+`  
@@ -4795,33 +4800,32 @@ async function getListTiketingCategories(
   }
 }
 
-async function insertTiketingCategories(name,color,sub_divisi,dept,token
+async function insertTiketingCategories(name,color,id_unit_bisnis,token
   ) {
   let query = `
-  insert into msticket_categories (name,color)
-  values ('${name}', '${color}', '${sub_divisi}','${dept}')
+  insert into msticket_categories (name,color,id_unit_bisnis)
+  values ('${name}', '${color}', '${id_unit_bisnis}')
   ` 
   try{
       let pool = await sql.connect(configTICKET);
       let login = await pool.request().query(query);
       if(login?.recordsets){
-        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing-categories',type:'INSERT',param:JSON.stringify({name,color,sub_divisi,dept}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing-categories',type:'INSERT',param:JSON.stringify({name,color,id_unit_bisnis}),apps:'CMK-HELPDESK',status:'berhasil'},token)
      }else{
-       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing-categories',type:'INSERT',param:JSON.stringify({name,color}),apps:'CMK-HELPDESK',status:'gagal'},token)
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing-categories',type:'INSERT',param:JSON.stringify({name,color,id_unit_bisnis}),apps:'CMK-HELPDESK',status:'gagal'},token)
      }
-      return  {name,color,sub_divisi,dept};
+      return  {name,color,id_unit_bisnis};
   }catch(error){
       console.log({error})
   }
 }
 
-async function updateTiketingCategories(id,name,color,sub_divisi,dept,token) {
+async function updateTiketingCategories(id,name,color,id_unit_bisnis,token) {
   let query = `
     update 	msticket_categories 
 		set  name = '${name}', 
     color = '${color}',
-    sub_divisi = '${sub_divisi}',
-    dept = '${dept}'
+    id_unit_bisnis = '${id_unit_bisnis}'
     
     where 	id = '${id}'
   ` 
@@ -4829,11 +4833,11 @@ async function updateTiketingCategories(id,name,color,sub_divisi,dept,token) {
       let pool = await sql.connect(configTICKET);
       let login = await pool.request().query(query);
       if(login?.recordsets){
-        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing-categories',type:'UPDATE',param:JSON.stringify({id,name,color,sub_divisi,dept}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing-categories',type:'UPDATE',param:JSON.stringify({id,name,color,id_unit_bisnis}),apps:'CMK-HELPDESK',status:'berhasil'},token)
      }else{
-       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing-categories',type:'UPDATE',param:JSON.stringify({id,name,color,sub_divisi,dept}),apps:'CMK-HELPDESK',status:'gagal'},token)
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing-categories',type:'UPDATE',param:JSON.stringify({id,name,color,id_unit_bisnis}),apps:'CMK-HELPDESK',status:'gagal'},token)
      }
-      return  {id,name,color};
+      return  {id,name,color,id_unit_bisnis};
   }catch(error){
       console.log({error})
   }
@@ -4877,6 +4881,159 @@ async function selectCategories(
       console.log({error})
   }
 }
+async function getListUnitBisnis( 
+  page,limit
+  ) {
+    let last = limit*page
+    let first = last - (limit-1) 
+  let query = `
+  select*from( 
+    select
+    `
+    if(page!==''&&limit!==''){
+      query = query+`ROW_NUMBER() OVER 
+          (ORDER BY id asc) as row
+        ,a.* ,b.m_cabang as cabang,c.m_departemen as div,d.m_subdivisi as subdiv,e.m_divisi as dept,f.m_subdivisi as unit
+        `
+    }else{
+      query = query+`a.id as value, f.m_subdivisi as label
+    
+    `
+    }
+    query = query+`
+        from msticket_unit_bisnis a`
+        if(page!==''&&limit!==''){
+       query += `
+        join dbhrd.dbo.mscabang b on a.m_cabang = b.m_idcabang
+        join dbhrd.dbo.msdepartemen c on a.m_div = c.m_iddept
+        join dbhrd.dbo.mssubdivisinew d on a.m_subdiv = d.m_idsubdiv
+        join dbhrd.dbo.msdivisi e on a.m_dept = e.m_iddivisi
+        join dbhrd.dbo.mssubdivisi f on a.m_unit = f.m_idsubdiv
+    `
+        }else{
+          query +=` join dbhrd.dbo.mssubdivisi f on a.m_unit = f.m_idsubdiv`
+        }
+    query = query+`  
+    ) awek
+    `
+    if(page!==''&&limit!==''){
+    query = query+ `
+    where row BETWEEN '${first}' AND '${last}'
+  ` 
+}
+  let query1 = `
+  select count(*) as tot from(
+    select ROW_NUMBER() OVER 
+    (ORDER BY id asc) as row
+  ,*  from msticket_unit_bisnis  
+    `
+    
+    query1 = query1+`  
+    ) awek`
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let tot = await pool.request().query(query1);
+      
+      return  {
+        data:data?.recordsets[0],
+        // query1,query
+        tot:tot.recordsets[0][0]['tot']
+        // query,page,limit,search1,search2,type
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function insertUnitBisnis(
+  m_cabang,m_div,m_subdiv,m_dept,m_unit
+  ,token
+  ) {
+  let query = `
+  insert into msticket_unit_bisnis (m_cabang,m_div,m_subdiv,m_dept,m_unit,created_at,updated_at)
+  values ('${m_cabang}', '${m_div}', '${m_subdiv}','${m_dept}','${m_unit}','${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}','${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}')
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-unit-bisnis',type:'INSERT',param:JSON.stringify({m_cabang,m_div,m_subdiv,m_dept,m_unit}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+     }else{
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-unit-bisnis',type:'INSERT',param:JSON.stringify({m_cabang,m_div,m_subdiv,m_dept,m_unit}),apps:'CMK-HELPDESK',status:'gagal'},token)
+     }
+      return  {m_cabang,m_div,m_subdiv,m_dept,m_unit};
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function updateUnitBisnis(id,m_cabang,m_div,m_subdiv,m_dept,m_unit,token) {
+  let query = `
+    update 	msticket_unit_bisnis 
+		set  
+    m_cabang = '${m_cabang}', 
+    m_div = '${m_div}',
+    m_subdiv = '${m_subdiv}',
+    m_dept = '${m_dept}',
+    m_unit = '${m_unit}',
+    updated_at= '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+    
+    where 	id = '${id}'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-unit-bisnis',type:'UPDATE',param:JSON.stringify({id,m_cabang,m_div,m_subdiv,m_dept,m_unit,dept}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+     }else{
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-unit-bisnis',type:'UPDATE',param:JSON.stringify({id,m_cabang,m_div,m_subdiv,m_dept,m_unit,dept}),apps:'CMK-HELPDESK',status:'gagal'},token)
+     }
+      return  {id,m_cabang,m_div,m_subdiv,m_dept,m_unit};
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function deleteUnitBisnis(id,token) {
+  let query = `
+    delete from 	msticket_unit_bisnis
+    where 	id = '${id}'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+         await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'delete-unit-bisnis',type:'DELETE',param:JSON.stringify({id}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+      }else{
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'delete-unit-bisnis',type:'DELETE',param:JSON.stringify({id}),apps:'CMK-HELPDESK',status:'gagal'},token)
+      }
+      return  {id};
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function selectUnitBisnis( 
+  search
+  ) {
+      let query = `SELECT   id as value,m_unit as label FROM msticket_unit_bisnis
+      `
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+ 
+      let dats = data?.recordsets[0]
+     
+      return  {
+        data:dats
+        // query
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
 
 async function getListTiketingSubCategories( 
   page,limit
@@ -4889,8 +5046,8 @@ async function getListTiketingSubCategories(
     `
     if(page!==''&&limit!==''){
       query = query+`ROW_NUMBER() OVER 
-          (ORDER BY id asc) as row
-        ,* 
+          (ORDER BY a.id asc) as row
+        ,a.*,b.name as category 
         `
     }else{
       query = query+`id as value, name as label
@@ -4898,7 +5055,8 @@ async function getListTiketingSubCategories(
     `
     }
     query = query+`
-        from msticket_subcategories  
+        from msticket_subcategories  a
+        join msticket_categories b on b.id = a.id_category
     `
    
     query = query+`  
@@ -4912,8 +5070,9 @@ async function getListTiketingSubCategories(
   let query1 = `
   select count(*) as tot from(
     select ROW_NUMBER() OVER 
-    (ORDER BY id asc) as row
-  ,*  from msticket_subcategories  
+    (ORDER BY a.id asc) as row
+    ,a.*,b.name as category  from msticket_subcategories  a
+  join msticket_categories b on b.id = a.id_category
     `
     
     query1 = query1+`  
@@ -4949,7 +5108,7 @@ async function insertSubTiketingCategories(name,color,id_category,token
      }else{
        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing-subcategories',type:'INSERT',param:JSON.stringify({name,color,id_category}),apps:'CMK-HELPDESK',status:'gagal'},token)
      }
-      return  {name,color,sub_divisi,dept};
+      return  {name,color,id_category};
   }catch(error){
       console.log({error})
   }
@@ -5689,6 +5848,11 @@ async function dashboardTicketing(
 }
 
 module.exports = { 
+    getListUnitBisnis,
+    insertUnitBisnis,
+    updateUnitBisnis,
+    deleteUnitBisnis,
+    selectUnitBisnis,
     getListTiketingSubCategories,
     insertSubTiketingCategories,
     updateSubTiketingCategories,
