@@ -4862,11 +4862,13 @@ async function deleteCategoriesTiketing(id,token) {
   }
 }
 async function selectCategories( 
-  search
+  search,unit
   ) {
       let query = `SELECT top 5 id as value,name as label FROM msticket_categories
       where   name LIKE '%${search}%' `
- 
+      if(unit!==''){
+        query += ` and id_unit_bisnis = '${unit}'`
+      }
   try{
       let pool = await sql.connect(configTICKET);
       let data = await pool.request().query(query);
@@ -4877,6 +4879,129 @@ async function selectCategories(
         data:dats
         // query
       };
+  }catch(error){
+      console.log({error})
+  }
+}
+async function getListTiketingPIC( 
+  page,limit
+  ) {
+    let last = limit*page
+    let first = last - (limit-1) 
+  let query = `
+  select*from( 
+    select
+    `
+    if(page!==''&&limit!==''){
+      query = query+`ROW_NUMBER() OVER 
+          (ORDER BY a.id asc) as row
+        ,a.*,c.m_nama,d.m_subdivisi
+        `
+    }else{
+      query = query+`a.id as value, c.m_nama as label
+    
+    `
+    }
+    query = query+`
+        from msticket_pic  a
+        left join msticket_unit_bisnis b on a.unit_bisnis = b.id
+        left join dbhrd.dbo.mskaryawan c on a.m_nik = c.m_nik
+        left join dbhrd.dbo.mssubdivisi d on d.m_idsubdiv = b.m_unit
+    `
+   
+    query = query+`  
+    ) awek
+    `
+    if(page!==''&&limit!==''){
+    query = query+ `
+    where row BETWEEN '${first}' AND '${last}'
+  ` 
+}
+  let query1 = `
+  select count(*) as tot from(
+    select ROW_NUMBER() OVER 
+    (ORDER BY a.id asc) as row
+        ,a.*,c.m_nama,d.m_subdivisi
+         from msticket_pic a
+         left join msticket_unit_bisnis b on a.unit_bisnis = b.id
+         left join dbhrd.dbo.mskaryawan c on a.m_nik = c.m_nik
+         left join dbhrd.dbo.mssubdivisi d on d.m_idsubdiv = b.m_unit
+    `
+    
+    query1 = query1+`  
+    ) awek`
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let tot = await pool.request().query(query1);
+      
+      return  {
+        data:data?.recordsets[0],
+        // query1,query
+        tot:tot.recordsets[0][0]['tot']
+        // query,page,limit,search1,search2,type
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function insertTiketingPIC(m_nik,unit_bisnis,token
+  ) {
+  let query = `
+  insert into msticket_pic (m_nik,unit_bisnis,created_at,updated_at)
+  values ('${m_nik}', '${unit_bisnis}', '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}','${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}')
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing-pic',type:'INSERT',param:JSON.stringify({m_nik,unit_bisnis}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+     }else{
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing-pic',type:'INSERT',param:JSON.stringify({m_nik,unit_bisnis}),apps:'CMK-HELPDESK',status:'gagal'},token)
+     }
+      return  {m_nik,unit_bisnis};
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function updateTiketingPIC(id,m_nik,unit_bisnis,token) {
+  let query = `
+    update 	msticket_pic set  
+    m_nik = '${m_nik}', 
+    unit_bisnis = '${unit_bisnis}'
+    
+    where 	id = '${id}'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing-pic',type:'UPDATE',param:JSON.stringify({id,m_nik,unit_bisnis}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+     }else{
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing-pic',type:'UPDATE',param:JSON.stringify({id,m_nik,unit_bisnis}),apps:'CMK-HELPDESK',status:'gagal'},token)
+     }
+      return  {id,m_nik,unit_bisnis};
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function deletePICTiketing(id,token) {
+  let query = `
+    delete from 	msticket_pic
+    where 	id = '${id}'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+         await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'delete-tiketing-pic',type:'DELETE',param:JSON.stringify({id}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+      }else{
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'delete-tiketing-pic',type:'DELETE',param:JSON.stringify({id}),apps:'CMK-HELPDESK',status:'gagal'},token)
+      }
+      return  {id};
   }catch(error){
       console.log({error})
   }
@@ -5442,14 +5567,13 @@ async function getListTiketing(
     select ROW_NUMBER() OVER 
     (ORDER BY a.id asc) as row
       ,a.*,b.m_nama as user_req, 
-      c.m_nama as user_agent,d.name as category,
-      d.color as color_category 
+      c.m_nama as user_agent
       ,e.name as status,e.color as color_status 
     ,f.num
     from msticket a
     join dbhrd.dbo.mskaryawan b on a.user_id = b.m_nik
     join dbhrd.dbo.mskaryawan c on a.agent_id = c.m_nik
-    join msticket_categories d on a.category_id = d.id
+    
     join msticket_status e on a.status_id = e.id
     left join (select COUNT(*) as num,keyOfWord from msMessageAllApps
     where status_read = '0'
@@ -5482,14 +5606,13 @@ async function getListTiketing(
     select ROW_NUMBER() OVER 
     (ORDER BY a.id asc) as row
       ,a.*,b.m_nama as user_req, 
-      c.m_nama as user_agent,d.name as category,
-      d.color as color_category 
+      c.m_nama as user_agent
       ,e.name as status,e.color as color_status 
     ,f.num
     from msticket a
     join dbhrd.dbo.mskaryawan b on a.user_id = b.m_nik
     join dbhrd.dbo.mskaryawan c on a.agent_id = c.m_nik
-    join msticket_categories d on a.category_id = d.id
+    
     join msticket_status e on a.status_id = e.id
     left join (select COUNT(*) as num,keyOfWord from msMessageAllApps
     where status_read = '0'
@@ -5523,7 +5646,7 @@ async function getListTiketing(
         data:data?.recordsets[0],
         // query1,
         // ,
-        // query,
+        query,
         // status,
         tot:tot.recordsets[0][0]['tot']
         // query,page,limit,search1,search2,type
@@ -5533,43 +5656,58 @@ async function getListTiketing(
   }
 }
 async function insertTiketing(
-   user,agent,subject,content,doc_file,priority,category,token
+   user, 
+   subject,
+   content,
+   unit,
+   lokasi,
+   kota,
+   toko, 
+   token
   ) {
-  let query = `
-  insert into msticket (
-    user_id,
-    agent_id,
-    subject,
-    content,
-    doc_file,
-    priority_id,
-    category_id,
-    status_id,
-    created_at,
-    updated_at,
-    completed_at
-    )
-  values (
-    '${user?.nik}',
-    '${agent}',
-    '${subject}', 
-    '${content}',
-    '${doc_file}', 
-    '${priority}',
-    '${category}', 
-    '1',
-    '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
-    '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
-    ''
-    )
-  ` 
+  // let query = 
   try{
       let pool = await sql.connect(configTICKET);
-      let login = await pool.request().query(query);
+      let dat2 = await pool.request().query(`
+      select * from msticket_pic where unit_bisnis = '${unit}'
+      `);
+      
+      dats3=dat2?.recordsets[0][0]
+      let login = await pool.request().query(`
+      insert into msticket (
+        user_id, 
+        agent_id,
+        subject,
+        content,   
+        status_id,
+        created_at,
+        updated_at,
+        completed_at,
+        unit_bisnis,
+        m_lokasi,
+        m_kota,
+        m_toko
+        )
+      values (
+        '${user?.nik}', 
+        '${dats3?.m_nik}',
+        '${subject}', 
+        '${content}',   
+        '1',
+        '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+        '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+        '',
+        '${unit}',
+        '${lokasi}',
+        '${kota}',
+        '${toko}'
+        )
+      ` );
       let dat = await pool.request().query(`
       select max(id) as id from msticket 
       `);
       id=dat?.recordsets[0][0]['id']
+     
       insertMessageOrChat(
         user?.nik,
         'REQUEST TASK-'+id+' created by : '+user?.nik+'-'+user?.nama,
@@ -5577,12 +5715,12 @@ async function insertTiketing(
         'CMK-HELPDESK',
         '',
         'message',
-        agent,
+        dats3?.m_nik,
         id,
         token
         )
         insertMessageOrChat(
-          agent,
+          dats3?.m_nik,
           'REQUEST TASK-'+id+' created by : '+user?.nik+'-'+user?.nama,
           content,
           'CMK-HELPDESK',
@@ -5593,11 +5731,12 @@ async function insertTiketing(
           token
           )
       if(login?.recordsets){
-        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing',type:'INSERT',param:JSON.stringify({user:user?.nik,agent,subject,content,doc_file,priority,category}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing',type:'INSERT',param:JSON.stringify({user:user?.nik, subject,content,unit,lokasi,kota,toko }),apps:'CMK-HELPDESK',status:'berhasil'},token)
      }else{
-       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing',type:'INSERT',param:JSON.stringify({user:user?.nik,agent,subject,content,doc_file,priority,category}),apps:'CMK-HELPDESK',status:'gagal'},token)
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing',type:'INSERT',param:JSON.stringify({user:user?.nik, subject,content,unit,lokasi,kota,toko}),apps:'CMK-HELPDESK',status:'gagal'},token)
      }
-      return  {user:user?.nik,agent,subject,content,doc_file,priority,category,id};
+      return  {user:user?.nik, subject,content,unit,lokasi,kota,toko,id,dats3,pic:dats3?.m_nik
+      };
   }catch(error){
       console.log({error})
   }
@@ -5846,8 +5985,235 @@ async function dashboardTicketing(
       console.log({error})
   }
 }
+async function getListTiketingTask( 
+  page,limit
+  ) {
+    let last = limit*page
+    let first = last - (limit-1) 
+  let query = `
+  select*from( 
+    select
+    `
+    if(page!==''&&limit!==''){
+      query = query+`ROW_NUMBER() OVER 
+          (ORDER BY a.id asc) as row
+        ,a.*,c.m_nama,d.m_subdivisi
+        `
+    }else{
+      query = query+`a.id as value, c.m_nama as label
+    
+    `
+    }
+    query = query+`
+        from msticket_pic  a
+        left join msticket_unit_bisnis b on a.unit_bisnis = b.id
+        left join dbhrd.dbo.mskaryawan c on a.m_nik = c.m_nik
+        left join dbhrd.dbo.mssubdivisi d on d.m_idsubdiv = b.m_unit
+    `
+   
+    query = query+`  
+    ) awek
+    `
+    if(page!==''&&limit!==''){
+    query = query+ `
+    where row BETWEEN '${first}' AND '${last}'
+  ` 
+}
+  let query1 = `
+  select count(*) as tot from(
+    select ROW_NUMBER() OVER 
+    (ORDER BY a.id asc) as row
+        ,a.*,c.m_nama,d.m_subdivisi
+         from msticket_pic a
+         left join msticket_unit_bisnis b on a.unit_bisnis = b.id
+         left join dbhrd.dbo.mskaryawan c on a.m_nik = c.m_nik
+         left join dbhrd.dbo.mssubdivisi d on d.m_idsubdiv = b.m_unit
+    `
+    
+    query1 = query1+`  
+    ) awek`
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let tot = await pool.request().query(query1);
+      
+      return  {
+        data:data?.recordsets[0],
+        // query1,query
+        tot:tot.recordsets[0][0]['tot']
+        // query,page,limit,search1,search2,type
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
 
+async function insertTiketingTask(
+  id_ticket,
+  id_status,
+  id_category,
+  id_subcategory,
+  m_qty,
+  m_nomor_fpp,
+  m_file_user,
+  m_ket_user,
+  token
+  ) {
+  let query = `
+  insert into msticket_task (
+    id_ticket,
+    id_status,
+    id_category,
+    id_subcategory,
+    m_qty,
+    m_history,
+    m_nomor_fpp,
+    m_file_user,
+    m_ket_user,
+    created_at,
+    updated_at)
+  values (
+    '${id_ticket}', 
+    '${id_status}', 
+    '${id_category}', 
+    '${id_subcategory}', 
+    '${m_qty}',
+    '${JSON.stringify([{status:id_status,tgl:moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}])}',  
+    '${m_nomor_fpp}', 
+    '${m_file_user}', 
+    '${m_ket_user}', 
+    '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}',
+    '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}')
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing-task',type:'INSERT',param:JSON.stringify({
+          id_ticket,
+          id_status,
+          id_category,
+          id_subcategory,
+          m_qty,
+          m_nomor_fpp,
+          m_file_user,
+          m_ket_user,
+        }),apps:'CMK-HELPDESK',status:'berhasil'},token)
+     }else{
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-tiketing-task',type:'INSERT',param:JSON.stringify({
+        id_ticket,
+        id_status,
+        id_category,
+        id_subcategory,
+        m_qty,
+        m_nomor_fpp,
+        m_file_user,
+        m_ket_user,
+       }),apps:'CMK-HELPDESK',status:'gagal'},token)
+     }
+      return  {
+        id_ticket,
+        id_status,
+        id_category,
+        id_subcategory,
+        m_qty,
+        m_nomor_fpp,
+        m_file_user,
+        m_ket_user
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function updateTiketingTask(id,
+  id_ticket,
+  id_status,
+  id_category,
+  id_subcategory,
+  m_qty,
+  m_nomor_fpp,
+  m_file_user,
+  m_ket_user,
+  token) {
+  let query = `
+    update 	msticket_task set  
+    id_ticket = '${id_ticket}', 
+    id_status = '${id_status}',
+    id_category = '${id_category}',
+    id_subcategory = '${id_subcategory}',
+    m_qty = '${m_qty}',
+    m_nomor_fpp = '${m_nomor_fpp}',
+    m_file_user = '${m_file_user}',
+    m_ket_user = '${m_ket_user}',
+    updated_at = '${moment(new Date()).format('YYYY-MM-DD HH:mm:ss')}'
+
+    where 	id = '${id}'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing-pic',type:'UPDATE',param:JSON.stringify({id,
+          id_ticket,
+          id_status,
+          id_category,
+          id_subcategory,
+          m_qty,
+          m_nomor_fpp,
+          m_file_user,
+          m_ket_user}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+     }else{
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing-pic',type:'UPDATE',param:JSON.stringify({id,
+        id_ticket,
+  id_status,
+  id_category,
+  id_subcategory,
+  m_qty,
+  m_nomor_fpp,
+  m_file_user,
+  m_ket_user}),apps:'CMK-HELPDESK',status:'gagal'},token)
+     }
+      return  {id,id_ticket,
+        id_status,
+        id_category,
+        id_subcategory,
+        m_qty,
+        m_nomor_fpp,
+        m_file_user,
+        m_ket_user};
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function deleteTaskTiketing(id,token) {
+  let query = `
+    delete from 	msticket_task
+    where 	id = '${id}'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+         await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'delete-tiketing-pic',type:'DELETE',param:JSON.stringify({id}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+      }else{
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'delete-tiketing-pic',type:'DELETE',param:JSON.stringify({id}),apps:'CMK-HELPDESK',status:'gagal'},token)
+      }
+      return  {id};
+  }catch(error){
+      console.log({error})
+  }
+}
 module.exports = { 
+    getListTiketingTask,
+    insertTiketingTask,
+    updateTiketingTask,
+    deleteTaskTiketing,
+    getListTiketingPIC,
+    insertTiketingPIC,
+    updateTiketingPIC,
+    deletePICTiketing,
     getListUnitBisnis,
     insertUnitBisnis,
     updateUnitBisnis,

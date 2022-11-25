@@ -2733,9 +2733,223 @@ router.route('/delete-tiketing-categories').post((request, response) => {
 router.route('/select-categories').post((request, response) => {
   let token = request.headers.authorization  
   let search = request.body?.search?request.body?.search:'' 
+  let unit = request.body?.unit?request.body?.unit:'' 
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.selectCategories(search).then((data) => {
+    dashboard.selectCategories(search,unit).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/get-list-tiketing-pic').post((request, response) => {
+  let token = request.headers.authorization 
+  let page = request.body?.page?request.body?.page:''
+  let limit = request.body?.limit?request.body?.limit:'' 
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.getListTiketingPIC(page,limit).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/insert-tiketing-pic').post((request, response) => {
+  let token = request.headers.authorization 
+  let m_nik = request.body?.m_nik?request.body?.m_nik:''
+  let unit_bisnis = request.body?.unit_bisnis?request.body?.unit_bisnis:'' 
+  
+  
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.insertTiketingPIC(m_nik,unit_bisnis,token).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
+router.route('/update-tiketing-pic').post((request, response) => {
+  let token = request.headers.authorization 
+  
+  let m_nik = request.body?.m_nik?request.body?.m_nik:'' 
+  let id = request.body?.id?request.body?.id:'' 
+  let unit_bisnis = request.body?.unit_bisnis?request.body?.unit_bisnis:'' 
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.updateTiketingPIC(id,m_nik,unit_bisnis,token).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
+router.route('/delete-tiketing-pic').post((request, response) => {
+  let token = request.headers.authorization  
+  let id = request.body?.id?request.body?.id:'' 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.deletePICTiketing(id,token).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/get-list-tiketing-task').post((request, response) => {
+  let token = request.headers.authorization 
+  let page = request.body?.page?request.body?.page:''
+  let limit = request.body?.limit?request.body?.limit:'' 
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.getListTiketingTask(page,limit).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/insert-tiketing-task').post((request, response) => {
+  let token = request.headers.authorization 
+  let id_ticket = request.body?.id_ticket?request.body?.id_ticket:''
+  let id_status = request.body?.id_status?request.body?.id_status:'' 
+  let id_category = request.body?.id_category?request.body?.id_category:'' 
+  let id_subcategory = request.body?.id_subcategory?request.body?.id_subcategory:'' 
+  let m_qty = request.body?.m_qty?request.body?.m_qty:'' 
+  let m_nomor_fpp = request.body?.m_nomor_fpp?request.body?.m_nomor_fpp:'' 
+  let m_file_user = request.body?.m_file_user?request.body?.m_file_user:'' 
+  let m_ket_user = request.body?.m_ket_user?request.body?.m_ket_user:'' 
+  
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.insertTiketingTask(
+     
+      id_ticket,
+      id_status,
+      id_category,
+      id_subcategory,
+      m_qty,
+      m_nomor_fpp,
+      m_file_user,
+      m_ket_user,token).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
+router.route('/update-tiketing-task').post((request, response) => {
+  let token = request.headers.authorization 
+  
+  
+  let id = request.body?.id?request.body?.id:'' 
+  let id_ticket = request.body?.id_ticket?request.body?.id_ticket:''
+  let id_status = request.body?.id_status?request.body?.id_status:'' 
+  let id_category = request.body?.id_category?request.body?.id_category:'' 
+  let id_subcategory = request.body?.id_subcategory?request.body?.id_subcategory:'' 
+  let m_qty = request.body?.m_qty?request.body?.m_qty:'' 
+  let m_nomor_fpp = request.body?.m_nomor_fpp?request.body?.m_nomor_fpp:'' 
+  let m_file_user = request.body?.m_file_user?request.body?.m_file_user:'' 
+  let m_ket_user = request.body?.m_ket_user?request.body?.m_ket_user:'' 
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.updateTiketingTask(id,
+      id_ticket,
+      id_status,
+      id_category,
+      id_subcategory,
+      m_qty,
+      m_nomor_fpp,
+      m_file_user,
+      m_ket_user,token).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
+router.route('/delete-tiketing-task').post((request, response) => {
+  let token = request.headers.authorization  
+  let id = request.body?.id?request.body?.id:'' 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.deleteTaskTiketing(id,token).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
@@ -3025,15 +3239,14 @@ router.route('/insert-tiketing').post((request, response) => {
   let token = request.headers.authorization  
   let subject = request.body?.subject?request.body?.subject:''
   let content = request.body?.content?request.body?.content:''
-  let doc_file = request.body?.doc_file?request.body?.doc_file:''
-  let priority = request.body?.priority?request.body?.priority:'' 
-  let category = request.body?.category?request.body?.category:'' 
-  let agent = request.body?.agent?request.body?.agent:'' 
-  
+  let unit = request.body?.unit?request.body?.unit:''
+  let lokasi = request.body?.lokasi?request.body?.lokasi:''
+  let kota = request.body?.kota?request.body?.kota:''
+  let toko = request.body?.toko?request.body?.toko:''
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.insertTiketing(
-      decoded?.data[0],agent,subject,content,doc_file,priority,category,token
+      decoded?.data[0], subject,content,unit,lokasi,kota,toko,token
      ).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
