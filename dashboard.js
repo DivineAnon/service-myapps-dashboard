@@ -5383,15 +5383,15 @@ async function getListMessage(
       let pool = await sql.connect(configTICKET);
       let data = await pool.request().query(query);
       let tot = await pool.request().query(query1);
-      let totAgent = await pool.request().query(query0);
-      let totUser = await pool.request().query(query01);
+      // let totAgent = await pool.request().query(query0);
+      // let totUser = await pool.request().query(query01);
       
       return  {
         data:data?.recordsets[0],
         // query1,
         // query,
-        totAgent:totAgent.recordsets[0][0]['tot'],
-        totUser:totUser.recordsets[0][0]['tot'],
+        // totAgent:totAgent.recordsets[0][0]['tot'],
+        // totUser:totUser.recordsets[0][0]['tot'],
         tot:tot.recordsets[0][0]['tot']
         // query,page,limit,search1,search2,type
       };
@@ -5567,12 +5567,12 @@ async function getListTiketing(
     select ROW_NUMBER() OVER 
     (ORDER BY a.id asc) as row
       ,a.*,b.m_nama as user_req, 
-      c.m_nama as user_agent
-      ,e.name as status,e.color as color_status 
-    ,f.num
+      e.name as status,e.color as color_status 
+    ,f.num,g.m_nik as pic
+    ,c.m_nama as pic_nama   
     from msticket a
     join dbhrd.dbo.mskaryawan b on a.user_id = b.m_nik
-    join dbhrd.dbo.mskaryawan c on a.agent_id = c.m_nik
+    
     
     join msticket_status e on a.status_id = e.id
     left join (select COUNT(*) as num,keyOfWord from msMessageAllApps
@@ -5580,12 +5580,14 @@ async function getListTiketing(
     and type='chat'
     and to_user = '${user?.nik}'
     group by keyOfWord) f on a.id = f.keyOfWord
+    left join  msticket_pic g on g.unit_bisnis = a.unit_bisnis
+	  left join dbhrd.dbo.mskaryawan c on g.m_nik = c.m_nik    
     where  (a.subject like '%${search}%' or a.content like '%${search}%')
     `
    if(isAgent==='0'){
     query= query+` and a.user_id = '${user?.nik}'`
    }else{
-    query= query+` and a.agent_id = '${user?.nik}'`
+    query= query+` and (a.agent_id like '%${user?.nik}%' or g.m_nik = '${user?.nik}')`
    }
    if(priority!==''){
     query= query+` and a.priority_id = '${priority}'`
@@ -5606,12 +5608,12 @@ async function getListTiketing(
     select ROW_NUMBER() OVER 
     (ORDER BY a.id asc) as row
       ,a.*,b.m_nama as user_req, 
-      c.m_nama as user_agent
-      ,e.name as status,e.color as color_status 
-    ,f.num
+       e.name as status,e.color as color_status 
+    ,f.num,g.m_nik as pic
+    ,c.m_nama as pic_nama   
     from msticket a
     join dbhrd.dbo.mskaryawan b on a.user_id = b.m_nik
-    join dbhrd.dbo.mskaryawan c on a.agent_id = c.m_nik
+    
     
     join msticket_status e on a.status_id = e.id
     left join (select COUNT(*) as num,keyOfWord from msMessageAllApps
@@ -5619,12 +5621,14 @@ async function getListTiketing(
     and type='chat'
     and to_user = '${user?.nik}'
     group by keyOfWord) f on a.id = f.keyOfWord
+    left join  msticket_pic g on g.unit_bisnis = a.unit_bisnis
+	  left join dbhrd.dbo.mskaryawan c on g.m_nik = c.m_nik    
     where (a.subject like '%${search}%' or a.content like '%${search}%')
     `
     if(isAgent==='0'){
       query1= query1+` and a.user_id = '${user?.nik}'`
      }else{
-      query1= query1+` and a.agent_id = '${user?.nik}'`
+      query1= query1+` and (a.agent_id like '%${user?.nik}%' or  g.m_nik = '${user?.nik}')`
      }
      if(priority!==''){
       query1= query1+` and a.priority_id = '${priority}'`
@@ -5676,7 +5680,7 @@ async function insertTiketing(
       let login = await pool.request().query(`
       insert into msticket (
         user_id, 
-        agent_id,
+        
         subject,
         content,   
         status_id,
@@ -5690,7 +5694,7 @@ async function insertTiketing(
         )
       values (
         '${user?.nik}', 
-        '${dats3?.m_nik}',
+        
         '${subject}', 
         '${content}',   
         '1',
@@ -5742,8 +5746,10 @@ async function insertTiketing(
   }
 }
 async function updateTiketing(
-  user,id,status,subject,content,doc_file,priority,category,agent,token
+  user,id,status,subject,content,doc_file,priority,category,agent,score,m_lokasi,m_kota,m_toko,token
   ) {
+    let query2 = ''
+    let query3 =''
   let query = `
   update  msticket set 
   `
@@ -5765,11 +5771,28 @@ async function updateTiketing(
    if(agent!==''){
     query = query + ` agent_id='${agent}',`
    }
+   if(score!==''){
+    query = query + ` score='${score}',`
+   }
+   if(m_lokasi!==''){
+    query = query + ` m_lokasi='${m_lokasi}',`
+   }
+   if(m_kota!==''){
+    query = query + ` m_kota='${m_kota}',`
+   }
+   if(m_toko!==''){
+    query = query + ` m_toko='${m_toko}',`
+   }
    
    if(status!==''){
     query = query + `  status_id='${status}',
     completed_at='${status===4||status===5?moment(new Date()).format('YYYY-MM-DD HH:mm:ss'):''}',
     `
+    
+  if(status===4||status===5){
+     query2 = `delete from msMessageAllApps where keyOfWord = '${id}'`
+   }
+    query3 = `select * from msticket_status where id='${status}'`
    }
 
    query = query + ` 
@@ -5777,11 +5800,8 @@ async function updateTiketing(
   
   where id= '${id}'
   ` 
-  let query2 = ''
-  if(status===4||status===5){
-     query2 = `delete from msMessageAllApps where keyOfWord = '${id}'`
-   }
-   let query3 = `select * from msticket_status where id=${status}`
+  
+
   try{
       let pool = await sql.connect(configTICKET);
       let login = await pool.request().query(query);
@@ -5795,32 +5815,46 @@ async function updateTiketing(
        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing',type:'UPDATE',param:JSON.stringify({id,agent,status,completed_at:status===4||status===5?moment(new Date()).format('YYYY-MM-DD HH:mm:ss'):'',subject,content,doc_file,priority,category}),apps:'CMK-HELPDESK',status:'gagal'},token)
      }
      let dat = await pool.request().query(`
-      select * from msticket where id = '${id}'
+      select *,b.m_nik as pic from msticket a 
+      join msticket_pic b on b.unit_bisnis = a.unit_bisnis
+      where a.id = '${id}'
       `);
-      let dats = await pool.request().query(query3);
-      d=dat?.recordsets[0][0]
-     insertMessageOrChat(
-      user?.nik,
-      dats?.recordsets[0][0]['name']+' TASK-'+id+' Send by : '+user?.nik+'-'+user?.nama,
-      d?.content,
-      'CMK-HELPDESK',
-      '',
-      'message',
-      user?.nik===d?.agent_id?.toString()?d?.user_id:d?.agent_id,
-      id,
-      token
-      )
-      insertMessageOrChat(
-        user?.nik===d?.agent_id.toString()?d?.user_id:d?.agent_id,
-        dats?.recordsets[0][0]['name']+' TASK-'+id+' Send by : '+user?.nik+'-'+user?.nama,
-        d?.content,
-        'CMK-HELPDESK',
-        '',
-        'message',
-        user?.nik,
-        id,
-        token
-        )
+      let dats
+      let arr
+      if(status!==''){
+        dats = await pool.request().query(query3);
+        d=dat?.recordsets[0][0]
+        arr = d?.agent_id?JSON.parse(d?.agent_id):[]
+        arr?.push({value:d?.pic,label:d?.pic})
+        arr?.map((v)=>{
+        if(!v?.value?.includes('vendor')){
+        
+        insertMessageOrChat(
+          user?.nik,
+          dats?.recordsets[0][0]['name']+' TASK-'+id,
+          d?.content,
+          'CMK-HELPDESK',
+          '',
+          'message',
+          user?.nik===v?.value?.toString()?user?.nik:v?.value,
+          id,
+          token
+          )
+          
+          }
+          })
+          insertMessageOrChat(
+            user?.nik,
+            dats?.recordsets[0][0]['name']+' TASK-'+id,
+            d?.content,
+            'CMK-HELPDESK',
+            '',
+            'message',
+            d?.user_id,
+            id,
+            token
+            )
+      }
       return  {query2,id,agent,status,completed_at:status===4||status===5?moment(new Date()).format('YYYY-MM-DD HH:mm:ss'):'',subject,content,doc_file,priority,category};
   }catch(error){
       console.log({error})

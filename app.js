@@ -3272,10 +3272,15 @@ router.route('/update-tiketing').post((request, response) => {
   let id = request.body?.id?request.body?.id:'' 
   let status = request.body?.status?request.body?.status:'' 
   let agent = request.body?.agent?request.body?.agent:'' 
+  let score = request.body?.score?request.body?.score:'' 
+  let m_lokasi = request.body?.m_lokasi?request.body?.m_lokasi:'' 
+  let m_kota = request.body?.m_kota?request.body?.m_kota:'' 
+  let m_toko = request.body?.m_toko?request.body?.m_toko:'' 
+  
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.updateTiketing(
-      decoded?.data[0],id,status,subject,content,doc_file,priority,category,agent,token
+      decoded?.data[0],id,status,subject,content,doc_file,priority,category,agent,score,m_lokasi,m_kota,m_toko,token
       ).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
