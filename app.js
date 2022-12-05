@@ -2777,12 +2777,12 @@ router.route('/insert-tiketing-pic').post((request, response) => {
   let token = request.headers.authorization 
   let m_nik = request.body?.m_nik?request.body?.m_nik:''
   let unit_bisnis = request.body?.unit_bisnis?request.body?.unit_bisnis:'' 
-  
+  let m_type = request.body?.m_type?request.body?.m_type:'' 
   
   
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.insertTiketingPIC(m_nik,unit_bisnis,token).then((data) => {
+    dashboard.insertTiketingPIC(m_nik,unit_bisnis,m_type,token).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
@@ -2804,10 +2804,10 @@ router.route('/update-tiketing-pic').post((request, response) => {
   let m_nik = request.body?.m_nik?request.body?.m_nik:'' 
   let id = request.body?.id?request.body?.id:'' 
   let unit_bisnis = request.body?.unit_bisnis?request.body?.unit_bisnis:'' 
-  
+  let m_type = request.body?.m_type?request.body?.m_type:'' 
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.updateTiketingPIC(id,m_nik,unit_bisnis,token).then((data) => {
+    dashboard.updateTiketingPIC(id,m_nik,unit_bisnis,m_type,token).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
@@ -2845,12 +2845,11 @@ router.route('/delete-tiketing-pic').post((request, response) => {
 })
 router.route('/get-list-tiketing-task').post((request, response) => {
   let token = request.headers.authorization 
-  let page = request.body?.page?request.body?.page:''
-  let limit = request.body?.limit?request.body?.limit:'' 
+  let ticket = request.body?.ticket?request.body?.ticket:'' 
   
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
-    dashboard.getListTiketingTask(page,limit).then((data) => {
+    dashboard.getListTiketingTask(ticket).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
@@ -2917,7 +2916,8 @@ router.route('/update-tiketing-task').post((request, response) => {
   let m_nomor_fpp = request.body?.m_nomor_fpp?request.body?.m_nomor_fpp:'' 
   let m_file_user = request.body?.m_file_user?request.body?.m_file_user:'' 
   let m_ket_user = request.body?.m_ket_user?request.body?.m_ket_user:'' 
-  
+  let m_file_agent = request.body?.m_file_agent?request.body?.m_file_agent:'' 
+  let m_ket_agent = request.body?.m_ket_agent?request.body?.m_ket_agent:'' 
   try {
     var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
     dashboard.updateTiketingTask(id,
@@ -2928,7 +2928,10 @@ router.route('/update-tiketing-task').post((request, response) => {
       m_qty,
       m_nomor_fpp,
       m_file_user,
-      m_ket_user,token).then((data) => {
+      m_ket_user,
+      m_file_agent,
+      m_ket_agent,
+      token).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
@@ -3234,7 +3237,27 @@ router.route('/get-tiketing').post((request, response) => {
 
   }
 })
+router.route('/select-subpic').post((request, response) => {
+  let token = request.headers.authorization  
+  let search = request.body?.search?request.body?.search:'' 
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.selectSubPIC(search).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
 
+  }
+})
 router.route('/insert-tiketing').post((request, response) => {
   let token = request.headers.authorization  
   let subject = request.body?.subject?request.body?.subject:''
