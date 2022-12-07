@@ -2931,7 +2931,8 @@ router.route('/update-tiketing-task').post((request, response) => {
       m_ket_user,
       m_file_agent,
       m_ket_agent,
-      token).then((data) => {
+      token,
+      decoded?.data[0]).then((data) => {
       response.json({status:'Success',message:'Success fetch data',data});
     })
   } catch(err) {
@@ -3432,6 +3433,119 @@ router.route('/select-subcategories').post((request, response) => {
   }
 })
 
+
+router.route('/get-list-score').post((request, response) => {
+  let token = request.headers.authorization 
+  let page = request.body?.page?request.body?.page:''
+  let limit = request.body?.limit?request.body?.limit:'' 
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.getListScore(page,limit).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
+router.route('/insert-score').post((request, response) => {
+  let token = request.headers.authorization 
+  let name = request.body?.name?request.body?.name:''
+  let score = request.body?.score?request.body?.score:'' 
+  
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.insertListScore(name,score,token).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+
+router.route('/update-score').post((request, response) => {
+  let token = request.headers.authorization 
+  let name = request.body?.name?request.body?.name:''
+  let score = request.body?.score?request.body?.score:'' 
+  let id = request.body?.id?request.body?.id:'' 
+   
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.updateListScore(id,name,score,token).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/delete-score').post((request, response) => {
+  let token = request.headers.authorization  
+  let id = request.body?.id?request.body?.id:'' 
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.deleteListScore(id,token).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
+router.route('/select-score').post((request, response) => {
+  let token = request.headers.authorization  
+  let search = request.body?.search?request.body?.search:'' 
+  
+  try {
+    var decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    dashboard.selectScore(search).then((data) => {
+      response.json({status:'Success',message:'Success fetch data',data});
+    })
+  } catch(err) {
+    if(err?.name==='TokenExpiredError'){
+      
+      response.status(401).json({ error: 'Unauthorized',message:'Your session expired' });
+    }else{
+      
+      response.status(500).json({ error: 'Server Error',message:'Invalid token' });
+      
+    }
+
+  }
+})
 var  port = process.env.PORT || 9010;
 app.listen(port);
 console.log('Order API is runnning at ' + port);

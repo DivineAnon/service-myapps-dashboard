@@ -5406,64 +5406,75 @@ async function getListChat(
     let last = limit*page
     let first = last - (limit-1) 
   let query = `
-  select*from(
-    select ROW_NUMBER() OVER 
-    (ORDER BY id asc) as row
-  ,*  from (
-select *  from (
-select *  from msMessageAllApps
-  where  to_user = '${user?.nik}'  
-  and app = 'CMK-HELPDESK'
-  and type = 'chat'
-) a
-  UNION ALL
-select *  from (      
-select *  from msMessageAllApps
-  where  created_by = '${user?.nik}'  
-  and app = 'CMK-HELPDESK'
-  and type = 'chat'
-) b  
-) c
-where   keyOfWord = '${keyword}'
+  select * from (
+    select ROW_NUMBER() OVER     
+		(ORDER BY id asc) as row  ,
+		id,title, CAST(body AS  NVARCHAR(4000)) as body, CAST(doc AS  NVARCHAR(4000)) as doc ,app,status_read,type,created_at,created_by,to_user,updated_at,keyOfWord   
+		from(    
+		select *  from (select *  from 
+			(select *  from msMessageAllApps  where  to_user like '%${user?.nik}%'    
+			and app = 'CMK-HELPDESK'  and type = 'chat') a  UNION ALL
+			select *  from (      
+			select *  from msMessageAllApps  where  created_by = '${user?.nik}'    
+			and app = 'CMK-HELPDESK'  and type = 'chat') b  ) c where   
+			keyOfWord = '${keyword}'          
+  
     `
+  //   select*from(
+  //     select ROW_NUMBER() OVER 
+  //     (ORDER BY id asc) as row
+  //   ,*  from (
+  // select *  from (
+  // select *  from msMessageAllApps
+  //   where  to_user like '%${user?.nik}%'  
+  //   and app = 'CMK-HELPDESK'
+  //   and type = 'chat'
+  // ) a
+  //   UNION ALL
+  // select *  from (      
+  // select *  from msMessageAllApps
+  //   where  created_by = '${user?.nik}'  
+  //   and app = 'CMK-HELPDESK'
+  //   and type = 'chat'
+  // ) b  
+  // ) c
+  // where   keyOfWord = '${keyword}'
    if(search!==''){
     query= query+` and title like '%${search}%' or body like '%${search}%'`
    }
    
     query = query+`  
-    ) awek
+    ) awek 
+			group by id,title, CAST(body AS  NVARCHAR(4000)), CAST(doc AS  NVARCHAR(4000)) ,app,status_read,type,created_at,created_by,to_user,updated_at,keyOfWord   
+			) awek2
     `
     if(page!==''||limit!==''){
     query = query+`     
     where row BETWEEN '${first}' AND '${last}'
   ` }
   let query1 = `
-  select count(*) as tot from(
-    select ROW_NUMBER() OVER 
-    (ORDER BY id asc) as row
-  ,*  from (
-select *  from (
-select *  from msMessageAllApps
-  where  to_user = '220134'  
-  and app = 'CMK-HELPDESK'
-  and type = 'chat'
-) a
-  UNION ALL
-select *  from (      
-select *  from msMessageAllApps
-  where  created_by = '220134'  
-  and app = 'CMK-HELPDESK'
-  and type = 'chat'
-) b  
-) c
-where   keyOfWord = '${keyword}'
+  select * from (
+    select ROW_NUMBER() OVER     
+		(ORDER BY id asc) as row  ,
+		id,title, CAST(body AS  NVARCHAR(4000)) as body, CAST(doc AS  NVARCHAR(4000)) as doc ,app,status_read,type,created_at,created_by,to_user,updated_at,keyOfWord   
+		from(    
+		select *  from (select *  from 
+			(select *  from msMessageAllApps  where  to_user like '%${user?.nik}%'    
+			and app = 'CMK-HELPDESK'  and type = 'chat') a  UNION ALL
+			select *  from (      
+			select *  from msMessageAllApps  where  created_by = '${user?.nik}'    
+			and app = 'CMK-HELPDESK'  and type = 'chat') b  ) c where   
+			keyOfWord = '${keyword}'
     `
     if(search!==''){
       query1= query1+` and title like '%${search}%' or body like '%${search}%'`
      }
     
     query1 = query1+`  
-    ) awek`
+    ) awek 
+    group by id,title, CAST(body AS  NVARCHAR(4000)), CAST(doc AS  NVARCHAR(4000)) ,app,status_read,type,created_at,created_by,to_user,updated_at,keyOfWord   
+    ) awek2
+    `
   try{
       let pool = await sql.connect(configTICKET);
       let data = await pool.request().query(query);
@@ -5863,7 +5874,7 @@ async function updateTiketing(
     completed_at='${status===4||status===5?moment(new Date()).format('YYYY-MM-DD HH:mm:ss'):''}',
     `
     
-  if(status===4||status===5){
+  if(status===6||status===5){
      query2 = `delete from msMessageAllApps where keyOfWord = '${id}'`
    }
     query3 = `select * from msticket_status where id='${status}'`
@@ -5901,21 +5912,21 @@ async function updateTiketing(
         arr = d?.agent_id?JSON.parse(d?.agent_id):[]
         arr?.push({value:d?.pic,label:d?.pic})
         arr?.map((v)=>{
-        if(!v?.value?.includes('vendor')){
-        
-        insertMessageOrChat(
-          user?.nik,
-          dats?.recordsets[0][0]['name']+' TASK-'+id,
-          d?.content,
-          'CMK-HELPDESK',
-          '',
-          'message',
-          user?.nik===v?.value?.toString()?user?.nik:v?.value,
-          id,
-          token
-          )
-          
-          }
+            if(!v?.value?.includes('vendor')){
+            
+                insertMessageOrChat(
+                  user?.nik,
+                  dats?.recordsets[0][0]['name']+' TASK-'+id,
+                  d?.content,
+                  'CMK-HELPDESK',
+                  '',
+                  'message',
+                  user?.nik===v?.value?.toString()?user?.nik:v?.value?.split('-')[1]==='SUB PIC'?v?.value?.split('-')[0]:v?.value,
+                  id,
+                  token
+                  )
+              
+              }
           })
           insertMessageOrChat(
             user?.nik,
@@ -6211,7 +6222,7 @@ async function updateTiketingTask(id,
   m_ket_user,
   m_file_agent,
   m_ket_agent,
-  token) {
+  token,user) {
   let query = `
     update 	msticket_task set  
     id_ticket = '${id_ticket}', 
@@ -6230,7 +6241,46 @@ async function updateTiketingTask(id,
   ` 
   try{
       let pool = await sql.connect(configTICKET);
+      
       let login = await pool.request().query(query);
+      let login2 = await pool.request().query(`select count(*) as done from msticket_task where id_ticket = '${id_ticket}' and id_status = 9`);
+      let login3 = await pool.request().query(`select count(*) as pending from msticket_task where id_ticket = '${id_ticket}'`);
+      let dat
+      if(login3?.recordsets[0][0]['pending']===login2?.recordsets[0][0]['done']){
+        await pool.request().query(`update msticket set
+        status_id = '4'
+        where id ='${id_ticket}' `);
+        dat = await pool.request().query(`
+        select *,b.m_nik as pic from msticket a 
+        join msticket_pic b on b.unit_bisnis = a.unit_bisnis
+        where a.id = '${id_ticket}'
+        `);
+        
+        let arr = []
+        // dats = await pool.request().query(`select * from msticket_status where id='9'`);
+        d=dat?.recordsets[0][0]
+        arr = d?.agent_id?JSON.parse(d?.agent_id):[]
+        arr?.push({value:d?.pic,label:d?.pic})
+        arr?.map((v)=>{
+            if(!v?.value?.includes('vendor')){
+            
+                insertMessageOrChat(
+                  user?.nik,
+                  // dats?.recordsets[0][0]['name']+' TASK-'+id_ticket,
+                  'DONE TASK-'+id_ticket,
+                  d?.content,
+                  'CMK-HELPDESK',
+                  '',
+                  'message',
+                  user?.nik===v?.value?.toString()?user?.nik:v?.value?.split('-')[1]==='SUB PIC'?v?.value?.split('-')[0]:v?.value,
+                  id,
+                  token
+                  )
+              
+              }
+          })
+      }
+     
       if(login?.recordsets){
         await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-tiketing-pic',type:'UPDATE',param:JSON.stringify({id,
           id_ticket,
@@ -6265,7 +6315,11 @@ async function updateTiketingTask(id,
         m_file_user,
         m_ket_user,
         m_file_agent,
-        m_ket_agent,query};
+        m_ket_agent,
+        kon:login3?.recordsets[0][0]['pending']===login2?.recordsets[0][0]['done'],
+        b:login3?.recordsets[0][0]['pending'],
+        w:login2?.recordsets[0][0]['done'],
+        query};
   }catch(error){
       console.log({error})
   }
@@ -6289,7 +6343,153 @@ async function deleteTaskTiketing(id,token) {
       console.log({error})
   }
 }
+
+async function getListScore( 
+  page,limit
+  ) {
+    let last = limit*page
+    let first = last - (limit-1) 
+  let query = `
+  select*from( 
+    select
+    `
+    if(page!==''&&limit!==''){
+      query = query+`ROW_NUMBER() OVER 
+          (ORDER BY a.id asc) as row
+        ,a.*
+        `
+    }else{
+      query = query+`id as value, name as label
+    
+    `
+    }
+    query = query+`
+        from msticket_score  a
+        
+    `
+   
+    query = query+`  
+    ) awek
+    `
+    if(page!==''&&limit!==''){
+    query = query+ `
+    where row BETWEEN '${first}' AND '${last}'
+  ` 
+}
+  let query1 = `
+  select count(*) as tot from(
+    select ROW_NUMBER() OVER 
+    (ORDER BY a.id asc) as row
+    ,a.*  from msticket_score  a
+  
+    `
+    
+    query1 = query1+`  
+    ) awek`
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+      let tot = await pool.request().query(query1);
+      
+      return  {
+        data:data?.recordsets[0],
+        // query1,query
+        tot:tot.recordsets[0][0]['tot']
+        // query,page,limit,search1,search2,type
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function insertListScore(name,score,token
+  ) {
+  let query = `
+  insert into msticket_score (name,score)
+  values ('${name}', '${score}')
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-score',type:'INSERT',param:JSON.stringify({name,score}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+     }else{
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'insert-score',type:'INSERT',param:JSON.stringify({name,score}),apps:'CMK-HELPDESK',status:'gagal'},token)
+     }
+      return  {name,score};
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function updateListScore(id,name,score,token) {
+  let query = `
+    update 	msticket_score 
+		set  name = '${name}', 
+    score = '${score}'
+  
+    where 	id = '${id}'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-score',type:'UPDATE',param:JSON.stringify({id,name,score}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+     }else{
+       await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'update-score',type:'UPDATE',param:JSON.stringify({id,name,score}),apps:'CMK-HELPDESK',status:'gagal'},token)
+     }
+      return  {id,name,score};
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function deleteListScore(id,token) {
+  let query = `
+    delete from 	msticket_score
+    where 	id = '${id}'
+  ` 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let login = await pool.request().query(query);
+      if(login?.recordsets){
+         await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'delete-score',type:'DELETE',param:JSON.stringify({id}),apps:'CMK-HELPDESK',status:'berhasil'},token)
+      }else{
+        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'delete-score',type:'DELETE',param:JSON.stringify({id}),apps:'CMK-HELPDESK',status:'gagal'},token)
+      }
+      return  {id};
+  }catch(error){
+      console.log({error})
+  }
+}
+
+async function selectScore( 
+  search
+  ) {
+      let query = `SELECT top 5 id as value,name as label FROM msticket_score
+      where   name LIKE '%${search}%' `
+      
+ 
+  try{
+      let pool = await sql.connect(configTICKET);
+      let data = await pool.request().query(query);
+ 
+      let dats = data?.recordsets[0]
+     
+      return  {
+        data:dats
+        // query
+      };
+  }catch(error){
+      console.log({error})
+  }
+}
 module.exports = { 
+    getListScore,
+    insertListScore,
+    updateListScore,
+    deleteListScore,
+    selectScore,
     selectSubPIC,
     getListTiketingTask,
     insertTiketingTask,
