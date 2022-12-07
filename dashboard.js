@@ -5550,7 +5550,7 @@ async function readMessageOrChat(
     query += ` where id=${keyword}`
   }else{
     query +=`
-    where to_user = '${user?.nik}' and keyOfWord = '${keyword}' and type = '${type}'
+    where to_user like '%${user?.nik}%' and keyOfWord = '${keyword}' and type = '${type}'
     
     ` 
   }
@@ -5563,7 +5563,7 @@ async function readMessageOrChat(
        await axs.NET('POST',axs.BASE_CMK+'/insert-logs-apps',{menu:'read-chat-message',type:'INSERT',param:JSON.stringify({ user,keyword}),apps:'CMK-HELPDESK',status:'gagal'},token)
      }
      
-      return  {  user,keyword};
+      return  {  user,keyword,query};
   }catch(error){
       console.log({error})
   }
@@ -5871,10 +5871,10 @@ async function updateTiketing(
    
    if(status!==''){
     query = query + `  status_id='${status}',
-    completed_at='${status===4||status===5?moment(new Date()).format('YYYY-MM-DD HH:mm:ss'):''}',
+    completed_at='${status?.toString()==="5"||status?.toString()==="5"?moment(new Date()).format('YYYY-MM-DD HH:mm:ss'):''}',
     `
     
-  if(status===6||status===5){
+  if(status?.toString()==="6"||status?.toString()==="5"){
      query2 = `delete from msMessageAllApps where keyOfWord = '${id}'`
    }
     query3 = `select * from msticket_status where id='${status}'`
