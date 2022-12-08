@@ -5021,7 +5021,7 @@ async function getListUnitBisnis(
         ,a.* ,b.m_cabang as cabang,c.m_departemen as div,d.m_subdivisi as subdiv,e.m_divisi as dept,f.m_subdivisi as unit
         `
     }else{
-      query = query+`a.id as value, f.m_subdivisi as label
+      query = query+`a.id as value, e.m_divisi+'-'+f.m_subdivisi as label
     
     `
     }
@@ -5034,9 +5034,14 @@ async function getListUnitBisnis(
         join dbhrd.dbo.mssubdivisinew d on a.m_subdiv = d.m_idsubdiv
         join dbhrd.dbo.msdivisi e on a.m_dept = e.m_iddivisi
         join dbhrd.dbo.mssubdivisi f on a.m_unit = f.m_idsubdiv
+        
     `
         }else{
-          query +=` join dbhrd.dbo.mssubdivisi f on a.m_unit = f.m_idsubdiv`
+          query +=` 
+          join dbhrd.dbo.msdivisi e on a.m_dept = e.m_iddivisi
+          join dbhrd.dbo.mssubdivisi f on a.m_unit = f.m_idsubdiv
+          
+          `
         }
     query = query+`  
     ) awek
@@ -5062,7 +5067,8 @@ async function getListUnitBisnis(
       
       return  {
         data:data?.recordsets[0],
-        // query1,query
+        // query1,
+        // query,
         tot:tot.recordsets[0][0]['tot']
         // query,page,limit,search1,search2,type
       };
@@ -5948,155 +5954,14 @@ async function updateTiketing(
 async function dashboardTicketing( 
   user
   ) { 
-  let query1 = `
-  select b.name, 
-  CASE
-  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
-  ELSE 0
-  END
-  as tot from msticket a
-  left join msticket_status b on a.status_id = b.id
-  where a.agent_id='${user?.nik}' and a.status_id = '1'
-  group by b.name
-
-  `
-  let query2 = `
-  select b.name, 
-  CASE
-  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
-  ELSE 0
-  END
-  as tot from msticket a
-  left join msticket_status b on a.status_id = b.id
-  where a.agent_id='${user?.nik}' and a.status_id = '2'
-  group by b.name
-  `
-  let query3 = `
-  select b.name, 
-  CASE
-  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
-  ELSE 0
-  END
-  as tot from msticket a
-  left join msticket_status b on a.status_id = b.id
-  where a.agent_id='${user?.nik}' and a.status_id = '3'
-  group by b.name
-  `
-  let query4 = `
-  select b.name, 
-  CASE
-  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
-  ELSE 0
-  END
-  as tot from msticket a
-  left join msticket_status b on a.status_id = b.id
-  where a.agent_id='${user?.nik}' and a.status_id = '4'
-  group by b.name
-  `
-  let query5 = `
-  select b.name, 
-  CASE
-  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
-  ELSE 0
-  END
-  as tot from msticket a
-  left join msticket_status b on a.status_id = b.id
-  where a.agent_id='${user?.nik}' and a.status_id = '5'
-  group by b.name
-  `
-  let query6 = `
-  select b.name, 
-  CASE
-  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
-  ELSE 0
-  END
-  as tot from msticket a
-  left join msticket_status b on a.status_id = b.id
-  where a.user_id='${user?.nik}' and a.status_id = '1'
-  group by b.name
-  `
-  let query7 = `
-  select b.name, 
-  CASE
-  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
-  ELSE 0
-  END
-  as tot from msticket a
-  left join msticket_status b on a.status_id = b.id
-  where a.user_id='${user?.nik}' and a.status_id = '2'
-  group by b.name
-  `
-  let query8 = `
-  select b.name, 
-  CASE
-  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
-  ELSE 0
-  END
-  as tot from msticket a
-  left join msticket_status b on a.status_id = b.id
-  where a.user_id='${user?.nik}' and a.status_id = '3'
-  group by b.name
-  `
-  let query9 = `
-  select b.name, 
-  CASE
-  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
-  ELSE 0
-  END
-  as tot from msticket a
-  left join msticket_status b on a.status_id = b.id
-  where a.user_id='${user?.nik}' and a.status_id = '4'
-  group by b.name
-  `
-  let query10 = `
-  select b.name, 
-  CASE
-  WHEN COUNT(a.id)>0 THEN COUNT(a.id)
-  ELSE 0
-  END
-  as tot from msticket a
-  left join msticket_status b on a.status_id = b.id
-  where a.user_id='${user?.nik}' and a.status_id = '5'
-  group by b.name
-  `
-  let query11 = `
-  select COUNT(*) as tot from msMessageAllApps 
-  where to_user = '${user?.nik}' and status_read='0'
-  and type = 'chat'
-  `
+  
  
   try{
       let pool = await sql.connect(configTICKET);
-      let data1 = await pool.request().query(query1);
-      let data2 = await pool.request().query(query2);
-      let data3 = await pool.request().query(query3);
-      let data4 = await pool.request().query(query4);
-      let data5 = await pool.request().query(query5);
-      let data6 = await pool.request().query(query6);
-      let data7 = await pool.request().query(query7);
-      let data8 = await pool.request().query(query8);
-      let data9 = await pool.request().query(query9);
-      let data10 = await pool.request().query(query10);
-      let data11 = await pool.request().query(query11);
-      
-      let agent = [
-        {name:'REQUEST',tot:data1?.recordsets[0]?.length>0?data1?.recordsets[0][0]['tot']:0},
-        {name:'ONPROGRESS',tot:data2?.recordsets[0]?.length>0?data2?.recordsets[0][0]['tot']:0},
-        {name:'DONE',tot:data3?.recordsets[0]?.length>0?data3?.recordsets[0][0]['tot']:0},
-        {name:'REJECT',tot:data4?.recordsets[0]?.length>0?data4?.recordsets[0][0]['tot']:0},
-        {name:'FINISH',tot:data5?.recordsets[0]?.length>0?data5?.recordsets[0][0]['tot']:0}
-      ]
-      let user = [
-        {name:'REQUEST',tot:data6?.recordsets[0]?.length>0?data6?.recordsets[0][0]['tot']:0},
-        {name:'ONPROGRESS',tot:data7?.recordsets[0]?.length>0?data7?.recordsets[0][0]['tot']:0},
-        {name:'DONE',tot:data8?.recordsets[0]?.length>0?data8?.recordsets[0][0]['tot']:0},
-        {name:'REJECT',tot:data9?.recordsets[0]?.length>0?data9?.recordsets[0][0]['tot']:0},
-        {name:'FINISH',tot:data10?.recordsets[0]?.length>0?data10?.recordsets[0][0]['tot']:0}
-      ]
-      
+      // let data1 = await pool.request().query(query1);
       
       return  {
-        data:{agent,user,chat:data11?.recordsets[0]?.length>0?data11?.recordsets[0][0]['tot']:0}
+        data:{}
         
        
       };
