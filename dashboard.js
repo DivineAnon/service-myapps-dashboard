@@ -5459,7 +5459,7 @@ async function getListChat(
     where row BETWEEN '${first}' AND '${last}'
   ` }
   let query1 = `
-  select * from (
+  select count(*) as tot from (
     select ROW_NUMBER() OVER     
 		(ORDER BY id asc) as row  ,
 		id,title, CAST(body AS  NVARCHAR(4000)) as body, CAST(doc AS  NVARCHAR(4000)) as doc ,app,status_read,type,created_at,created_by,to_user,updated_at,keyOfWord   
@@ -5489,7 +5489,7 @@ async function getListChat(
       return  {
         data:data?.recordsets[0],
         // query1,
-        query,
+        // query,
         tot:tot.recordsets[0][0]['tot']
         // query,page,limit,search1,search2,type
       };
@@ -5958,10 +5958,268 @@ async function dashboardTicketing(
  
   try{
       let pool = await sql.connect(configTICKET);
-      // let data1 = await pool.request().query(query1);
+      let data0
+      let data1
+      let data2
+      let data3
+      let arr2 =[]
+      let isPIC = []
+      let getPIC =[]
+      let getGM =[]
+      let isGM = []
+      let arrGM =[]
+      let getDR =[]
+      let isDR = []
+      let arrDR =[]
+      let arrPic =[]
+      let arrSubPic =[]
+      let arrKroco =[]
+      if(user?.m_kode_pangkat== 'DR'){
+          data1 = await pool.request().query(`
+              select * 
+              from
+              dbhrd.dbo.mskaryawan where m_kode_pangkat = 'DR'
+              and m_tglkeluar = '1900-01-01 00:00:00.000'
+              and m_nik != '000003'
+              and m_nik='${user?.nik}'
+              and m_cabang = '1'
+              
+          `);
+          isDR = data1?.recordsets[0]
+          if(isDR?.length>0){
+          
+          }
+    }else if(user?.m_kode_pangkat== 'GM'){
+        data1 = await pool.request().query(`
+            select *
+             from dbhrd.dbo.mskaryawan where m_kode_pangkat = 'GM'
+            and m_tglkeluar = '1900-01-01 00:00:00.000'
+            and m_nik='${user?.nik}'
+            and m_cabang = '1'
+            
+        `);
+        isGM = data1?.recordsets[0]
+         
+         if(isGM?.length>0){
+          // console.log({isGM})
+            getPIC =  await pool.request().query( `
+            select a.* from msticket_pic a
+            join dbhrd.dbo.mskaryawan b on a.m_nik = b.m_nik
+            join dbhrd.dbo.mssubdivisinew c on c.m_idsubdiv = b.m_subdivisinew
+            where c.m_idsubdiv = '${isGM[0]?.m_subdivisinew}' and m_type = 'PIC'
+            `)
+            for(const usr of getPIC?.recordsets[0]){
+              data0 = await pool.request().query(`
+                  select 
+                    case when 
+                      count(c.m_nik)>0 then count(c.m_nik)
+                    else 
+                      0
+                    end
+                    as tot,
+                    d.m_nama as nama, 
+                    c.m_nik as nik, SUM(a.score) as score
+                  from msticket a
+                  left join msticket_unit_bisnis b on a.unit_bisnis = b.id
+                  left join msticket_pic c on c.unit_bisnis = b.id
+                  left join dbhrd.dbo.mskaryawan d on d.m_nik = c.m_nik
+                  where c.m_type = 'PIC' and score >0 and c.m_nik = '${usr?.m_nik}'
+                  group by c.m_nik, d.m_nama
+                  
+              `);
+              isPIC = data0?.recordsets[0]
+              
+              
+              if(isPIC?.length>0){
+                for(const e of isPIC){
+                  arrPic?.push({nama:e?.nama,nik:e?.nik,score:e?.score})
+                  let idGm = arrGM?.findIndex(f=>f?.nik?.toString()===isGM[0]?.m_nik?.toString())
+                  if(idGm>-1){
+                    arrGM[idGm]['score'] = arrGM[idGm]['score'] +e?.score
+                  }else{
+                    arrGM?.push({nama:isGM[0]?.m_nama,nik:isGM[0]?.m_nik?.toString(),score:e?.score})
+                  }
+                  data3 = await pool.request().query(`
+                    select 
+                      a.*
+                    from msticket a
+                    left join msticket_unit_bisnis b on a.unit_bisnis = b.id
+                    left join msticket_pic c on c.unit_bisnis = b.id
+                    left join dbhrd.dbo.mskaryawan d on d.m_nik = c.m_nik
+                    where c.m_type = 'PIC' and score > 0 and c.m_nik = '${e?.nik}'
+                        
+                    `);
+                    let mapwek = data3?.recordsets[0]
+                    for(const wek of mapwek) {
+                      if(wek?.agent_id!==''&&wek?.agent_id){
+                        let wow = JSON.parse(wek?.agent_id)
+                        for(const w of wow) {
+                        
+                          
+                          if(w?.value?.split('-')?.length>1){
+                            let idx = arrSubPic?.findIndex(f=>f?.nik?.toString()===w?.value?.split('-')[0]?.toString())
+                            if(idx>-1){
+                              arrSubPic[idx]['score'] = arrSubPic[idx]['score'] +wek?.score
+                            }else{
+                              arrSubPic?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:wek?.score})
+                            }
+                          }else{
+                              let idx = arrKroco?.findIndex(f=>f?.nik?.toString()===w?.value?.split('-')[0]?.toString())
+                              if(idx>-1){
+                                arrKroco[idx]['score'] = arrKroco[idx]['score']+wek?.score
+                              }else{
+                                arrKroco?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:wek?.score})
+                              }
+                            
+                          }
+                        
+                        }
+                      }
+                    
+                  }
+                    
+                }
+              }
+            }
+          
+
+            
+         }
+        
+    }else {
+        data0 = await pool.request().query(`
+            select 
+              case when 
+                count(c.m_nik)>0 then count(c.m_nik)
+              else 
+                0
+              end
+              as tot,
+              d.m_nama as nama, 
+              c.m_nik as nik, SUM(a.score) as score
+            from msticket a
+            left join msticket_unit_bisnis b on a.unit_bisnis = b.id
+            left join msticket_pic c on c.unit_bisnis = b.id
+            left join dbhrd.dbo.mskaryawan d on d.m_nik = c.m_nik
+            where c.m_type = 'PIC' and score >0 and c.m_nik = '${user?.nik}'
+            group by c.m_nik, d.m_nama
+            
+        `);
+      isPIC = data0?.recordsets[0]
       
+      if(isPIC?.length>0){
+        for(const e of isPIC){
+         
+        
+          arrPic?.push({nama:e?.nama,nik:e?.nik,score:e?.score})
+          data3 = await pool.request().query(`
+            select 
+              a.*
+            from msticket a
+            left join msticket_unit_bisnis b on a.unit_bisnis = b.id
+            left join msticket_pic c on c.unit_bisnis = b.id
+            left join dbhrd.dbo.mskaryawan d on d.m_nik = c.m_nik
+            where c.m_type = 'PIC' and score > 0 and c.m_nik = '${e?.nik}'
+                
+            `);
+            let mapwek = data3?.recordsets[0]
+           
+            for(const wek of mapwek) {
+                if(wek?.agent_id!==''&&wek?.agent_id){
+                  let wow = JSON.parse(wek?.agent_id)
+                  for(const w of wow) {
+                  
+                    
+                    if(w?.value?.split('-')?.length>1){
+                      let idx = arrSubPic?.findIndex(f=>f?.nik?.toString()===w?.value?.split('-')[0]?.toString())
+                      if(idx>-1){
+                        arrSubPic[idx]['score'] = arrSubPic[idx]['score'] +wek?.score
+                      }else{
+                        arrSubPic?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:wek?.score})
+                      }
+                    }else{
+                        let idx = arrKroco?.findIndex(f=>f?.nik?.toString()===w?.value?.split('-')[0]?.toString())
+                        if(idx>-1){
+                          arrKroco[idx]['score'] = arrKroco[idx]['score']+wek?.score
+                        }else{
+                          arrKroco?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:wek?.score})
+                        }
+                      
+                    }
+                  
+                  }
+                }
+              
+            }
+              
+        
+        }
+        
+      }else{
+        data2 =await pool.request().query(`select 
+          a.* 
+          from msticket a
+        where agent_id like '%${user?.nik}%' 
+        and score > 0`)
+       let arr = data2?.recordsets[0]
+      
+       arr?.map((v,i)=>{
+       
+          if(v?.agent_id!==''||v?.agent_id){
+            arr2 = JSON.parse(v?.agent_id)
+            arr2?.map((w)=>{
+                if(w?.value?.includes(user?.nik)){
+                  if(w?.value?.split('-')?.length>1){
+                      let idx = arrSubPic?.findIndex(f=>f?.nik?.toString()===user?.nik?.toString())
+                      if(idx>-1){
+                        arrSubPic[idx]['score'] = arrSubPic[idx]['score']+v?.score
+                      }else{
+                        arrSubPic?.push({nama:w?.label,nik:user?.nik?.toString(),score:v?.score})
+                      }
+                      // arrSubPic?.push({nik:user?.nik?.toString(),score:v?.score})
+                      // console.log({arrSubPic})
+                  }else{
+                      let idx = arrKroco?.findIndex(f=>f?.nik?.toString()===user?.nik?.toString())
+                      if(idx>-1){
+                        arrKroco[idx]['score'] = arrKroco[idx]['score']+v?.score
+                      }else{
+                        arrKroco?.push({nama:w?.label,nik:user?.nik?.toString(),score:v?.score})
+                      }
+                    
+                  }
+                }else{
+                  if(w?.value?.split('-')?.length>1){
+                    let idx = arrSubPic?.findIndex(f=>f?.nik?.toString()===w?.value?.split('-')[0]?.toString())
+                    if(idx>-1){
+                      arrSubPic[idx]['score'] = arrSubPic[idx]['score'] +v?.score
+                    }else{
+                      arrSubPic?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:v?.score})
+                    }
+                  }else{
+                      let idx = arrKroco?.findIndex(f=>f?.nik?.toString()===w?.value?.split('-')[0]?.toString())
+                      if(idx>-1){
+                        arrKroco[idx]['score'] = arrKroco[idx]['score']+v?.score
+                      }else{
+                        arrKroco?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:v?.score})
+                      }
+                    
+                  }
+                  
+                }
+            })
+            arr2=[]
+          }
+          
+
+
+       })
+      }
+      
+
+
+    }
       return  {
-        data:{}
+        data:{arrPic,arrKroco,arrSubPic,arrGM}
         
        
       };
