@@ -5962,6 +5962,8 @@ async function dashboardTicketing(
       let data1
       let data2
       let data3
+      let data4
+      let data5
       let arr2 =[]
       let isPIC = []
       let getPIC =[]
@@ -5976,26 +5978,163 @@ async function dashboardTicketing(
       let arrKroco =[]
       if(user?.m_kode_pangkat== 'DR'){
           data1 = await pool.request().query(`
-              select * 
+              select a.*,c.m_foto 
               from
-              dbhrd.dbo.mskaryawan where m_kode_pangkat = 'DR'
-              and m_tglkeluar = '1900-01-01 00:00:00.000'
-              and m_nik != '000003'
-              and m_nik='${user?.nik}'
-              and m_cabang = '1'
+              dbhrd.dbo.mskaryawan a
+              join dbhrd.dbo.msdetilkaryawan c on a.m_nik = c.m_nik
+              where a.m_kode_pangkat = 'DR'
+              and a.m_tglkeluar = '1900-01-01 00:00:00.000'
+              and a.m_nik != '000003'
+              and a.m_nik='${user?.nik}'
+              and a.m_cabang = '1'
               
           `);
+          
+          
           isDR = data1?.recordsets[0]
           if(isDR?.length>0){
-          
+            data2 = await pool.request().query(`
+              select * from dbhrd.dbo.mskaryawan where 
+              m_departemen = '${isDR[0]['m_departemen']}' 
+              and m_tglkeluar = '1900-01-01 00:00:00.000'
+              and m_kode_pangkat = 'GM'
+            `)
+            getGM = data2?.recordsets[0]
+            for(const gm of getGM){
+              data4 = await pool.request().query(`
+                  select a.*,b.m_subdivisi as subdiv,c.m_foto
+                  from dbhrd.dbo.mskaryawan a 
+                  join dbhrd.dbo.mssubdivisinew b on a.m_subdivisinew = b.m_idsubdiv
+                  join dbhrd.dbo.msdetilkaryawan c on a.m_nik = c.m_nik
+                  where a.m_kode_pangkat = 'GM'
+                  and a.m_tglkeluar = '1900-01-01 00:00:00.000'
+                  and a.m_nik='${gm?.m_nik}'
+                  and a.m_cabang = '1'
+                  
+              `);
+              isGM = data4?.recordsets[0]
+              if(isGM?.length>0){
+                getPIC =  await pool.request().query( `
+                select a.*,d.m_foto from msticket_pic a
+                join dbhrd.dbo.mskaryawan b on a.m_nik = b.m_nik
+                join dbhrd.dbo.mssubdivisinew c on c.m_idsubdiv = b.m_subdivisinew
+                join dbhrd.dbo.msdetilkaryawan d on b.m_nik = d.m_nik
+                where c.m_idsubdiv = '${isGM[0]?.m_subdivisinew}' and m_type = 'PIC'
+                `)
+                for(const usr of getPIC?.recordsets[0]){
+                  data0 = await pool.request().query(`
+                      select 
+                        case when 
+                          count(c.m_nik)>0 then count(c.m_nik)
+                        else 
+                          0
+                        end
+                        as tot,
+                        d.m_nama as nama, 
+                        c.m_nik as nik, SUM(a.score) as score,
+                        e.m_divisi+' - '+f.m_subdivisi as loc,
+                        d.m_subdivisinew,
+                        d.m_departemen,
+                        g.m_foto
+                      from msticket a
+                       join msticket_unit_bisnis b on a.unit_bisnis = b.id
+                       join msticket_pic c on c.unit_bisnis = b.id
+                       join dbhrd.dbo.mskaryawan d on d.m_nik = c.m_nik
+                      join dbhrd.dbo.msdivisi e on b.m_dept = e.m_iddivisi
+                      join dbhrd.dbo.mssubdivisi f on b.m_unit = f.m_idsubdiv
+                      join dbhrd.dbo.msdetilkaryawan g on d.m_nik = g.m_nik
+                      where c.m_type = 'PIC' and score >0 and c.m_nik = '${usr?.m_nik}'
+                      group by c.m_nik, d.m_nama,e.m_divisi+' - '+f.m_subdivisi,
+                      d.m_subdivisinew,
+                      d.m_departemen,
+                      g.m_foto
+                      
+                  `);
+                  isPIC = data0?.recordsets[0]
+                    
+
+                  if(isPIC?.length>0){
+                    for(const e of isPIC){
+                      arrPic?.push({nama:e?.nama,nik:e?.nik,score:e?.score,loc:e?.loc,subdiv:e?.m_subdivisinew,div:e?.m_departemen,m_foto:e?.m_foto})
+                      let idGm = arrGM?.findIndex(f=>f?.nik?.toString()===isGM[0]?.m_nik?.toString())
+                      if(idGm>-1){
+                        arrGM[idGm]['score'] = arrGM[idGm]['score'] +e?.score
+                      }else{
+                        arrGM?.push({nama:isGM[0]?.m_nama,nik:isGM[0]?.m_nik?.toString(),score:e?.score,loc:isGM[0]?.subdiv,subdiv:isGM[0]?.m_subdivisinew,div:isGM[0]?.m_departemen,m_foto:isGM[0]?.m_foto})
+                      }
+                      data3 = await pool.request().query(`
+                        select 
+                          a.*,e.m_divisi+' - '+f.m_subdivisi as loc,
+                          d.m_subdivisinew,
+                          d.m_departemen,g.m_foto
+                        from msticket a
+                         join msticket_unit_bisnis b on a.unit_bisnis = b.id
+                         join msticket_pic c on c.unit_bisnis = b.id
+                         join dbhrd.dbo.mskaryawan d on d.m_nik = c.m_nik
+                         join dbhrd.dbo.msdivisi e on b.m_dept = e.m_iddivisi
+		                     join dbhrd.dbo.mssubdivisi f on b.m_unit = f.m_idsubdiv
+                         join dbhrd.dbo.msdetilkaryawan g on d.m_nik = g.m_nik
+                        where c.m_type = 'PIC' and score > 0 and c.m_nik = '${e?.nik}'
+                            
+                        `);
+                        let mapwek = data3?.recordsets[0]
+                        for(const wek of mapwek) {
+                          if(wek?.agent_id!==''&&wek?.agent_id){
+                            let wow = JSON.parse(wek?.agent_id)
+                            for(const w of wow) {
+                            data5 = await pool.request().query(`
+                            select a.*,b.m_foto from 
+                            dbhrd.dbo.mskaryawan a
+                            join dbhrd.dbo.msdetilkaryawan b on a.m_nik = b.m_nik
+                            where a.m_nik = '${w?.value?.split('-')[0]}'
+                            `)
+                              
+                              if(w?.value?.split('-')?.length>1){
+                                let idx = arrSubPic?.findIndex(f=>f?.nik?.toString()===w?.value?.split('-')[0]?.toString())
+                                if(idx>-1){
+                                  arrSubPic[idx]['score'] = arrSubPic[idx]['score'] +wek?.score
+                                }else{
+                                  arrSubPic?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:wek?.score,loc:wek?.loc,subdiv:wek?.m_subdivisinew,div:wek?.m_departemen,m_foto:data5?.recordsets[0][0]?.m_foto })
+                                }
+                              }else{
+                                  let idx = arrKroco?.findIndex(f=>f?.nik?.toString()===w?.value?.split('-')[0]?.toString())
+                                  if(idx>-1){
+                                    arrKroco[idx]['score'] = arrKroco[idx]['score']+wek?.score
+                                  }else{
+                                    arrKroco?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:wek?.score,loc:wek?.loc,subdiv:wek?.m_subdivisinew,div:wek?.m_departemen,m_foto:data5?.recordsets[0][0]?.m_foto })
+                                  }
+                                
+                              }
+                            
+                            }
+                          }
+                        
+                      }
+                        
+                    }
+                  }
+                }
+                
+              }
+            }
+          }
+          for(const e of arrGM){
+            let idDR = arrDR?.findIndex(f=>f?.nik?.toString()===isDR[0]?.m_nik?.toString())
+            if(idDR>-1){
+              arrDR[idDR]['score'] = arrDR[idDR]['score'] +e?.score
+            }else{
+              arrDR?.push({nama:isDR[0]?.m_nama,nik:isDR[0]?.m_nik?.toString(),score:e?.score,loc:isDR[0]?.subdiv,subdiv:isDR[0]?.m_subdivisinew,div:isDR[0]?.m_departemen,m_foto:isDR[0]?.m_foto})
+            }
           }
     }else if(user?.m_kode_pangkat== 'GM'){
         data1 = await pool.request().query(`
-            select *
-             from dbhrd.dbo.mskaryawan where m_kode_pangkat = 'GM'
-            and m_tglkeluar = '1900-01-01 00:00:00.000'
-            and m_nik='${user?.nik}'
-            and m_cabang = '1'
+            select a.*,b.m_foto
+             from dbhrd.dbo.mskaryawan a
+             join dbhrd.dbo.msdetilkaryawan b on a.m_nik = b.m_nik
+            where a.m_kode_pangkat = 'GM'
+            and a.m_tglkeluar = '1900-01-01 00:00:00.000'
+            and a.m_nik='${user?.nik}'
+            and a.m_cabang = '1'
             
         `);
         isGM = data1?.recordsets[0]
@@ -6003,9 +6142,10 @@ async function dashboardTicketing(
          if(isGM?.length>0){
           // console.log({isGM})
             getPIC =  await pool.request().query( `
-            select a.* from msticket_pic a
+            select a.*,d.m_foto from msticket_pic a
             join dbhrd.dbo.mskaryawan b on a.m_nik = b.m_nik
             join dbhrd.dbo.mssubdivisinew c on c.m_idsubdiv = b.m_subdivisinew
+            join dbhrd.dbo.msdetilkaryawan d on d.m_nik = b.m_nik
             where c.m_idsubdiv = '${isGM[0]?.m_subdivisinew}' and m_type = 'PIC'
             `)
             for(const usr of getPIC?.recordsets[0]){
@@ -6018,13 +6158,20 @@ async function dashboardTicketing(
                     end
                     as tot,
                     d.m_nama as nama, 
-                    c.m_nik as nik, SUM(a.score) as score
+                    c.m_nik as nik, SUM(a.score) as score,e.m_divisi+' - '+f.m_subdivisi as loc,
+                    d.m_subdivisinew,
+                    d.m_departemen,g.m_foto
                   from msticket a
                   left join msticket_unit_bisnis b on a.unit_bisnis = b.id
                   left join msticket_pic c on c.unit_bisnis = b.id
                   left join dbhrd.dbo.mskaryawan d on d.m_nik = c.m_nik
+                  join dbhrd.dbo.msdivisi e on b.m_dept = e.m_iddivisi
+                  join dbhrd.dbo.mssubdivisi f on b.m_unit = f.m_idsubdiv
+                  join dbhrd.dbo.msdetilkaryawan g on d.m_nik = g.m_nik
                   where c.m_type = 'PIC' and score >0 and c.m_nik = '${usr?.m_nik}'
-                  group by c.m_nik, d.m_nama
+                  group by c.m_nik, d.m_nama,e.m_divisi+' - '+f.m_subdivisi,
+                  d.m_subdivisinew,
+                  d.m_departemen,g.m_foto
                   
               `);
               isPIC = data0?.recordsets[0]
@@ -6032,43 +6179,55 @@ async function dashboardTicketing(
               
               if(isPIC?.length>0){
                 for(const e of isPIC){
-                  arrPic?.push({nama:e?.nama,nik:e?.nik,score:e?.score})
+                  arrPic?.push({nama:e?.nama,nik:e?.nik,score:e?.score,score:e?.score,loc:e?.loc,subdiv:e?.m_subdivisinew,div:e?.m_departemen,m_foto:e?.m_foto})
                   let idGm = arrGM?.findIndex(f=>f?.nik?.toString()===isGM[0]?.m_nik?.toString())
                   if(idGm>-1){
                     arrGM[idGm]['score'] = arrGM[idGm]['score'] +e?.score
                   }else{
-                    arrGM?.push({nama:isGM[0]?.m_nama,nik:isGM[0]?.m_nik?.toString(),score:e?.score})
+                    arrGM?.push({nama:isGM[0]?.m_nama,nik:isGM[0]?.m_nik?.toString(),score:e?.score,loc:e?.loc,subdiv:isGM[0]?.m_subdivisinew,div:isGM[0]?.m_departemen,m_foto:isGM[0]?.m_foto})
                   }
                   data3 = await pool.request().query(`
                     select 
-                      a.*
+                    CAST(a.agent_id AS NVARCHAR(4000)) as agent_id,a.score,e.m_divisi+' - '+f.m_subdivisi as loc,
+                    d.m_subdivisinew,
+                    d.m_departemen,g.m_foto
                     from msticket a
                     left join msticket_unit_bisnis b on a.unit_bisnis = b.id
                     left join msticket_pic c on c.unit_bisnis = b.id
                     left join dbhrd.dbo.mskaryawan d on d.m_nik = c.m_nik
+                    join dbhrd.dbo.msdivisi e on b.m_dept = e.m_iddivisi
+                    join dbhrd.dbo.mssubdivisi f on b.m_unit = f.m_idsubdiv
+                    join dbhrd.dbo.msdetilkaryawan g on d.m_nik = g.m_nik
                     where c.m_type = 'PIC' and score > 0 and c.m_nik = '${e?.nik}'
-                        
+                    group by CAST(a.agent_id AS NVARCHAR(4000)),a.score,e.m_divisi+' - '+f.m_subdivisi,
+                    d.m_subdivisinew,
+                    d.m_departemen,g.m_foto
                     `);
                     let mapwek = data3?.recordsets[0]
                     for(const wek of mapwek) {
                       if(wek?.agent_id!==''&&wek?.agent_id){
                         let wow = JSON.parse(wek?.agent_id)
                         for(const w of wow) {
-                        
+                          data5 = await pool.request().query(`
+                          select a.*,b.m_foto from 
+                          dbhrd.dbo.mskaryawan a
+                          join dbhrd.dbo.msdetilkaryawan b on a.m_nik = b.m_nik
+                          where a.m_nik = '${w?.value?.split('-')[0]}'
+                          `)
                           
                           if(w?.value?.split('-')?.length>1){
                             let idx = arrSubPic?.findIndex(f=>f?.nik?.toString()===w?.value?.split('-')[0]?.toString())
                             if(idx>-1){
                               arrSubPic[idx]['score'] = arrSubPic[idx]['score'] +wek?.score
                             }else{
-                              arrSubPic?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:wek?.score})
+                              arrSubPic?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:wek?.score,loc:wek?.loc,subdiv:wek?.m_subdivisinew,div:wek?.m_departemen,m_foto:data5?.recordsets[0][0]?.m_foto})
                             }
                           }else{
                               let idx = arrKroco?.findIndex(f=>f?.nik?.toString()===w?.value?.split('-')[0]?.toString())
                               if(idx>-1){
                                 arrKroco[idx]['score'] = arrKroco[idx]['score']+wek?.score
                               }else{
-                                arrKroco?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:wek?.score})
+                                arrKroco?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:wek?.score,loc:wek?.loc,subdiv:wek?.m_subdivisinew,div:wek?.m_departemen,m_foto:data5?.recordsets[0][0]?.m_foto})
                               }
                             
                           }
@@ -6096,13 +6255,20 @@ async function dashboardTicketing(
               end
               as tot,
               d.m_nama as nama, 
-              c.m_nik as nik, SUM(a.score) as score
+              c.m_nik as nik, SUM(a.score) as score,e.m_divisi+' - '+f.m_subdivisi as loc,
+              d.m_subdivisinew,
+              d.m_departemen,g.m_foto
             from msticket a
             left join msticket_unit_bisnis b on a.unit_bisnis = b.id
             left join msticket_pic c on c.unit_bisnis = b.id
             left join dbhrd.dbo.mskaryawan d on d.m_nik = c.m_nik
+            join dbhrd.dbo.msdivisi e on b.m_dept = e.m_iddivisi
+            join dbhrd.dbo.mssubdivisi f on b.m_unit = f.m_idsubdiv
+            join dbhrd.dbo.msdetilkaryawan g on d.m_nik = g.m_nik
             where c.m_type = 'PIC' and score >0 and c.m_nik = '${user?.nik}'
-            group by c.m_nik, d.m_nama
+            group by c.m_nik, d.m_nama,e.m_divisi+' - '+f.m_subdivisi,
+            d.m_subdivisinew,
+            d.m_departemen,g.m_foto
             
         `);
       isPIC = data0?.recordsets[0]
@@ -6111,16 +6277,23 @@ async function dashboardTicketing(
         for(const e of isPIC){
          
         
-          arrPic?.push({nama:e?.nama,nik:e?.nik,score:e?.score})
+          arrPic?.push({nama:e?.nama,nik:e?.nik,score:e?.score,loc:e?.loc,subdiv:e?.m_subdivisinew,div:e?.m_departemen,m_foto:e?.m_foto})
           data3 = await pool.request().query(`
             select 
-              a.*
+            CAST(a.agent_id AS NVARCHAR(4000)) as agent_id,a.score,e.m_divisi+' - '+f.m_subdivisi as loc,
+            d.m_subdivisinew,
+            d.m_departemen,g.m_foto
             from msticket a
-            left join msticket_unit_bisnis b on a.unit_bisnis = b.id
-            left join msticket_pic c on c.unit_bisnis = b.id
-            left join dbhrd.dbo.mskaryawan d on d.m_nik = c.m_nik
+            join msticket_unit_bisnis b on a.unit_bisnis = b.id
+            join msticket_pic c on c.unit_bisnis = b.id
+            join dbhrd.dbo.mskaryawan d on d.m_nik = c.m_nik
+            join dbhrd.dbo.msdivisi e on b.m_dept = e.m_iddivisi
+            join dbhrd.dbo.mssubdivisi f on b.m_unit = f.m_idsubdiv
+            join dbhrd.dbo.msdetilkaryawan g on d.m_nik = g.m_nik
             where c.m_type = 'PIC' and score > 0 and c.m_nik = '${e?.nik}'
-                
+            group by CAST(a.agent_id AS NVARCHAR(4000)),a.score,e.m_divisi+' - '+f.m_subdivisi,
+            d.m_subdivisinew,
+            d.m_departemen,g.m_foto
             `);
             let mapwek = data3?.recordsets[0]
            
@@ -6128,21 +6301,27 @@ async function dashboardTicketing(
                 if(wek?.agent_id!==''&&wek?.agent_id){
                   let wow = JSON.parse(wek?.agent_id)
                   for(const w of wow) {
-                  
+                    data5 = await pool.request().query(`
+                    select a.*,b.m_foto from 
+                    dbhrd.dbo.mskaryawan a
+                    join dbhrd.dbo.msdetilkaryawan b on a.m_nik = b.m_nik
+                    where a.m_nik = '${w?.value?.split('-')[0]}'
+                    `)
+                    
                     
                     if(w?.value?.split('-')?.length>1){
                       let idx = arrSubPic?.findIndex(f=>f?.nik?.toString()===w?.value?.split('-')[0]?.toString())
                       if(idx>-1){
                         arrSubPic[idx]['score'] = arrSubPic[idx]['score'] +wek?.score
                       }else{
-                        arrSubPic?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:wek?.score})
+                        arrSubPic?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:wek?.score,loc:wek?.loc,subdiv:wek?.m_subdivisinew,div:wek?.m_departemen,m_foto:data5?.recordsets[0][0]?.m_foto})
                       }
                     }else{
                         let idx = arrKroco?.findIndex(f=>f?.nik?.toString()===w?.value?.split('-')[0]?.toString())
                         if(idx>-1){
                           arrKroco[idx]['score'] = arrKroco[idx]['score']+wek?.score
                         }else{
-                          arrKroco?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:wek?.score})
+                          arrKroco?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:wek?.score,loc:wek?.loc,subdiv:wek?.m_subdivisinew,div:wek?.m_departemen,m_foto:data5?.recordsets[0][0]?.m_foto})
                         }
                       
                     }
@@ -6157,24 +6336,42 @@ async function dashboardTicketing(
         
       }else{
         data2 =await pool.request().query(`select 
-          a.* 
+        CAST(a.agent_id AS NVARCHAR(4000)) as agent_id,a.score ,e.m_divisi+' - '+f.m_subdivisi as loc,
+          d.m_subdivisinew,
+          d.m_departemen
           from msticket a
-        where agent_id like '%${user?.nik}%' 
-        and score > 0`)
+          join msticket_unit_bisnis b on a.unit_bisnis = b.id
+          join msticket_pic c on c.unit_bisnis = b.id
+          join dbhrd.dbo.mskaryawan d on d.m_nik = c.m_nik
+          join dbhrd.dbo.msdivisi e on b.m_dept = e.m_iddivisi
+          join dbhrd.dbo.mssubdivisi f on b.m_unit = f.m_idsubdiv
+        where a.agent_id like '%${user?.nik}%' 
+        and a.score > 0
+        group by CAST(a.agent_id AS NVARCHAR(4000)),a.score,e.m_divisi+' - '+f.m_subdivisi,
+        d.m_subdivisinew,
+        d.m_departemen
+        `)
        let arr = data2?.recordsets[0]
       
-       arr?.map((v,i)=>{
-       
+      //  arr?.map((v,i)=>{
+        for(const v of arr) {
           if(v?.agent_id!==''||v?.agent_id){
             arr2 = JSON.parse(v?.agent_id)
-            arr2?.map((w)=>{
+            // arr2?.map((w)=>{
+              for(const w of arr2) {
+              data5 = await pool.request().query(`
+              select a.*,b.m_foto from 
+              dbhrd.dbo.mskaryawan a
+              join dbhrd.dbo.msdetilkaryawan b on a.m_nik = b.m_nik
+              where a.m_nik = '${w?.value?.split('-')[0]}'
+              `)
                 if(w?.value?.includes(user?.nik)){
                   if(w?.value?.split('-')?.length>1){
                       let idx = arrSubPic?.findIndex(f=>f?.nik?.toString()===user?.nik?.toString())
                       if(idx>-1){
                         arrSubPic[idx]['score'] = arrSubPic[idx]['score']+v?.score
                       }else{
-                        arrSubPic?.push({nama:w?.label,nik:user?.nik?.toString(),score:v?.score})
+                        arrSubPic?.push({nama:w?.label,nik:user?.nik?.toString(),score:v?.score,loc:v?.loc,subdiv:v?.m_subdivisinew,div:v?.m_departemen,m_foto:data5?.recordsets[0][0]?.m_foto})
                       }
                       // arrSubPic?.push({nik:user?.nik?.toString(),score:v?.score})
                       // console.log({arrSubPic})
@@ -6183,7 +6380,7 @@ async function dashboardTicketing(
                       if(idx>-1){
                         arrKroco[idx]['score'] = arrKroco[idx]['score']+v?.score
                       }else{
-                        arrKroco?.push({nama:w?.label,nik:user?.nik?.toString(),score:v?.score})
+                        arrKroco?.push({nama:w?.label,nik:user?.nik?.toString(),score:v?.score,loc:v?.loc,subdiv:v?.m_subdivisinew,div:v?.m_departemen,m_foto:data5?.recordsets[0][0]?.m_foto})
                       }
                     
                   }
@@ -6193,33 +6390,34 @@ async function dashboardTicketing(
                     if(idx>-1){
                       arrSubPic[idx]['score'] = arrSubPic[idx]['score'] +v?.score
                     }else{
-                      arrSubPic?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:v?.score})
+                      arrSubPic?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:v?.score,loc:v?.loc,subdiv:v?.m_subdivisinew,div:v?.m_departemen,m_foto:data5?.recordsets[0][0]?.m_foto})
                     }
                   }else{
                       let idx = arrKroco?.findIndex(f=>f?.nik?.toString()===w?.value?.split('-')[0]?.toString())
                       if(idx>-1){
                         arrKroco[idx]['score'] = arrKroco[idx]['score']+v?.score
                       }else{
-                        arrKroco?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:v?.score})
+                        arrKroco?.push({nama:w?.label,nik:w?.value?.split('-')[0]?.toString(),score:v?.score,loc:v?.loc,subdiv:v?.m_subdivisinew,div:v?.m_departemen,m_foto:data5?.recordsets[0][0]?.m_foto})
                       }
                     
                   }
                   
                 }
-            })
+              }
+            // })
             arr2=[]
           }
           
 
-
-       })
+          }
+      //  })
       }
       
 
 
     }
       return  {
-        data:{arrPic,arrKroco,arrSubPic,arrGM}
+        data:{arrKroco,arrSubPic,arrPic,arrGM,arrDR}
         
        
       };
