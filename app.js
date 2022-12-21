@@ -14,8 +14,13 @@ const swaggerUi = require('swagger-ui-express'),
 swaggerDocument = require('./swagger.json');
 const { check,validationResult ,oneOf } = require('express-validator');
 var jwt = require('jsonwebtoken');
+const { validatorSQGrommingAndComplaint, validatorSQMShopper, validatorSQRaport, validatorSQRaportRank, validatorSQRaportDetail } = require('./middleware/validator');
+const { response } = require('./helper/response');
+const { midBearerToken } = require('./middleware/auth');
 app.use(bodyParser.urlencoded({ extended:  true }));
-app.use(bodyParser.json());
+app.use(bodyParser.json({
+  limit: "50mb"
+}));
 app.use(cors());
 app.use('/api', router);
 app.use(express.static('public')); //baris untuk get iamge
@@ -37,14 +42,11 @@ router.use((request, response, next) => {
     timeout: 10000,
     // If it tries 5 times and it fails, then it will throw no internet
     retries: 5
-  }).then(() => {
-    console.log('middleware');
+  }).then(() => {    
     response.header('Access-Control-Allow-Origin', '*');
     response.header('Authorization');
-    next();
-    console.log('internet')
-  }).catch(() => {
-    console.log('no internet')
+    next();    
+  }).catch(() => {    
     response.status(503).json({ status: 'Connection error !',message:'Please check your connection' });
    
   })
@@ -3546,6 +3548,152 @@ router.route('/select-score').post((request, response) => {
 
   }
 })
+
+router.post("/sq/grooming", midBearerToken, validatorSQGrommingAndComplaint, async (req, res) => {
+  let data = null
+  try {
+    data = await dashboard.createBulkSQGrooming({payload:req.validated.data})
+  } catch (error) {
+    console.log(error)
+    response(res, {
+      code: 500,
+      data: error,
+      message: "Server error"
+    })
+    return
+  }
+  response(res, {
+    code: 200,
+    data: data,
+    message: "SQ Gromming Insert Success",
+  })
+  return
+})
+
+router.post("/sq/m-shopper", midBearerToken, validatorSQMShopper, async (req, res) => {
+  let data = null
+  try {
+    data = await dashboard.createBulkSQMShopper({payload:req.validated.data})
+  } catch (error) {
+    console.log(error)
+    response(res, {
+      code: 500,
+      data: error,
+      message: "Server error"
+    })
+    return
+  }
+  response(res, {
+    code: 200,
+    data: data,
+    message: "SQ Mystery Shopper Insert Success",
+  })
+  return
+})
+
+router.post("/sq/complaint", midBearerToken, validatorSQGrommingAndComplaint, async (req, res) => {
+  let data = null
+  try {
+    data = await dashboard.createBulkSQHardComplaint({payload:req.validated.data})
+  } catch (error) {
+    console.log(error)
+    response(res, {
+      code: 500,
+      data: error,
+      message: "Server error"
+    })
+    return
+  }
+  response(res, {
+    code: 200,
+    data: data,
+    message: "SQ Hard Complaint Insert Success",
+  })
+  return
+})
+
+router.get("/sq/raport/rank", midBearerToken, validatorSQRaportRank, async (req, res) => {
+
+  let data = null
+  
+  try {
+    data = await dashboard.sortingCalculateSQRaport({period:req.query.period})  
+  } catch (error) {
+    console.log(error)
+      response(res, {
+        code: 500,
+        data: error,
+        message: "Server error"
+      })
+      return
+  }
+  response(res, {
+    code: 200,
+    data: data,
+    message: "SQ Raport Calculate Success",
+  })
+  return
+
+})
+
+router.get("/sq/raport", midBearerToken, validatorSQRaport, async (req, res) => {
+  let data = null
+  try {
+    data = await dashboard.getCalculateSQRaport({period:req.validated.period, kode_store:req.validated.kode_store})
+    if(!data.status && data.isEmpty){
+      response(res, {
+        code: 404,
+        data: data.data,
+        message: "Data is Empty of Not found"
+      })
+      return  
+    }
+  } catch (error) {
+    console.log(error)
+    response(res, {
+      code: 500,
+      data: error,
+      message: "Server error"
+    })
+    return
+  }
+  response(res, {
+    code: 200,
+    data: data.data,
+    message: "SQ Raport Calculate Success",
+  })
+  return
+})
+
+router.get("/sq/raport/detail", midBearerToken, validatorSQRaportDetail, async (req, res) => {
+  let data = null
+  try {
+    data = await dashboard.getCalculateSQRaportDetail({period:req.validated.period, kode_store:req.validated.kode_store, nik:req.validated.nik})
+    if(!data.status && data.isEmpty){
+      response(res, {
+        code: 404,
+        data: data.data,
+        message: "Data is Empty of Not found"
+      })
+      return  
+    }
+  } catch (error) {
+    console.log(error)
+    response(res, {
+      code: 500,
+      data: error,
+      message: "Server error"
+    })
+    return
+  }
+  response(res, {
+    code: 200,
+    data: data.data,
+    message: "SQ Raport Calculate Success",
+  })
+  return
+})
+
 var  port = process.env.PORT || 9010;
 app.listen(port);
 console.log('Order API is runnning at ' + port);

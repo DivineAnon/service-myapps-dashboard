@@ -1,10 +1,18 @@
  
-var configTICKET = require('./dbticket');
-var axs = require('./axios'); 
-const fs = require('fs')
-const  sql = require('mssql');
-const { json } = require('body-parser');
-var  moment = require('moment');
+const configTICKET = require('./dbticket');
+const axs = require('./axios'); 
+const sql = require('mssql');
+const  moment = require('moment');
+
+const { NewMssql } = require('./pkg/mssql');
+const { tipeSQRaporGrommingCheckin, tipeSQRaportMysteryShopper, tipeSQRaportHardComplaint, tipeSQRaportInternalVisit, tipeSQRaportSMRoleplay } = require('./helper/option');
+const { querySQRaport } = require('./pkg/query_builder');
+const { replaceAll, mergeSort, sortingConditionForSQRaport, mapToObject } = require('./helper/common');
+const { net } = require('./helper/net');
+const { formatValue } = require('./helper/query');
+const { paginationPageOffset } = require('./helper/pagination');
+const { queryGetLastSumBobot } = require('./query/visit_sq');
+
 async function getDataToDoList(userlogin) {
     try{
         let pool = await sql.connect(configTICKET);
@@ -4751,7 +4759,7 @@ async function getListTiketingCategories(
     if(page!==''&&limit!==''){
       query = query+`ROW_NUMBER() OVER 
           (ORDER BY a.id asc) as row
-        ,a.* ,c.m_subdivisi
+        ,a.* ,e.m_divisi+'-'+c.m_subdivisi as m_subdivisi
         `
     }else{
       query = query+`a.id as value, name as label
@@ -4762,6 +4770,8 @@ async function getListTiketingCategories(
         from msticket_categories  a
         left join msticket_unit_bisnis b on a.id_unit_bisnis = b.id
         left join dbhrd.dbo.mssubdivisi c on c.m_idsubdiv = b.m_unit
+        join dbhrd.dbo.msdivisi e on b.m_dept = e.m_iddivisi
+        
     `
    
     query = query+`  
@@ -4895,7 +4905,7 @@ async function getListTiketingPIC(
     if(page!==''&&limit!==''){
       query = query+`ROW_NUMBER() OVER 
           (ORDER BY a.id asc) as row
-        ,a.*,c.m_nama,d.m_subdivisi
+        ,a.*,c.m_nama,e.m_divisi+'-'+d.m_subdivisi as m_subdivisi
         `
     }else{
       query = query+`a.id as value, c.m_nama as label
@@ -4904,9 +4914,11 @@ async function getListTiketingPIC(
     }
     query = query+`
         from msticket_pic  a
+         
         left join msticket_unit_bisnis b on a.unit_bisnis = b.id
         left join dbhrd.dbo.mskaryawan c on a.m_nik = c.m_nik
         left join dbhrd.dbo.mssubdivisi d on d.m_idsubdiv = b.m_unit
+        join dbhrd.dbo.msdivisi e on b.m_dept = e.m_iddivisi
     `
    
     query = query+`  
@@ -6805,141 +6817,576 @@ async function selectScore(
       console.log({error})
   }
 }
+
+
+async function createBulkSQGrooming({payload}){  
+   
+  payload = (payload||[])
+
+  const dataSQ = []
+  const sql = new NewMssql()  
+
+  for(const item of payload){
+    item["tipe"] = tipeSQRaporGrommingCheckin
+    item["name"] = replaceAll(item.name, "'", " ")
+    item["nilai"] = replaceAll(item.nilai, ",", ".")
+    item["nilai"] = parseFloat(item.nilai)    
+    dataSQ.push(querySQRaport.getValueFromColumn({value: item, formatRemove:"m_", columnExclude:["id", "created_at", "deleted_at"]}))    
+  }
+
+  const connection = await sql.getConnection()  
+
+  const resData = await connection.query(querySQRaport.getInsertQuery({values:dataSQ, column:["m_tipe", "m_nik", "m_kode_store", "m_name", "m_brand", "m_nilai"]}))
+
+  await sql.closeConnection()
+
+  const res = {
+    status: false,
+    count: 0
+  }
+
+  if(resData.rowsAffected === 0){
+    return res
+  }
+
+  res.status = true
+  res.count = resData.rowsAffected
+
+  return res 
+
+}
+
+async function createBulkSQHardComplaint({payload}){  
+   
+  payload = (payload||[])
+
+  const dataSQ = []
+  const sql = new NewMssql()  
+
+  for(const item of payload){
+    item["tipe"] = tipeSQRaportHardComplaint
+    item["name"] = replaceAll(item.name, "'", " ")
+    item["nilai"] = replaceAll(item.nilai, ",", ".")
+    item["nilai"] = parseFloat(item.nilai)    
+    dataSQ.push(querySQRaport.getValueFromColumn({value: item, formatRemove:"m_", columnExclude:["id", "created_at", "deleted_at"]}))    
+  }
+
+  const connection = await sql.getConnection()  
+
+  const resData = await connection.query(querySQRaport.getInsertQuery({values:dataSQ, column:["m_tipe", "m_nik", "m_kode_store", "m_name", "m_brand", "m_nilai"]}))
+
+  await sql.closeConnection()
+
+  const res = {
+    status: false,
+    count: 0
+  }
+
+  if(resData.rowsAffected === 0){
+    return res
+  }
+
+  res.status = true
+  res.count = resData.rowsAffected
+
+  return res  
+}
+
+async function createBulkSQMShopper({payload}){
+
+  payload = (payload||[])  
+  
+  const listDataKodeStore = []
+  const mapPayload = new Map()
+
+  for(const item of payload){
+    listDataKodeStore.push(item.kode_store)
+    mapPayload.set(item.kode_store, item.nilai)
+  }
+
+  const res = {
+    status: false,
+    error: null,    
+    count: 0
+  }  
+
+  let resDataSales = []
+  try {
+    const tmNet = await net({
+      tipe:"POST", 
+      url:`${axs.BASE_CMK}/store/sales`, 
+      data:{
+        kode_store: listDataKodeStore,      
+      }
+    })    
+    resDataSales = tmNet.data.data
+  } catch (error) {
+    res.error = error
+    return res
+  }    
+
+  const dataSQ = []
+  const sql = new NewMssql()  
+
+  for(const item of resDataSales){
+    
+    const tm = {}
+
+    tm["tipe"] = tipeSQRaportMysteryShopper
+    tm["nik"] = item.m_nik
+    tm["name"] = replaceAll(item.m_nama, "'", " ")
+    tm["kode_store"] = item.m_cabang    
+    tm["brand"] = item.m_brand    
+    
+    if(typeof mapPayload.get(item.m_cabang) === "undefined" ){      
+      tm["nilai"] = 0      
+    }
+
+    tm["nilai"] = parseFloat(replaceAll(mapPayload.get(item.m_cabang), ",", ".")) 
+
+    dataSQ.push(querySQRaport.getValueFromColumn({value: tm, formatRemove:"m_", columnExclude:["id", "created_at", "deleted_at"]}))    
+
+  }  
+
+  const connection = await sql.getConnection()  
+
+  const resData = await connection.query(querySQRaport.getInsertQuery({values:dataSQ, column:["m_tipe", "m_nik", "m_kode_store", "m_name", "m_brand", "m_nilai"]}))
+
+  await sql.closeConnection()  
+
+  if(resData.rowsAffected === 0){
+    res.error = "Tidak ada data yang masuk kedalam DB"
+    return res
+  }
+
+  res.status = true
+  res.count = resData.rowsAffected
+
+  return res  
+  
+}
+
+function renderTypeOfMap({data}){
+  const mapTypeOf = {
+    "undefined":0,
+    "number":data
+  }
+  return mapTypeOf[typeof data]
+}
+
+async function sortingCalculateSQRaport({period}){
+  const data = await getCalculateSQRaport({period})    
+  const dataSort = mergeSort({arr:data.data, func:sortingConditionForSQRaport})      
+  let dataFilter = []
+  let index = 0;
+  for(const item of dataSort){    
+    if(index >= 5) break
+    dataFilter.push(item)
+    index++
+  }
+  return dataFilter
+}
+
+async function getCalculateSQRaportDetail({period, kode_store, nik}){
+
+  const keyKodeStore = "KODE_STORE"
+
+  let arrWhere = []
+  let arrWhereMShopper = []
+  let queryFilterStoreVisitSQ = ""
+  const date = new Date(period)
+
+  arrWhereMShopper = [
+    "WHERE m_deleted_at IS NULL",      
+    `AND CONVERT(VARCHAR,m_kode_store) = ${formatValue({data:kode_store})}`,
+    `AND CONVERT(VARCHAR,m_tipe) IN (${formatValue({data:tipeSQRaportMysteryShopper})})`,
+    `AND CONVERT(VARCHAR,m_nik) = ${formatValue({data:nik})}`
+  ]
+  arrWhere = [
+    "WHERE m_deleted_at IS NULL",
+    `AND MONTH(m_created_at) = ${formatValue({data:(date.getMonth()+1)})}`,
+    `AND YEAR(m_created_at) = ${formatValue({data:(date.getFullYear())})}`,
+    `AND CONVERT(VARCHAR,m_kode_store) = ${formatValue({data:kode_store})}`,
+    `AND CONVERT(VARCHAR, m_nik) = ${formatValue({data:nik})}`,
+    `AND CONVERT(VARCHAR,m_tipe) IN (${formatValue({data:tipeSQRaporGrommingCheckin})}, ${formatValue({data:tipeSQRaportHardComplaint})});`
+  ]
+  queryFilterStoreVisitSQ = `AND store = ${formatValue({data:kode_store})}`
+
+  let query = querySQRaport.getSelectQuery({
+    where: arrWhere,
+    isPagination: false
+  })  
+
+  let queryMShopper = querySQRaport.getSelectQuery({
+    column: ["m_kode_store, m_nilai"],
+    where: arrWhereMShopper,
+    order: "ORDER BY m_created_at DESC",   
+    isPagination: false,    
+  })       
+
+  const sql = new NewMssql()  
+  const connection = await sql.getConnection()
+
+  const resData = await Promise.all([
+    connection.query(query.selectQuery), 
+    connection.query(queryGetLastSumBobot.replace("@filter_store", queryFilterStoreVisitSQ)),
+    connection.query(queryMShopper.selectQuery)
+  ])  
+
+  const data = resData[0]  
+
+  const mapVisitSQ = new Map()
+  const mapMShopper = new Map()
+
+  for(const itemVSQ of resData[1].recordset){
+    if(typeof mapVisitSQ.get(itemVSQ.store) === "number"){      
+      continue
+    }
+    mapVisitSQ.set(itemVSQ.store, itemVSQ.nilai)
+  }      
+
+  for(const itemMS of resData[2].recordset){
+    if(typeof mapMShopper.get(itemMS.m_kode_store) === "number"){      
+      continue
+    }
+    mapMShopper.set(itemMS.m_kode_store, itemMS.m_nilai)
+  }      
+
+  const response = {
+    data : [],
+    status: false, 
+    isEmpty: true
+  }
+
+  if(data.recordset.length === 0){        
+    return response
+  }    
+  
+  let mapObj = new Map()  
+  
+  for(const item of data.recordset){            
+    let tmpMap = new Map()
+    if(typeof mapObj.get(item.m_nik) !== "undefined"){
+      tmpMap = mapObj.get(item.m_nik)
+    }
+    tmpMap.set(item.m_tipe,item.m_nilai)  
+    tmpMap.set(keyKodeStore, item.m_kode_store)      
+    //nested map
+    mapObj.set(item.m_nik, tmpMap)    
+  }   
+
+  let responseCalculate = []  
+
+  for(const item of mapObj){    
+    
+    let ob = {}    
+
+    let tmMap = new Map(item[1]) 
+    
+    const grooming = renderTypeOfMap({data:tmMap.get(tipeSQRaporGrommingCheckin)})        
+    const mshopper = renderTypeOfMap({data:mapMShopper.get(tmMap.get(keyKodeStore))})
+    const hcomplaint = renderTypeOfMap({data:tmMap.get(tipeSQRaportHardComplaint)})
+    const sqVisit = renderTypeOfMap({data:mapVisitSQ.get(tmMap.get(keyKodeStore))})
+    const smVisit = renderTypeOfMap({data:(mapVisitSQ.get(tmMap.get(keyKodeStore)))<=10||typeof (mapVisitSQ.get(tmMap.get(keyKodeStore))) === "undefined" ?0:(mapVisitSQ.get(tmMap.get(keyKodeStore)))-10})
+
+    ob["nik"] = item[0]
+    ob["kode_store"] = tmMap.get(keyKodeStore)
+    ob["nilai"] = {
+      [tipeSQRaporGrommingCheckin]:grooming,
+      [tipeSQRaportMysteryShopper]:mshopper,
+      [tipeSQRaportHardComplaint]:hcomplaint,
+      [tipeSQRaportInternalVisit]:sqVisit,
+      [tipeSQRaportSMRoleplay]:smVisit,
+      total: ((grooming+mshopper+sqVisit+smVisit)/4)+hcomplaint
+    }        
+    
+    responseCalculate.push(ob)
+  }
+
+  response.data = responseCalculate
+  response.isEmpty = false  
+  response.status = true
+
+  return response
+
+}
+
+async function getCalculateSQRaport({period, kode_store}){
+
+  const keyKodeStore = "KODE_STORE"
+
+  let arrWhere = []
+  let arrWhereMShopper = []
+  let queryFilterStoreVisitSQ = ""
+  const date = new Date(period)
+
+  if(typeof kode_store === "undefined") {    
+    arrWhereMShopper = [
+      "WHERE m_deleted_at IS NULL",            
+      `AND CONVERT(VARCHAR,m_tipe) IN (${formatValue({data:tipeSQRaportMysteryShopper})})`
+    ]
+    arrWhere = [
+      "WHERE m_deleted_at IS NULL",
+      `AND MONTH(m_created_at) = ${formatValue({data:(date.getMonth()+1)})}`,
+      `AND YEAR(m_created_at) = ${formatValue({data:(date.getFullYear())})}`,      
+      `AND CONVERT(VARCHAR,m_tipe) IN (${formatValue({data:tipeSQRaporGrommingCheckin})}, ${formatValue({data:tipeSQRaportHardComplaint})});`
+    ]
+  }else{
+    arrWhereMShopper = [
+      "WHERE m_deleted_at IS NULL",      
+      `AND CONVERT(VARCHAR,m_kode_store) = ${formatValue({data:kode_store})}`,
+      `AND CONVERT(VARCHAR,m_tipe) IN (${formatValue({data:tipeSQRaportMysteryShopper})})`
+    ]
+    arrWhere = [
+      "WHERE m_deleted_at IS NULL",
+      `AND MONTH(m_created_at) = ${formatValue({data:(date.getMonth()+1)})}`,
+      `AND YEAR(m_created_at) = ${formatValue({data:(date.getFullYear())})}`,
+      `AND CONVERT(VARCHAR,m_kode_store) = ${formatValue({data:kode_store})}`,
+      `AND CONVERT(VARCHAR,m_tipe) IN (${formatValue({data:tipeSQRaporGrommingCheckin})}, ${formatValue({data:tipeSQRaportHardComplaint})});`
+    ]
+    queryFilterStoreVisitSQ = `AND store = ${formatValue({data:kode_store})}`
+  }  
+
+  let query = querySQRaport.getSelectQuery({
+    where: arrWhere,
+    isPagination: false
+  })  
+
+  let queryMShopper = querySQRaport.getSelectQuery({
+    column: ["m_kode_store, m_nilai"],
+    where: arrWhereMShopper,
+    order: "ORDER BY m_created_at DESC",   
+    isPagination: false,    
+  })       
+
+  const sql = new NewMssql()  
+  const connection = await sql.getConnection()
+
+  const resData = await Promise.all([
+    connection.query(query.selectQuery), 
+    connection.query(queryGetLastSumBobot.replace("@filter_store", queryFilterStoreVisitSQ)),
+    connection.query(queryMShopper.selectQuery)
+  ])  
+
+  const data = resData[0]  
+
+  const mapVisitSQ = new Map()
+  const mapMShopper = new Map()
+
+  for(const itemVSQ of resData[1].recordset){
+    if(typeof mapVisitSQ.get(itemVSQ.store) === "number"){      
+      continue
+    }
+    mapVisitSQ.set(itemVSQ.store, itemVSQ.nilai)
+  }      
+
+  for(const itemMS of resData[2].recordset){
+    if(typeof mapMShopper.get(itemMS.m_kode_store) === "number"){      
+      continue
+    }
+    mapMShopper.set(itemMS.m_kode_store, itemMS.m_nilai)
+  }      
+
+  const response = {
+    data : [],
+    status: false, 
+    isEmpty: true
+  }
+
+  if(data.recordset.length === 0){        
+    return response
+  }    
+  
+  let mapObj = new Map()  
+  
+  for(const item of data.recordset){            
+    let tmpMap = new Map()
+    if(typeof mapObj.get(item.m_nik) !== "undefined"){
+      tmpMap = mapObj.get(item.m_nik)
+    }
+    tmpMap.set(item.m_tipe,item.m_nilai)  
+    tmpMap.set(keyKodeStore, item.m_kode_store)      
+    //nested map
+    mapObj.set(item.m_nik, tmpMap)    
+  }   
+
+  let responseCalculate = []  
+
+  for(const item of mapObj){    
+    
+    let ob = {}    
+
+    let tmMap = new Map(item[1]) 
+    
+    const grooming = renderTypeOfMap({data:tmMap.get(tipeSQRaporGrommingCheckin)})        
+    const mshopper = renderTypeOfMap({data:mapMShopper.get(tmMap.get(keyKodeStore))})
+    const hcomplaint = renderTypeOfMap({data:tmMap.get(tipeSQRaportHardComplaint)})
+    const sqVisit = renderTypeOfMap({data:mapVisitSQ.get(tmMap.get(keyKodeStore))})
+    const smVisit = renderTypeOfMap({data:(mapVisitSQ.get(tmMap.get(keyKodeStore)))<=10||typeof (mapVisitSQ.get(tmMap.get(keyKodeStore))) === "undefined" ?0:(mapVisitSQ.get(tmMap.get(keyKodeStore)))-10})
+
+    ob["nik"] = item[0]
+    ob["kode_store"] = tmMap.get(keyKodeStore)
+    ob["nilai"] = {
+      [tipeSQRaporGrommingCheckin]:grooming,
+      [tipeSQRaportMysteryShopper]:mshopper,
+      [tipeSQRaportHardComplaint]:hcomplaint,
+      [tipeSQRaportInternalVisit]:sqVisit,
+      [tipeSQRaportSMRoleplay]:smVisit,
+      total: ((grooming+mshopper+sqVisit+smVisit)/4)+hcomplaint
+    }        
+    
+    responseCalculate.push(ob)
+  }
+
+  response.data = responseCalculate
+  response.isEmpty = false  
+  response.status = true
+
+  return response
+
+}
+
 module.exports = { 
-    getListScore,
-    insertListScore,
-    updateListScore,
-    deleteListScore,
-    selectScore,
-    selectSubPIC,
-    getListTiketingTask,
-    insertTiketingTask,
-    updateTiketingTask,
-    deleteTaskTiketing,
-    getListTiketingPIC,
-    insertTiketingPIC,
-    updateTiketingPIC,
-    deletePICTiketing,
-    getListUnitBisnis,
-    insertUnitBisnis,
-    updateUnitBisnis,
-    deleteUnitBisnis,
-    selectUnitBisnis,
-    getListTiketingSubCategories,
-    insertSubTiketingCategories,
-    updateSubTiketingCategories,
-    deleteSubCategoriesTiketing,
-    selectSubCategories,
-    dashboardTicketing,
-    readMessageOrChat,
-    getListChat,
-    getListTiketing,
-    insertTiketing,
-    updateTiketing,
-    insertMessageOrChat,
-    getListMessage,
-    selectCategories,
-    getListTiketingCategories,
-    insertTiketingCategories,
-    updateTiketingCategories,
-    deleteCategoriesTiketing,
-    getListCategoriesUser,
-    insertCategoriesUser,
-    updateCategoriesUser,
-    deleteCategoriesUser,
-    getListStatusTiketing,
-    insertStatusTiketing,
-    updateStatusTiketing,
-    deleteStatusTiketing,
-    changeFpp,
-    notificationDetailEntryRequest,
-    deleteVisitSq,
-    notification,
-    deleteFollowUp,
-    insertFotoFollowUp,
-    insertEntrySetStatusTask,
-    insertEntrySetPicHistory,
-    insertEntrySetPicDetail,
-    sendEmailKompetensiLegalitas,
-    getKompetensiSendmail,
-    sendEmailReminderBangunanPenunjangLegalitas,
-    countBangunanPenunjang,
-    getKategoriLegalitas,
-    updateKompetensiLegalitas,
-    updateBangunanPenunjangLegalitas,
-    updateKategoriLegalitas,
-    insertKompetensiLegalitas,
-    insertBangunanPenunjangLegalitas,
-    insertKategoriLegalitas,
-    listKompetensiLegalitas,
-    listBangunanPenunjangLegalitas,
-    listKategoriLegalitas,
-    insertBudget,
-    listBudget,
-    sendEmailApprovedSQVisit,
-    sendEmailApprovedSQCall,
-    getReviesVisitExport,
-    detailBarCharSQ,
-    barCharKuesionerSQ,
-    lineChartDataSQVisit,
-    insertDataHistoryKuesioner,
-    selectKategoriKuesioner,
-    setStatusVisit,
-    getReviesVisit,
-    insertImageVisit,
-    getDataVisitDetail,
-    updateDataNoteToPusat,
-    deleteDataNoteToPusat,
-    insertDataNoteToPusat,
-    getDataNoteToPusat,
-    jawabanKuesioner,
-    setKuesioner,
-    addVisitSq,
-    checkKategoriSq,
-    listSelectKategoriQuestionSq,
-    addKategoriQuestionSq,
-    listAddKategoriQuestionSq,
-    togelKategoriQuestionSq,
-    deleteKategoriQuestionSq,
-    updateKategoriQuestionSq,
-    togelTypeQuestionSq,
-    togelQuestionSq,
-    listSelectTypeQuestionSq,
-    checkTypeSq,
-    listAddQuestionsSq,
-    AddQuestionSq,
-    updateQuestionSq,
-    deleteQuestionSq,
-    listAddTypeQuestionSq,
-    addTypeQuestionSq,
-    updateTypeQuestionSq,
-    deleteTypeQuestionSq,
-    setDetailPic,
-    setPIC,
-    searchPicName,
-    insertScoring,
-    checkStockTaskPIC,
-    getHistoryTiket,
-    detailFollowUp,
-    checkEntryRequestList,
-    deleteEntryRequestList,
-    detailEntryRequest,
-    insertEntryRequest,
-    updateEntryRequest,
-    insertEntryRequestList,
-    updateEntryRequestList,
-    getGenerateEntryRequest,
-    getGenerateEntryRequestList,
-    getExportFollowUpPIC,
-    getExportFollowUp,
-    getSubKategoriSupport,
-    getKategoriSupport,
-    getFollow,
-    getListUnit,
-    getMonitoring,
-    getDataToDoList,
-    getDataEntry ,
-    getSelesaiFollowUp,
-    insertEntryRequesHistory,
-    approveTicketing
+  getCalculateSQRaportDetail,
+  sortingCalculateSQRaport,
+  getCalculateSQRaport,
+  createBulkSQMShopper,
+  createBulkSQHardComplaint,
+  createBulkSQGrooming,
+  getListScore,
+  insertListScore,
+  updateListScore,
+  deleteListScore,
+  selectScore,
+  selectSubPIC,
+  getListTiketingTask,
+  insertTiketingTask,
+  updateTiketingTask,
+  deleteTaskTiketing,
+  getListTiketingPIC,
+  insertTiketingPIC,
+  updateTiketingPIC,
+  deletePICTiketing,
+  getListUnitBisnis,
+  insertUnitBisnis,
+  updateUnitBisnis,
+  deleteUnitBisnis,
+  selectUnitBisnis,
+  getListTiketingSubCategories,
+  insertSubTiketingCategories,
+  updateSubTiketingCategories,
+  deleteSubCategoriesTiketing,
+  selectSubCategories,
+  dashboardTicketing,
+  readMessageOrChat,
+  getListChat,
+  getListTiketing,
+  insertTiketing,
+  updateTiketing,
+  insertMessageOrChat,
+  getListMessage,
+  selectCategories,
+  getListTiketingCategories,
+  insertTiketingCategories,
+  updateTiketingCategories,
+  deleteCategoriesTiketing,
+  getListCategoriesUser,
+  insertCategoriesUser,
+  updateCategoriesUser,
+  deleteCategoriesUser,
+  getListStatusTiketing,
+  insertStatusTiketing,
+  updateStatusTiketing,
+  deleteStatusTiketing,
+  changeFpp,
+  notificationDetailEntryRequest,
+  deleteVisitSq,
+  notification,
+  deleteFollowUp,
+  insertFotoFollowUp,
+  insertEntrySetStatusTask,
+  insertEntrySetPicHistory,
+  insertEntrySetPicDetail,
+  sendEmailKompetensiLegalitas,
+  getKompetensiSendmail,
+  sendEmailReminderBangunanPenunjangLegalitas,
+  countBangunanPenunjang,
+  getKategoriLegalitas,
+  updateKompetensiLegalitas,
+  updateBangunanPenunjangLegalitas,
+  updateKategoriLegalitas,
+  insertKompetensiLegalitas,
+  insertBangunanPenunjangLegalitas,
+  insertKategoriLegalitas,
+  listKompetensiLegalitas,
+  listBangunanPenunjangLegalitas,
+  listKategoriLegalitas,
+  insertBudget,
+  listBudget,
+  sendEmailApprovedSQVisit,
+  sendEmailApprovedSQCall,
+  getReviesVisitExport,
+  detailBarCharSQ,
+  barCharKuesionerSQ,
+  lineChartDataSQVisit,
+  insertDataHistoryKuesioner,
+  selectKategoriKuesioner,
+  setStatusVisit,
+  getReviesVisit,
+  insertImageVisit,
+  getDataVisitDetail,
+  updateDataNoteToPusat,
+  deleteDataNoteToPusat,
+  insertDataNoteToPusat,
+  getDataNoteToPusat,
+  jawabanKuesioner,
+  setKuesioner,
+  addVisitSq,
+  checkKategoriSq,
+  listSelectKategoriQuestionSq,
+  addKategoriQuestionSq,
+  listAddKategoriQuestionSq,
+  togelKategoriQuestionSq,
+  deleteKategoriQuestionSq,
+  updateKategoriQuestionSq,
+  togelTypeQuestionSq,
+  togelQuestionSq,
+  listSelectTypeQuestionSq,
+  checkTypeSq,
+  listAddQuestionsSq,
+  AddQuestionSq,
+  updateQuestionSq,
+  deleteQuestionSq,
+  listAddTypeQuestionSq,
+  addTypeQuestionSq,
+  updateTypeQuestionSq,
+  deleteTypeQuestionSq,
+  setDetailPic,
+  setPIC,
+  searchPicName,
+  insertScoring,
+  checkStockTaskPIC,
+  getHistoryTiket,
+  detailFollowUp,
+  checkEntryRequestList,
+  deleteEntryRequestList,
+  detailEntryRequest,
+  insertEntryRequest,
+  updateEntryRequest,
+  insertEntryRequestList,
+  updateEntryRequestList,
+  getGenerateEntryRequest,
+  getGenerateEntryRequestList,
+  getExportFollowUpPIC,
+  getExportFollowUp,
+  getSubKategoriSupport,
+  getKategoriSupport,
+  getFollow,
+  getListUnit,
+  getMonitoring,
+  getDataToDoList,
+  getDataEntry ,
+  getSelesaiFollowUp,
+  insertEntryRequesHistory,
+  approveTicketing
 }
